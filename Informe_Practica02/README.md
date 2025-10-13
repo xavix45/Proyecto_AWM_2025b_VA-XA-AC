@@ -45,3 +45,5 @@
 
     •Mantener un panel de administración que permita actualizar eventos, restaurantes y hoteles en tiempo real para evitar información desactualizada.
     •Diseñar la interfaz de usuario con enfoque en simplicidad y accesibilidad, priorizando la experiencia móvil para turistas en movimiento.
+
+holaaaaaaaaaaa 
