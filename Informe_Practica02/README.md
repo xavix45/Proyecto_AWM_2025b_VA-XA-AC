@@ -1,49 +1,72 @@
 1. Nombre de la apliación:
 
-    Festimap
+    Festimap Ecuador
 
-2. Descripción breve del objetivo de la práctica
 
-    •	Refinar backlog y plan de sprint. 
-    •	Diagramas de casos de uso y modelo de requisitos.
-    •	Crear mockups iniciales del proyecto.
+2. Objetivo breve de la práctica
 
-    Estos son los objetivos de la practica, con las cosas realizadas tanto para el trabajo preparatorio y para el informe, con lo cual esto nos ayuda a poder cumplir el proyecto de mejor manera. 
+- Refinar backlog y plan de sprint.
 
-3. Conclusiones y recomendaciones
+- Diseñar diagramas de casos de uso y modelo de requisitos.
 
-    Conclusiones
+- Crear mockups iniciales del proyecto y maquetarlos en HTML según las restricciones del curso.
 
-    Verónica Aguilar
+- Descripcion:
 
-    •La observación directa en sitios como San Francisco y el Metro evidenció que los turistas y locales buscan información rápida sobre festividades y lugares de interés.
-    •Muchos usuarios dependen del teléfono móvil como principal herramienta para orientarse y tomar decisiones en tiempo real.
+FestiMap Ecuador es una maqueta web para descubrir festividades y rutas culturales del país. El usuario puede:
 
-    Xavier Anatoa
+Explorar “Hoy y cerca de ti”, filtrar por región, tipo y fecha, ver detalle del evento y agregarlo a su agenda.
 
-    •Existe una fuerte tendencia a consultar reseñas en línea antes de elegir restaurantes o servicios, lo cual influye más que la simple proximidad geográfica.
-    •Se identificó la necesidad de un sistema centralizado que reúna en un solo lugar festividades, gastronomía y opciones de alojamiento.
+Buscar por tema/palabra clave y explorar por región.
 
-    Angelo Conteron
+Planificar rutas A→B con paradas sugeridas.
 
-    •El interés por opciones de reservas digitales es alto, ya que los turistas prefieren asegurar hospedaje sin cambiar de plataforma.
-    •Una aplicación que combine calendario de eventos, restaurantes mejor valorados y un sistema de reservas puede mejorar tanto la experiencia del visitante como la visibilidad de los negocios locales.
+Gestionar cuenta, intereses y permisos de ubicación.
 
-    Recomendaciones
+Un módulo inicial de administración permite listar eventos y completar un formulario de creación/edición, además de una vista de reportes.
 
-    Verónica Aguilar
+El entregable actual se centra en maquetar vistas coherentes con historias y casos de uso, dejando la lógica y el diseño visual avanzado para etapas posteriores.
 
-    •Desarrollar un módulo de calendario dinámico que muestre festividades en curso y próximas, con filtros por fecha.
-    •Integrar un sistema de geolocalización que sugiera restaurantes cercanos con base en reseñas y valoraciones verificadas.
+4. Conclusiones y Recomendaciones
 
-    Xavier Anatoa
+Verónica Aguilar
 
-    •Implementar un módulo básico de reservas de hoteles que, en su primera versión, conecte al usuario con el establecimiento de manera directa.
-    •Añadir un sistema de notificaciones en la aplicación que avise sobre eventos próximos.
+Conclusiones
 
-    Angelo Conteron
+En los mockups en Excel confirmamos que “Hoy y cerca de ti”, los filtros y la ficha de evento sostienen la navegación principal. Al depurar pantallas, eliminamos redundancias y dejamos un flujo claro para explorar, buscar y agendar. La coherencia de Historias de Usuario, Casos de Uso y Mockups se mantiene visible en cada vista priorizada.
 
-    •Mantener un panel de administración que permita actualizar eventos, restaurantes y hoteles en tiempo real para evitar información desactualizada.
-    •Diseñar la interfaz de usuario con enfoque en simplicidad y accesibilidad, priorizando la experiencia móvil para turistas en movimiento.
+A partir de los requerimientos funcionales y no funcionales, junto con los casos de uso definidos, se elaboraron los mockups iniciales en Excel, lo que permitió representar visualmente la interfaz propuesta y comprobar su coherencia con las necesidades planteadas en el sistema.
 
-holaaaaaaaaaaa 
+Recomendaciones
+
+Se recomienda continuar utilizando mockups sencillos en Excel u otras herramientas accesibles en las primeras fases, ya que permiten validar rápidamente la interfaz y realizar ajustes antes de pasar a un diseño más avanzado.
+
+Se recomienda tener bien definida la idea del proyecto desde el inicio, con el fin de precisar adecuadamente los mockups y las funciones que debe realizar la aplicación.
+
+Xavier Anatoa
+
+Conclusiones
+
+Verificamos que el diagrama UML refleja el dominio esencial: Evento, Usuario, Interés, Ruta, Parada y Reporte. Las relaciones sostienen los casos de uso priorizados y facilitan escalabilidad. La trazabilidad HU↔CU↔UI↔UML queda clara y verificable.
+
+En el módulo de administración, confirmamos que el CRUD de eventos y la validación de formularios cubren el flujo editorial mínimo. La maqueta permite evaluar reglas de publicación y estados del evento sin depender aún del back-end.
+
+Recomendaciones
+
+Completemos criterios de aceptación medibles por historia (filtros, paginación, validaciones, accesibilidad). A partir de ellos derivemos casos de prueba funcionales para QA del MVP. Mantengamos la cobertura en una matriz simple.
+
+Mantengamos “trazabilidad viva”: cada ajuste de reglas o alcance debe reflejarse en Historias de Usuario, Casos de Uso, mockups y UML. Con esto prevenimos desviaciones al pasar a código y facilitamos la revisión entre sprints.
+
+Angelo Conterón
+
+Conclusiones
+
+Validamos que la planificación de punto A al punto B con paradas está modelada lo suficiente para revisar navegación y contenido. Podemos diferir mapa interactivo y cálculo de ruta sin perder intención de producto. Reducimos riesgo técnico en esta etapa.
+
+Los permisos de ubicación y la agenda del usuario se perfilan como piezas críticas de la propuesta de valor. Al anclarlas en la maqueta, facilitamos futuras integraciones y pruebas con datos simulados.
+
+Recomendaciones
+
+Ejecutemos pruebas de concepto pequeñas: permisos de ubicación, carga de puntos de interés y render básico de rutas con datos mock. Validemos desempeño y mensajes de permiso antes del desarrollo completo. Documentemos hallazgos en la maqueta.
+
+Prioricemos endpoints mínimos para el siguiente sprint (CRUD de Evento, autenticación, preferencias, listados y reportes). Esto habilita iteraciones cortas y medición temprana del valor entregado.
