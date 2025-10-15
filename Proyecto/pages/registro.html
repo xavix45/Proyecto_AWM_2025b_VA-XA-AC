@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Registro — FestiMap</title>
+    <link rel="stylesheet" href="/styles/style.css" />
+    <link rel="stylesheet" href="/styles/components.css" />
+</head>
+
+<body>
+    <header class="header">
+        <div class="container nav">
+            <div class="brand">
+                <div class="logo">FM</div>
+                <h1>FestiMap Ecuador</h1>
+            </div>
+        </div>
+    </header>
+    <main class="container section-narrow">
+        <h2 class="page-title">Crear cuenta</h2>
+        <form class="form" autocomplete="off">
+            <label class="form__label">Nombre y apellido <input class="input" required /></label>
+            <label class="form__label">Correo <input type="email" class="input" required /></label>
+            <label class="form__label">Contraseña <input type="password" class="input" minlength="8" required /><small
+                    class="muted">Mínimo 8 caracteres, 1 mayúscula y 1 número.</small></label>
+            <div class="form__row"><label class="radio"><input type="radio" name="viajero" checked />
+                    Turista</label><label class="radio"><input type="radio" name="viajero" /> Residente</label><label
+                    class="radio"><input type="radio" name="viajero" /> Estudiante</label></div>
+            <button class="btn btn--primary form__submit" type="submit">Crear cuenta</button>
+            <p class="muted center">Ya tengo cuenta <a class="link" href="/pages/login.html">Iniciar sesión</a></p>
+        </form>
+    </main>
+    <footer>
+        <div class="container footer-row"><span>© 2025 FestiMap Ecuador</span></div>
+    </footer>
+</body>
+
+</html>

@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Admin — Eventos (Listado)</title>
+    <link rel="stylesheet" href="/styles/style.css" />
+    <link rel="stylesheet" href="/styles/components.css" />
+    <link rel="stylesheet" href="/styles/pages/admin.css" />
+</head>
+
+<body>
+    <header class="header admin">
+        <div class="container nav">
+            <div class="brand">
+                <div class="logo">FM</div>
+                <h1>Admin — FestiMap</h1>
+            </div>
+        </div>
+    </header>
+    <main class="container section">
+        <div class="toolbar">
+            <input class="input" placeholder="Buscar por nombre/ciudad…" /><select>
+                <option>Región</option>
+            </select><select>
+                <option>Categoría</option>
+            </select><select>
+                <option>Estado</option>
+            </select>
+            <button class="btn btn--primary">Aplicar</button><button class="btn btn--ghost">Exportar CSV</button><a
+                class="btn btn--accent" href="/pages/admin/evento-formulario.html">Crear evento</a>
+        </div>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Región</th>
+                    <th>Ciudad</th>
+                    <th>Categoría</th>
+                    <th>Fecha</th>
+                    <th>Estado</th>
+                    <th>Asist.</th>
+                    <th>Rating</th>
+                    <th>Visitas</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Feria de Saquisilí</td>
+                    <td>Sierra</td>
+                    <td>Saquisilí</td>
+                    <td>Ferias</td>
+                    <td>Jue 09–14</td>
+                    <td>Aprobado</td>
+                    <td>420</td>
+                    <td>4.6★</td>
+                    <td>12.3k</td>
+                    <td>✏️ 👁️ ⏱️ 🗑️</td>
+                </tr>
+            </tbody>
+        </table>
+    </main>
+    <footer>
+        <div class="container footer-row"><span>© 2025 FestiMap Admin</span></div>
+    </footer>
+</body>
+
+</html>

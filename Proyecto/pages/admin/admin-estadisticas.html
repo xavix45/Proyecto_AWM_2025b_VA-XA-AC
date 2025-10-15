@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Admin — Estadísticas</title>
+    <link rel="stylesheet" href="/styles/style.css" />
+    <link rel="stylesheet" href="/styles/components.css" />
+    <link rel="stylesheet" href="/styles/pages/admin.css" />
+</head>
+
+<body>
+    <header class="header admin">
+        <div class="container nav">
+            <div class="brand">
+                <div class="logo">FM</div>
+                <h1>Admin — FestiMap</h1>
+            </div>
+        </div>
+    </header>
+    <main class="container section">
+        <h2 class="page-title">Reportes y estadísticas</h2>
+        <div class="toolbar"><input type="date" class="input" /><input type="date" class="input" /><select
+                class="input">
+                <option>Región</option>
+            </select><select class="input">
+                <option>Categoría</option>
+            </select><button class="btn btn--primary">Aplicar</button><button class="btn btn--ghost">Exportar
+                PDF</button></div>
+        <section class="kpis">
+            <div class="kpi"><span class="kpi__label">Asistencias</span><span class="kpi__value">1,245</span></div>
+            <div class="kpi"><span class="kpi__label">Valoración prom.</span><span class="kpi__value">4.4★</span></div>
+            <div class="kpi"><span class="kpi__label">Eventos activos</span><span class="kpi__value">86</span></div>
+            <div class="kpi"><span class="kpi__label">Comentarios OK</span><span class="kpi__value">312</span></div>
+        </section>
+        <div class="grid-2">
+            <div class="panel tall">[Gráfico: Asistencias por semana]</div>
+            <div class="panel tall">[Gráfico: Valoración por región]</div>
+        </div>
+        <h3>Top eventos de la semana</h3>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Evento</th>
+                    <th>Ciudad</th>
+                    <th>Asistencias</th>
+                    <th>Rating</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Feria de Saquisilí</td>
+                    <td>Saquisilí</td>
+                    <td>420</td>
+                    <td>4.6★</td>
+                </tr>
+            </tbody>
+        </table>
+    </main>
+    <footer>
+        <div class="container footer-row"><span>© 2025 FestiMap Admin</span></div>
+    </footer>
+</body>
+
+</html>

@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Plan de viaje — FestiMap</title>
+    <link rel="stylesheet" href="/styles/style.css" />
+    <link rel="stylesheet" href="/styles/components.css" />
+    <link rel="stylesheet" href="/styles/pages/plan.css" />
+</head>
+
+<body>
+    <header class="header">
+        <div class="container nav">
+            <div class="brand">
+                <div class="logo">FM</div>
+                <h1>FestiMap Ecuador</h1>
+            </div>
+        </div>
+    </header>
+    <main class="container section">
+        <h2 class="page-title">Rutas culturales A→B</h2>
+        <div class="grid-2">
+            <div>
+                <div class="form__row"><input class="input" placeholder="Origen (ciudad/lugar)" /><input class="input"
+                        placeholder="Destino (ciudad/lugar)" /><select>
+                        <option>Radio: 2 km</option>
+                        <option>3 km</option>
+                        <option>5 km</option>
+                    </select><button class="btn btn--primary">Buscar ruta</button></div>
+                <div class="map tall">[Ruta trazada + pines cercanos]</div>
+            </div>
+            <aside class="panel">
+                <h3>Paradas sugeridas</h3>
+                <ul class="plain">
+                    <li>Feria artesanal — Jue 10:00 [ + Añadir ]</li>
+                    <li>Comida típica — 13:00 [ + Añadir ]</li>
+                </ul>
+                <hr />
+                <h3>Tu itinerario</h3>
+                <ol class="plain">
+                    <li>Día 1 — 10:00 — Otavalo (mercado)</li>
+                </ol>
+                <div class="form__row"><button class="btn btn--primary">Guardar ruta</button><a class="btn btn--ghost"
+                        href="/pages/agenda-alertas.html">Ver itinerario</a></div>
+            </aside>
+        </div>
+    </main>
+    <footer>
+        <div class="container footer-row"><span>© 2025 FestiMap Ecuador</span></div>
+    </footer>
+</body>
+
+</html>
