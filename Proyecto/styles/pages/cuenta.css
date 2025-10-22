@@ -1,0 +1,204 @@
+/* --- styles/pages/mi-cuenta.css --- */
+
+/* 1. Layout Principal de la Página */
+/* ---------------------------------- */
+
+/* Quitamos las tabs, ya no las usamos */
+.tabs {
+    display: none;
+}
+
+.grid-perfil {
+    display: grid;
+    /* Columna izq: 1fr (aprox 30%), Col der: 2.5fr (aprox 70%) */
+    grid-template-columns: 1fr 2.5fr;
+    gap: 24px;
+    align-items: start;
+    /* Alinea los 2 paneles arriba */
+}
+
+/* 2. Panel de Usuario (Izquierda) */
+/* ---------------------------------- */
+.panel-usuario {
+    background: var(--surface-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+    padding: 24px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, .05);
+    position: sticky;
+    top: 24px;
+    /* Se queda fijo al hacer scroll */
+}
+
+.panel-usuario h3 {
+    font-size: 1.25rem;
+    margin: 0 0 16px;
+    color: var(--ink);
+}
+
+.panel-usuario p {
+    margin: 0 0 10px;
+    color: var(--ink);
+    line-height: 1.5;
+}
+
+.panel-usuario p strong {
+    color: var(--muted);
+}
+
+.panel-usuario p.muted {
+    color: var(--muted);
+    font-size: 0.9rem;
+    margin-bottom: 24px;
+}
+
+.panel-usuario .btn--full-width {
+    width: 100%;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+/* 3. Panel de Ajustes (Derecha) */
+/* ---------------------------------- */
+.panel-ajustes {
+    background: var(--surface-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, .05);
+}
+
+.form-section {
+    padding: 24px;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.form-section:last-child {
+    border-bottom: none;
+}
+
+/* Títulos H3 (Preferencias, Seguridad...) */
+.section-title-sm {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin: 0 0 20px;
+}
+
+/* Títulos H4 (Intereses) */
+.section-subtitle {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--muted);
+    margin: 20px 0 12px;
+}
+
+/* Grid para (Región, Idioma, Moneda) */
+.form-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+}
+
+/* Fila de ajuste (para Seguridad, Notificaciones) */
+.form-row-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.form-row-line:first-of-type {
+    padding-top: 0;
+}
+
+.form-row-line:last-of-type {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.form-row-line label {
+    font-weight: 600;
+    color: var(--ink);
+}
+
+/* Botones On/Off */
+.form-row-line .btn {
+    padding: 6px 16px;
+    min-width: 80px;
+    /* Ancho mínimo */
+    text-align: center;
+}
+
+.form-row-line .btn.is-on {
+    /* Mantenemos el amarillo como "activo" */
+    background: var(--accent);
+    color: #111;
+}
+
+/* Estilo de los Intereses (chips) */
+.chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.chip {
+    border: 1px solid var(--border-light);
+    background: var(--surface);
+    color: var(--muted);
+    padding: 8px 16px;
+    border-radius: 6px;
+    /* <-- Cambio: los hacemos rectangulares */
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all .2s;
+}
+
+.chip:hover {
+    border-color: var(--ink);
+    color: var(--ink);
+}
+
+.chip.is-on {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #111;
+}
+
+
+/* 4. Acciones Finales (Abajo) */
+/* ---------------------------------- */
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    /* Alinea botones a la derecha */
+    gap: 16px;
+    background: var(--surface);
+    /* Fondo gris claro */
+    padding: 24px;
+    border-radius: 0 0 var(--radius) var(--radius);
+    /* Redondea esquinas inf. */
+}
+
+
+/* 5. Responsive */
+/* ---------------------------------- */
+@media (max-width: 900px) {
+    .grid-perfil {
+        grid-template-columns: 1fr;
+        /* 1 columna en tablet */
+    }
+
+    .panel-usuario {
+        position: static;
+        /* Quitamos el sticky */
+    }
+
+    .form-grid-3 {
+        grid-template-columns: 1fr;
+        /* 1 columna en móvil */
+        gap: 20px;
+    }
+}

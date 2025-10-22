@@ -25,6 +25,7 @@ nav {
     padding: 10px 24px
 }
 
+
 .nav-links {
     display: flex;
     align-items: center;
@@ -49,7 +50,22 @@ nav {
     font-weight: 800;
     font-size: 22px
 }
+/* En header.css */
 
+/* Estilo para el contenedor .brand (que AHORA es un enlace <a>) */
+.brand {
+    display: flex;         /* <-- Los pone en línea horizontal */
+    align-items: center;   /* Los alinea verticalmente */
+    gap: 10px;             /* Espacio entre FM y el texto */
+    text-decoration: none; /* Quita el subrayado del enlace */
+    color: inherit;        /* Hereda el color de texto (oscuro en estas págs) */
+}
+
+/* Estilo para el texto "FestiMap Ecuador" (que AHORA es un <span>) */
+.brand span {
+    font-size: 1.25rem; /* 20px aprox */
+    font-weight: 700;
+}
 .btn-login {
     background: var(--accent);
     color: #000;

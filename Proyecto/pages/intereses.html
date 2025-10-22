@@ -11,16 +11,17 @@
 <body class="theme-light">
     <header class="header">
         <div class="container nav">
-            <div class="brand">
+            <a class="brand" href="../index.html">
                 <div class="logo">FM</div>
-                <h1>FestiMap Ecuador</h1>
-            </div>
+                <span>FestiMap Ecuador</span>
+            </a>
         </div>
     </header>
 
     <main id="main" class="container page-intereses theme-light" role="main">
         <h2 class="page-title">Elige tus intereses culturales</h2>
         <p class="page-subtitle muted">Selecciona al menos 3 categorías. Luego podrás cambiarlas.</p>
+
 
         <section class="chips-grid" aria-label="Selecciona tus intereses">
             <!-- 1 -->
@@ -106,6 +107,27 @@
                 </div>
             </details>
         </section>
+
+        <!-- rango de edad -->
+        <section class="age-block">
+            <label class="age-label" for="age">Rango de edad:</label>
+
+            <!-- leyenda de marcas -->
+            <div class="age-legend">
+                <span>18</span><span>25</span><span>35</span><span>45</span><span>60+</span>
+            </div>
+
+            <!-- slider -->
+            <input id="age" class="age-range" type="range" min="18" max="60" step="1" value="35" list="ticks">
+            <datalist id="ticks">
+                <option value="18"></option>
+                <option value="25"></option>
+                <option value="35"></option>
+                <option value="45"></option>
+                <option value="60"></option>
+            </datalist>
+        </section>
+
 
         <div class="form__row actions">
             <button class="btn btn--primary" type="submit">Guardar preferencias</button>

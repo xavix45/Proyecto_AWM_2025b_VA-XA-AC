@@ -1,24 +1,46 @@
-/* Quitar superposición del header en registro */
+/* Esto va en login.css y también en registro.css */
+
+/* Quitar superposición del header */
 .header {
     position: static;
     backdrop-filter: none;
     text-shadow: none;
-    z-index: auto
+    z-index: auto;
+
+    /* --- AÑADIR ESTO --- */
+    background: var(--surface-card);
+    /* Fondo blanco */
+    border-bottom: 1px solid var(--border-light);
+    /* Línea de separación */
+    color: var(--ink);
+    /* Texto oscuro por defecto */
 }
 
 .header::after {
-    content: none
+    content: none;
 }
 
+/* --- AÑADIR ESTO TAMBIÉN --- */
+/* Arreglar color de los enlaces del nav */
+.header .nav-links a {
+    color: var(--ink);
+}
+
+.header .nav-links a:hover {
+    color: var(--brand);
+}
+
+/* El botón .btn-login ya funciona bien (fondo amarillo, texto oscuro) */
+/* Radios coherentes con el formulario */
 /* Radios coherentes con el formulario */
 .radio {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    color: #e2e8f0;
-    font-weight: 600
+    color: var(--muted); /* Texto gris oscuro */
+    font-weight: 600;
 }
-
+/* ... el resto de tus estilos de registro ... */
 .radio input {
     inline-size: 18px;
     block-size: 18px

@@ -5,19 +5,22 @@
 }
 
 .page-title {
-    color: #fff;
+    color: var(--ink);
+    /* Texto oscuro */
     font-weight: 800;
     font-size: clamp(24px, 3vw, 32px);
     margin: 0 0 16px;
     text-align: center;
-    text-shadow: 0 1px 6px rgba(0, 0, 0, .25)
+    text-shadow: none;
+    /* Quitar sombra */
 }
 
 .footer-row {
     display: flex;
     justify-content: center;
     padding: 24px 0;
-    color: #cbd5e1
+    color: var(--muted);
+    /* Texto gris oscuro */
 }
 
 @media (max-width:520px) {
@@ -30,23 +33,51 @@
     }
 }
 
-/* Login: desactivar overlay del header global */
+/* Esto va en login.css y también en registro.css */
+
+/* Quitar superposición del header */
 .header {
     position: static;
-    /* quita superposición */
     backdrop-filter: none;
-    /* sin blur */
     text-shadow: none;
     z-index: auto;
+
+    /* --- AÑADIR ESTO --- */
+    background: var(--surface-card);
+    /* Fondo blanco */
+    border-bottom: 1px solid var(--border-light);
+    /* Línea de separación */
+    color: var(--ink);
+    /* Texto oscuro por defecto */
 }
 
 .header::after {
     content: none;
 }
 
+/* --- AÑADIR ESTO TAMBIÉN --- */
+/* Arreglar color de los enlaces del nav */
+.header .nav-links a {
+    color: var(--ink);
+}
+
+.header .nav-links a:hover {
+    color: var(--brand);
+}
+
+/* El botón .btn-login ya funciona bien (fondo amarillo, texto oscuro) */
+
 /* elimina el degradado superpuesto */
 
 /* Ajuste de separación tras quitar absolute */
 .section-narrow {
     margin: 64px auto 48px;
+}
+
+
+/* --- Añadir al final de styles/pages/login.css --- */
+
+/* Centra el título SÓLO en páginas estrechas */
+.section-narrow .page-title {
+    text-align: center;
 }

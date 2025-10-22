@@ -1,0 +1,344 @@
+/* --- styles/pages/agenda-alertas.css --- */
+
+/* 1. Header */
+.header {
+    position: static;
+    backdrop-filter: none;
+    text-shadow: none;
+    z-index: auto;
+    background: var(--surface-card);
+    border-bottom: 1px solid var(--border-light);
+    color: var(--ink);
+}
+
+.header::after {
+    content: none;
+}
+
+/* 2. Título */
+.page-title {
+    color: var(--ink);
+    font-weight: 800;
+    margin-bottom: 24px;
+}
+
+/* 3. Controles */
+.agenda-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border-light);
+    margin-bottom: 24px;
+}
+
+.tabs-group {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+.tabs {
+    border-bottom: none;
+}
+
+.tab {
+    transform: translateY(0);
+    border-bottom-width: 2px;
+}
+
+.alert-options {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    font-size: 0.9rem;
+    color: var(--muted);
+}
+
+.alert-options span {
+    font-weight: 600;
+}
+
+.alert-options .checkbox {
+    color: var(--ink);
+}
+
+/* 4. Layout Grid */
+.grid-agenda {
+    grid-template-columns: 1.75fr 1fr;
+    align-items: start;
+}
+
+/* 5. Lista */
+.agenda-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    background: var(--border-light);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+    overflow: hidden;
+}
+
+/* --- INICIO: ITEM DE AGENDA CORREGIDO --- */
+/* 6. Item de Agenda */
+.agenda-item {
+    display: flex;
+    align-items: start;
+    gap: 16px;
+    padding: 20px;
+    background: var(--surface-card);
+}
+
+/* Columna 1: Info */
+.agenda-item__info {
+    flex: 1.2;
+    min-width: 180px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.item-text h4 {
+    margin: 0 0 4px;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.2;
+}
+
+.item-text .muted {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--muted);
+}
+
+.item-image {
+    width: 100%;
+    height: 80px;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+}
+
+.item-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Columna 2: Feedback */
+.agenda-item__feedback {
+    flex: 2.5;
+    min-width: 300px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    /* Aumentamos el gap un poco */
+}
+
+/* .comment-label eliminado */
+.feedback-controls {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+/* Aumentamos gap */
+.attendance-buttons {
+    display: flex;
+    gap: 6px;
+}
+
+.btn-attendance {
+    padding: 5px 10px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border: 1px solid var(--border-light);
+    background: var(--surface);
+    color: var(--muted);
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btn-attendance.is-active {
+    background: #22c55e;
+    border-color: #22c55e;
+    color: #fff;
+}
+
+.btn-attendance.is-no.is-active {
+    background: #ef4444;
+    border-color: #ef4444;
+}
+
+.rating {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.stars {
+    font-size: 1.1rem;
+    color: var(--muted);
+    /* Cambiamos a gris por defecto */
+    cursor: pointer;
+    /* Indicador visual */
+}
+
+.rating-value {
+    font-size: 0.85rem;
+    color: var(--muted);
+    font-weight: 600;
+}
+
+/* .btn-valorar eliminado */
+.comment-box {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Nuevo botón Guardar Comentario */
+.btn-save-comment {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    align-self: flex-start;
+    /* Se alinea a la izquierda */
+    margin-top: 4px;
+    /* Pequeño espacio arriba */
+}
+
+/* Columna 3: Acciones */
+.agenda-item__actions {
+    flex: 0.8;
+    min-width: 110px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: stretch;
+}
+
+.agenda-item__actions .btn {
+    width: 100%;
+    text-align: center;
+    padding: 8px;
+    font-size: 0.85rem;
+}
+
+/* --- FIN: ITEM DE AGENDA CORREGIDO --- */
+
+/* 7. Panel de Alertas */
+.alert-center {
+    position: sticky;
+    top: 24px;
+}
+
+.alert-center h3 {
+    font-size: 1.25rem;
+    margin: 0 0 10px;
+    color: var(--ink);
+}
+
+.alert-list {
+    list-style: none;
+    padding: 0;
+    margin: 16px 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    background: var(--border-light);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+    overflow: hidden;
+}
+
+.alert-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: var(--surface-card);
+    text-decoration: none;
+    color: var(--ink);
+    font-size: 0.9rem;
+    transition: background .2s;
+}
+
+.alert-link:hover {
+    background: var(--surface);
+}
+
+.alert-link span {
+    font-size: 1.1rem;
+}
+
+.alert-link.warning {
+    color: #f97316;
+}
+
+.alert-link.success {
+    color: #22c55e;
+}
+
+/* 8. Responsive */
+@media (max-width: 1100px) {
+    .grid-agenda {
+        grid-template-columns: 1fr;
+    }
+
+    .alert-center {
+        position: static;
+        margin-top: 24px;
+    }
+}
+
+@media (max-width: 768px) {
+    .agenda-item {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 16px;
+    }
+
+    .agenda-item__feedback {
+        order: 1;
+    }
+
+    .agenda-item__actions {
+        order: 0;
+        flex-direction: row;
+        min-width: auto;
+    }
+
+    .agenda-item__actions .btn {
+        flex: 1;
+    }
+
+    .feedback-controls {
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 600px) {
+    .agenda-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .tabs-group {
+        justify-content: space-between;
+    }
+
+    .alert-options {
+        justify-content: flex-start;
+        padding: 10px;
+        background: var(--surface);
+        border-radius: 8px;
+    }
+
+    .item-image {
+        height: 120px;
+    }
+}
