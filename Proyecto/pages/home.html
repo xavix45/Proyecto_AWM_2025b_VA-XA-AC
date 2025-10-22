@@ -5,25 +5,31 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Hoy y cerca de ti — FestiMap</title>
-    <link rel="stylesheet" href="/styles/style.css" />
-    <link rel="stylesheet" href="/styles/components.css" />
-    <link rel="stylesheet" href="/styles/pages/home.css" />
+    <link rel="stylesheet" href="../styles/main.css">
+
 </head>
 
 <body>
     <header class="header">
         <div class="container nav">
-            <div class="brand">
+            <a class="brand" href="../index.html">
                 <div class="logo">FM</div>
-                <h1>FestiMap Ecuador</h1>
-            </div>
+                <span>FestiMap Ecuador</span>
+            </a>
             <nav class="navlinks"><a href="/pages/explorar-tema.html">Explorar</a><a
                     href="/pages/plan-de-viaje.html">Plan de viaje</a><a class="btn btn--ghost"
                     href="/pages/agenda-alertas.html">Mi agenda</a><a class="btn btn--primary"
                     href="/pages/mi-cuenta.html">Mi cuenta</a></nav>
         </div>
     </header>
+
     <main class="container section">
+
+        <form class="main-search-bar" role="search">
+            <input type="search" class="input-search" placeholder="Buscar colada morada, Inti Raymi...">
+            <button class="btn btn--primary" type="submit">Buscar</button>
+        </form>
+
         <div class="filters">
             <select>
                 <option>Región</option>
@@ -40,20 +46,126 @@
             </select>
             <input type="date" /><label class="checkbox"><input type="checkbox" checked /> Dentro de tu viaje</label>
         </div>
+
+        <h2 class="section-title">Festividades para descubrir</h2>
         <div class="grid-2">
-            <div class="map">[MAPA con pines]</div>
+
+            <div class="slider-container">
+                <div class="slider-track">
+                    <a href="/pages/detalle-evento.html" class="slide">
+                        <img src="https://www.turismo.gob.ec/wp-content/uploads/2019/03/fiesta-chonta-C04.jpg"
+                            alt="Fiesta de la Chonta">
+                        <div class="slide-caption">
+                            <h3>Fiesta de la Chonta</h3>
+                            <p>Amazonía</p>
+                        </div>
+                    </a>
+                    <a href="/pages/detalle-evento.html" class="slide">
+                        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS-v4_kvXAtEpEGmAQCPA0gjnLhXRUduMxGaQ&s"
+                            alt="Rodeo Montubio">
+                        <div class="slide-caption">
+                            <h3>Rodeo Montubio</h3>
+                            <p>Costa</p>
+                        </div>
+                    </a>
+                    <a href="/pages/detalle-evento.html" class="slide">
+                        <img src="https://scontent.fuio1-2.fna.fbcdn.net/v/t39.30808-6/486489334_1060268969470496_2408788853340878684_n.jpg?_nc_cat=106&ccb=1-7&_nc_sid=127cfc&_nc_ohc=KAjbqUZcu0YQ7kNvwGKzWk9&_nc_oc=AdmZ1GDsXcUs1k7W-4-B-LgPgVOZaT4iVcUnc6TT5paiiZlPo91odbYU0FU1xGsz6gg&_nc_zt=23&_nc_ht=scontent.fuio1-2.fna&_nc_gid=WB8yrK_0HLejNaDVv2BMjw&oh=00_Afct04_NF3McRwPSnETRZpza1BnhNK-MaxolxS5iH_BDOA&oe=68FEDD48"
+                            alt="Inti Raymi">
+                        <div class="slide-caption">
+                            <h3>Inti Raymi</h3>
+                            <p>Sierra</p>
+                        </div>
+                    </a>
+                    <a href="/pages/detalle-evento.html" class="slide">
+                        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSZycmiMTFovmbnwlYFIdMeFnZstcLjDFIRqA&s"
+                            alt="Carnaval de Guaranda">
+                        <div class="slide-caption">
+                            <h3>Carnaval de Guaranda</h3>
+                            <p>Sierra</p>
+                        </div>
+                    </a>
+                    <a href="/pages/detalle-evento.html" class="slide">
+                        <img src="https://cloudfront-us-east-1.images.arcpublishing.com/eluniverso/LX7FIBCIFZDWFKFBCNPOQBL7CQ.jpg"
+                            alt="Fiesta Kasama">
+                        <div class="slide-caption">
+                            <h3>Fiesta Kasama</h3>
+                            <p>Costa</p>
+                        </div>
+                    </a>
+
+                    <a href="/pages/detalle-evento.html" class="slide">
+                        <img src="https://www.turismo.gob.ec/wp-content/uploads/2019/03/fiesta-chonta-C04.jpg"
+                            alt="Fiesta de la Chonta">
+                        <div class="slide-caption">
+                            <h3>Fiesta de la Chonta</h3>
+                            <p>Amazonía</p>
+                        </div>
+                    </a>
+                    <a href="/pages/detalle-evento.html" class="slide">
+                        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS-v4_kvXAtEpEGmAQCPA0gjnLhXRUduMxGaQ&s"
+                            alt="Rodeo Montubio">
+                        <div class="slide-caption">
+                            <h3>Rodeo Montubio</h3>
+                            <p>Costa</p>
+                        </div>
+                    </a>
+                    <a href="/pages/detalle-evento.html" class="slide">
+                        <img src="https://scontent.fuio1-2.fna.fbcdn.net/v/t39.30808-6/486489334_1060268969470496_2408788853340878684_n.jpg?_nc_cat=106&ccb=1-7&_nc_sid=127cfc&_nc_ohc=KAjbqUZcu0YQ7kNvwGKzWk9&_nc_oc=AdmZ1GDsXcUs1k7W-4-B-LgPgVOZaT4iVcUnc6TT5paiiZlPo91odbYU0FU1xGsz6gg&_nc_zt=23&_nc_ht=scontent.fuio1-2.fna&_nc_gid=WB8yrK_0HLejNaDVv2BMjw&oh=00_Afct04_NF3McRwPSnETRZpza1BnhNK-MaxolxS5iH_BDOA&oe=68FEDD48"
+                            alt="Inti Raymi">
+                        <div class="slide-caption">
+                            <h3>Inti Raymi</h3>
+                            <p>Sierra</p>
+                        </div>
+                    </a>
+                    <a href="/pages/detalle-evento.html" class="slide">
+                        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSZycmiMTFovmbnwlYFIdMeFnZstcLjDFIRqA&s"
+                            alt="Carnaval de Guaranda">
+                        <div class="slide-caption">
+                            <h3>Carnaval de Guaranda</h3>
+                            <p>Sierra</p>
+                        </div>
+                    </a>
+                    <a href="/pages/detalle-evento.html" class="slide">
+                        <img src="https://cloudfront-us-east-1.images.arcpublishing.com/eluniverso/LX7FIBCIFZDWFKFBCNPOQBL7CQ.jpg"
+                            alt="Fiesta Kasama">
+                        <div class="slide-caption">
+                            <h3>Fiesta Kasama</h3>
+                            <p>Costa</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
             <div class="list">
-                <article class="list-card">
-                    <h4>Feria de Saquisilí</h4>
-                    <p class="muted">Saquisilí • Jue 09:00–14:00</p>
-                    <div class="card-actions"><a class="btn btn--ghost" href="/pages/detalle-evento.html">Ver
-                            detalle</a><a class="btn btn--primary" href="#">Ver en mapa</a></div>
+                <a class="btn btn--primary btn--full-width" href="#">Ver mapa completo</a>
+
+                <article class="list-card-home">
+                    <div class="list-card-home__image">
+                        <img src="https://www.quitoinforma.gob.ec/wp-content/uploads/2018/10/ColadaMoradaFByTW-800x418.jpg"
+                            alt="Colada Morada">
+                    </div>
+                    <div class="list-card-home__info">
+                        <h4>Festival de la Colada Morada</h4>
+                        <p class="muted">1-2 Nov • Quito</p>
+                        <div class="card-actions">
+                            <a class="btn btn--ghost" href="/pages/detalle-evento.html">Ver detalle</a>
+                            <a class="btn btn--primary" href="#">Ver en mapa</a>
+                        </div>
+                    </div>
                 </article>
-                <article class="list-card">
-                    <h4>Fiestas de Quito</h4>
-                    <p class="muted">Quito • Dic 01–06</p>
-                    <div class="card-actions"><a class="btn btn--ghost" href="/pages/detalle-evento.html">Ver
-                            detalle</a><a class="btn btn--primary" href="#">Ver en mapa</a></div>
+                <article class="list-card-home">
+                    <div class="list-card-home__image">
+                        <img src="https://www.quitoinforma.gob.ec/wp-content/uploads/2018/06/Presentacion9FByTW.jpg"
+                            alt="Fiesta de las Luces">
+                    </div>
+                    <div class="list-card-home__info">
+                        <h4>Fiesta de las Luces</h4>
+                        <p class="muted">Ago 08–12 • Quito</p>
+                        <div class="card-actions">
+                            <a class="btn btn--ghost" href="/pages/detalle-evento.html">Ver detalle</a>
+                            <a class="btn btn--primary" href="#">Ver en mapa</a>
+                        </div>
+                    </div>
                 </article>
             </div>
         </div>

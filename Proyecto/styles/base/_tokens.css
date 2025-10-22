@@ -1,0 +1,18 @@
+:root {
+    /* --- Paleta de Colores --- */
+    --ink: #0f172a;           /* Texto principal (casi negro) */
+    --muted: #64748b;         /* Texto secundario (gris oscuro) */
+    --surface: #f8fafc;       /* Fondo principal de la página (gris muy claro) */
+    --surface-card: #ffffff;  /* Fondo de tarjetas y formularios (blanco puro) */
+    --border-light: #e2e8f0;  /* Borde para inputs y tarjetas */
+    
+    /* --- Colores de Marca (Estos están bien) --- */
+    --brand: #0ea5e9;
+    --brand-dark: #0369a1;
+    --accent: #ffb800;        /* Tu acento amarillo/dorado */
+
+    /* --- Tokens de Diseño (Estos están bien) --- */
+    --radius: 12px;
+    --container: 1200px;
+    --space: clamp(16px, 2vw, 28px);
+}

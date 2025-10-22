@@ -1,0 +1,136 @@
+/* --- styles/pages/explorar-tema.css --- */
+
+/* 1. Header (Estilo de página interna) */
+.header {
+    position: static;
+    backdrop-filter: none;
+    text-shadow: none;
+    z-index: auto;
+    background: var(--surface-card);
+    border-bottom: 1px solid var(--border-light);
+    color: var(--ink);
+}
+
+.header::after {
+    content: none;
+}
+
+.header .nav-links a {
+    color: var(--ink);
+}
+
+.header .nav-links a:hover {
+    color: var(--brand);
+}
+
+/* 2. Título de página */
+.page-title {
+    color: var(--ink);
+    font-weight: 800;
+    margin-bottom: 24px;
+}
+
+/* 3. Barras de Búsqueda y Filtros */
+.filters {
+    margin-top: 20px;
+    margin-bottom: 32px;
+}
+
+/* 4. Vista de Lista (explore-list) */
+.explore-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    background: var(--border-light);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, .05);
+}
+
+/* 5. Fila de la Lista (list-item) */
+.list-item {
+    display: grid;
+    /* Layout de 4 columnas: [Imagen] [Título/Meta] [Fecha] [Botón] */
+    grid-template-columns: 80px 2fr 1fr 1fr;
+    /* Columna añadida para la imagen */
+    align-items: center;
+    gap: 20px;
+    padding: 20px;
+    background: var(--surface-card);
+}
+
+/* --- INICIO: NUEVOS ESTILOS PARA IMAGEN --- */
+.list-item__image {
+    width: 80px;
+    height: 80px;
+    border-radius: var(--radius);
+    overflow: hidden;
+    /* Recorta la imagen */
+    background: #f1f5f9;
+    /* Color de fondo */
+}
+
+.list-item__image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* Asegura que la imagen cubra el espacio */
+}
+
+/* --- FIN: NUEVOS ESTILOS PARA IMAGEN --- */
+
+.list-item__title {
+    margin: 0 0 4px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--ink);
+}
+
+.list-item__meta {
+    margin: 0;
+    font-size: 0.95rem;
+    color: var(--muted);
+    font-weight: 500;
+}
+
+.list-item__date {
+    margin: 0;
+    font-size: 0.95rem;
+    color: var(--ink);
+    font-weight: 500;
+}
+
+.list-item .btn {
+    justify-self: end;
+    padding: 10px 20px;
+}
+
+/* 6. Responsive */
+@media (max-width: 768px) {
+    .list-item {
+        /* Apilamos todo en 1 columna */
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    /* --- INICIO: CAMBIOS RESPONSIVE --- */
+    .list-item__image {
+        width: 100%;
+        /* La imagen ocupa todo el ancho */
+        height: 150px;
+        /* Le damos una altura fija */
+    }
+
+    /* --- FIN: CAMBIOS RESPONSIVE --- */
+
+    .list-item .btn {
+        justify-self: start;
+        padding: 12px 24px;
+    }
+
+    .list-item__date {
+        order: -1;
+        color: var(--brand-dark);
+    }
+}

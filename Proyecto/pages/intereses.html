@@ -5,30 +5,140 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Intereses — FestiMap</title>
-    <link rel="stylesheet" href="/styles/style.css" />
-    <link rel="stylesheet" href="/styles/components.css" />
+    <link rel="stylesheet" href="../styles/main.css">
 </head>
 
-<body>
+<body class="theme-light">
     <header class="header">
         <div class="container nav">
-            <div class="brand">
+            <a class="brand" href="../index.html">
                 <div class="logo">FM</div>
-                <h1>FestiMap Ecuador</h1>
-            </div>
+                <span>FestiMap Ecuador</span>
+            </a>
         </div>
     </header>
-    <main class="container section">
-        <h2 class="page-title">Elige tus intereses (mínimo 3)</h2>
-        <div class="chips"><button class="chip">Música</button><button class="chip">Gastronomía</button><button
-                class="chip">Cultura</button><button class="chip">Naturaleza</button><button
-                class="chip">Arte</button><button class="chip">Festividades tradicionales</button><button
-                class="chip">Artesanías</button><button class="chip">Danza</button></div>
-        <div class="form__row"><button class="btn btn--primary">Guardar preferencias</button><a class="btn btn--ghost"
-                href="/pages/home.html">Saltar por ahora</a></div>
+
+    <main id="main" class="container page-intereses theme-light" role="main">
+        <h2 class="page-title">Elige tus intereses culturales</h2>
+        <p class="page-subtitle muted">Selecciona al menos 3 categorías. Luego podrás cambiarlas.</p>
+
+
+        <section class="chips-grid" aria-label="Selecciona tus intereses">
+            <!-- 1 -->
+            <details class="chip">
+                <summary><span class="chip__icon">🎵</span><span>Música</span></summary>
+                <div class="subchips">
+                    <label><input type="checkbox"> Rock</label>
+                    <label><input type="checkbox"> Pop</label>
+                    <label><input type="checkbox"> Bachata</label>
+                    <label><input type="checkbox"> Pasillo</label>
+                </div>
+            </details>
+
+            <!-- 2 -->
+            <details class="chip">
+                <summary><span class="chip__icon">🍽️</span><span>Gastronomía</span></summary>
+                <div class="subchips">
+                    <label><input type="checkbox"> Cacao</label>
+                    <label><input type="checkbox"> Ceviche</label>
+                    <label><input type="checkbox"> Hornado</label>
+                    <label><input type="checkbox"> Colada morada</label>
+                </div>
+            </details>
+
+            <!-- 3 -->
+            <details class="chip">
+                <summary><span class="chip__icon">🏛️</span><span>Cultura</span></summary>
+                <div class="subchips">
+                    <label><input type="checkbox"> Museos</label>
+                    <label><input type="checkbox"> Rutas históricas</label>
+                    <label><input type="checkbox"> Teatro</label>
+                </div>
+            </details>
+
+            <!-- 4 -->
+            <details class="chip">
+                <summary><span class="chip__icon">🏞️</span><span>Naturaleza</span></summary>
+                <div class="subchips">
+                    <label><input type="checkbox"> Volcanes</label>
+                    <label><input type="checkbox"> Cascadas</label>
+                    <label><input type="checkbox"> Playas</label>
+                </div>
+            </details>
+
+            <!-- 5 -->
+            <details class="chip">
+                <summary><span class="chip__icon">🎨</span><span>Arte</span></summary>
+                <div class="subchips">
+                    <label><input type="checkbox"> Murales</label>
+                    <label><input type="checkbox"> Escultura</label>
+                    <label><input type="checkbox"> Arte urbano</label>
+                </div>
+            </details>
+
+            <!-- 6 -->
+            <details class="chip">
+                <summary><span class="chip__icon">🎉</span><span>Festividades</span></summary>
+                <div class="subchips">
+                    <label><input type="checkbox"> Inti Raymi</label>
+                    <label><input type="checkbox"> Carnaval</label>
+                    <label><input type="checkbox"> Fiesta de las Flores y Frutas</label>
+                    <label><input type="checkbox"> Yamor</label>
+                </div>
+            </details>
+
+            <!-- 7 -->
+            <details class="chip">
+                <summary><span class="chip__icon">🧵</span><span>Artesanías</span></summary>
+                <div class="subchips">
+                    <label><input type="checkbox"> Tagua</label>
+                    <label><input type="checkbox"> Cerámica</label>
+                    <label><input type="checkbox"> Paja toquilla</label>
+                </div>
+            </details>
+
+            <!-- 8 -->
+            <details class="chip">
+                <summary><span class="chip__icon">🩰</span><span>Danza</span></summary>
+                <div class="subchips">
+                    <label><input type="checkbox"> Folclor</label>
+                    <label><input type="checkbox"> Ballet</label>
+                    <label><input type="checkbox"> Urbano</label>
+                </div>
+            </details>
+        </section>
+
+        <!-- rango de edad -->
+        <section class="age-block">
+            <label class="age-label" for="age">Rango de edad:</label>
+
+            <!-- leyenda de marcas -->
+            <div class="age-legend">
+                <span>18</span><span>25</span><span>35</span><span>45</span><span>60+</span>
+            </div>
+
+            <!-- slider -->
+            <input id="age" class="age-range" type="range" min="18" max="60" step="1" value="35" list="ticks">
+            <datalist id="ticks">
+                <option value="18"></option>
+                <option value="25"></option>
+                <option value="35"></option>
+                <option value="45"></option>
+                <option value="60"></option>
+            </datalist>
+        </section>
+
+
+        <div class="form__row actions">
+            <button class="btn btn--primary" type="submit">Guardar preferencias</button>
+            <a class="btn btn--ghost" href="/pages/home.html">Omitir por ahora</a>
+        </div>
+
+        <p class="muted center">Podrás editarlas en Perfil &gt; Intereses.</p>
     </main>
+
     <footer>
-        <div class="container footer-row"><span>© 2025 FestiMap Ecuador</span></div>
+        <div class="container footer-row">© 2025 FestiMap Ecuador</div>
     </footer>
 </body>
 

@@ -1,0 +1,25 @@
+@import "./base/_reset.css";
+@import "./base/_tokens.css";
+@import "./base/_typography.css";
+@import "./layout/_grid.css";
+@import "./layout/_header.css";
+@import "./layout/_footer.css";
+@import "./components/_button.css";
+@import "./components/_card.css";
+@import "./components/_form.css";
+/* Páginas */
+@import "./pages/Bienvenida.css";
+@import "./pages/home.css";
+@import "./pages/login.css";
+@import "./pages/registro.css";
+@import "./pages/intereses.css";
+@import "./pages/cuenta.css";
+@import "./pages/detalle-evento.css";
+@import "./pages/explorar-tema.css";
+@import "./pages/explorar-region.css";
+@import "./pages/agenda.css";
+
+/* Último: legado, hasta terminar migración */
+@import "./base/_legacy.css";
+@import "./components/_legacy-components.css";
+

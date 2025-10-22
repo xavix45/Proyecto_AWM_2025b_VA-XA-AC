@@ -5,45 +5,106 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Mi cuenta — FestiMap</title>
-    <link rel="stylesheet" href="/styles/style.css" />
-    <link rel="stylesheet" href="/styles/components.css" />
+    <link rel="stylesheet" href="../styles/main.css">
+
 </head>
 
 <body>
     <header class="header">
         <div class="container nav">
-            <div class="brand">
+            <a class="brand" href="../index.html">
                 <div class="logo">FM</div>
-                <h1>FestiMap Ecuador</h1>
-            </div>
+                <span>FestiMap Ecuador</span>
+            </a>
         </div>
     </header>
+
     <main class="container section">
-        <h2 class="page-title">Mi cuenta</h2>
-        <div class="tabs"><button class="tab is-active">Preferencias</button><button
-                class="tab">Seguridad</button><button class="tab">Notificaciones</button></div>
-        <section class="grid-2">
-            <article><label class="form__label">Región base <select class="input">
-                        <option>Sierra</option>
-                    </select></label>
-                <label class="form__label">Idioma <select class="input">
-                        <option>Español</option>
-                        <option>Inglés</option>
-                    </select></label>
-                <label class="form__label">Moneda <select class="input">
-                        <option>USD</option>
-                    </select></label>
-                <div class="chips"><button class="chip">Música</button><button
-                        class="chip is-on">Gastronomía</button><button class="chip">Cultura</button></div>
-                <button class="btn btn--primary">Guardar cambios</button>
-            </article>
-            <aside class="panel">
-                <h3>Estado</h3>
-                <p class="muted">Ubicación: Activa (Quito)</p><a class="btn btn--ghost"
-                    href="/pages/reset-solicitud.html">Cambiar contraseña</a><a class="btn btn--accent"
-                    href="/pages/login.html">Cerrar sesión</a>
+        <h2 class="page-title">Mi cuenta / Perfil</h2>
+
+        <div class="grid-perfil">
+
+            <aside class="panel-usuario">
+                <h3>Usuario registrado</h3>
+                <p><strong>Nombre:</strong> Angelo Conterón</p>
+                <p><strong>Email:</strong> angelo.conteron@example.com</p>
+                <p class="muted">Ubicación: Quito (permiso activo)</p>
+                <button class="btn btn--ghost btn--full-width">Editar</button>
             </aside>
-        </section>
+
+            <div class="panel-ajustes">
+
+                <section class="form-section">
+                    <h3 class="section-title-sm">Preferencias</h3>
+                    <div class="form-grid-3">
+                        <label class="form__label">Región base
+                            <select class="input">
+                                <option>Sierra</option>
+                            </select>
+                        </label>
+                        <label class="form__label">Idioma
+                            <select class="input">
+                                <option>Español</option>
+                                <option>Inglés</option>
+                            </select>
+                        </label>
+                        <label class="form__label">Moneda
+                            <select class="input">
+                                <option>USD</option>
+                            </select>
+                        </label>
+                    </div>
+
+                    <h4 class="section-subtitle">Intereses</h4>
+                    <div class="chips">
+                        <button class="chip">Música</button>
+                        <button class="chip is-on">Gastronomía</button>
+                        <button class="chip">Cultura</button>
+                        <button class="chip">Naturaleza</button>
+                        <button class="chip">Arte</button>
+                        <button class="chip">Festividades</button>
+                    </div>
+                </section>
+
+                <section class="form-section">
+                    <h3 class="section-title-sm">Seguridad</h3>
+                    <div class="form-row-line">
+                        <label>Cambiar contraseña</label>
+                        <a href="/pages/reset-solicitud.html" class="btn btn--primary">Cambiar</a>
+                    </div>
+                    <div class="form-row-line">
+                        <label>Autenticación en dos pasos (2FA)</label>
+                        <button class="btn btn--ghost">Activar</button>
+                    </div>
+                </section>
+
+                <section class="form-section">
+                    <h3 class="section-title-sm">Notificaciones</h3>
+                    <div class="form-row-line">
+                        <label>Alertas 24 h antes</label>
+                        <button class="btn btn--primary is-on">On</button>
+                    </div>
+                    <div class="form-row-line">
+                        <label>Alertas 1 h antes</label>
+                        <button class="btn btn--primary is-on">On</button>
+                    </div>
+                    <div class="form-row-line">
+                        <label>Cambios de evento</label>
+                        <button class="btn btn--primary is-on">On</button>
+                    </div>
+                    <div class="form-row-line">
+                        <label>Nuevos cercanos</label>
+                        <button class="btn btn--primary is-on">On</button>
+                    </div>
+                </section>
+
+                <section class="form-actions">
+                    <button class="btn btn--accent">Cerrar sesión</button>
+                    <button class="btn btn--primary">Guardar cambios</button>
+                </section>
+
+            </div>
+        </div>
     </main>
     <footer>
         <div class="container footer-row"><span>© 2025 FestiMap Ecuador</span></div>

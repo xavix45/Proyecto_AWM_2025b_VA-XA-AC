@@ -5,51 +5,79 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Detalle del evento — FestiMap</title>
-    <link rel="stylesheet" href="/styles/style.css" />
-    <link rel="stylesheet" href="/styles/components.css" />
-    <link rel="stylesheet" href="/styles/pages/detalle.css" />
+    <link rel="stylesheet" href="../styles/main.css">
+
 </head>
 
 <body>
     <header class="header">
         <div class="container nav">
-            <div class="brand">
+            <a class="brand" href="../index.html">
                 <div class="logo">FM</div>
-                <h1>FestiMap Ecuador</h1>
-            </div>
+                <span>FestiMap Ecuador</span>
+            </a>
         </div>
     </header>
+
     <main class="container section">
-        <div class="banner">[ Imagen destacada ]</div>
+
+        <div class="banner">
+            <img src="https://www.quitoinforma.gob.ec/wp-content/uploads/2018/10/ColadaMoradaFByTW-800x418.jpg"
+                alt="Festival de la Colada Morada" class="banner-img">
+        </div>
         <div class="detail-head">
             <div>
-                <h2 class="page-title">Feria de Saquisilí</h2>
-                <p class="muted">📅 Jueves • ⏰ 09:00–14:00 • 📍 Plaza central, Saquisilí</p>
+                <h2 class="page-title">Festival de la Colada Morada</h2>
+                <p class="muted">📅 1-2 Nov • ⏰ 10:00–20:00 • 📍 Centro Histórico, Quito</p>
             </div>
-            <div class="detail-actions"><a class="btn btn--ghost" href="#">Agregar a favoritos</a><a
-                    class="btn btn--primary" href="#">Ver en mapa</a><a class="btn btn--accent" href="#">Marcar como
-                    visitado</a></div>
+            <div class="detail-actions">
+                <a class="btn btn--ghost" href="#">Agregar a favoritos</a>
+                <a class="btn btn--primary" href="#">Ver en mapa</a>
+                <a class="btn btn--ghost" href="#">Marcar como visitado</a>
+            </div>
         </div>
+
+        <div class="detail-description-bar">
+            Descubre las mejores coladas moradas y guaguas de pan de la capital en este festival gastronómico.
+        </div>
+
         <section class="grid-2">
             <article>
                 <h3>Descripción</h3>
-                <p>Artesanías, gastronomía y tradición local cada jueves.</p>
+                <p>Disfruta de la bebida ancestral de temporada, aprende sobre su preparación y acompaña con deliciosas
+                    guaguas de pan. Un evento imperdible para celebrar el Día de los Difuntos.</p>
+
                 <h3>Galería</h3>
                 <div class="grid-3 thumbs">
-                    <div class="thumb">[img]</div>
-                    <div class="thumb">[img]</div>
-                    <div class="thumb">[img]</div>
+                    <div class="thumb">
+                        <img src="https://periodismopublicoec.com/wp-content/uploads/2024/10/photo_2024-10-17-15.38.29-1.jpeg"
+                            alt="Guaguas de pan" class="thumb-img">
+                    </div>
+                    <div class="thumb">
+                        <img src="https://www.quitoinforma.gob.ec/wp-content/uploads/2024/10/WhatsApp-Image-2024-10-21-at-11.12.28.jpeg"
+                            alt="Venta de colada morada" class="thumb-img">
+                    </div>
+                    <div class="thumb">
+                        <img src="https://www.eluniverso.com/resizer/v2/OO7PPFEY5ZFHNJBMRP2AS4XVVM.jpg?auth=cd053e09267372e3f5596a1365a75e4fbdd5eb9afc7b47f18836d70d7b33b624&width=1005&height=670&quality=75&smart=true"
+                            alt="Colada morada tradicional" class="thumb-img">
+                    </div>
                 </div>
+                <a class="btn btn--ghost btn--full-width" href="/pages/home.html">Volver al mapa cultural</a>
             </article>
+
             <aside class="panel">
-                <h3>Tu experiencia</h3><button class="btn btn--primary w-100">Agregar a mi agenda</button>
-                <hr /><label>Valorar</label>
-                <div class="stars">★ ★ ★ ★ ☆</div><label>Comentario (≤150)</label><textarea class="input" rows="3"
-                    maxlength="150" placeholder="Breve opinión…"></textarea><button
-                    class="btn btn--accent w-100">Enviar</button>
+                <h3>Tu experiencia</h3>
+                <button class="btn btn--primary btn--full-width">Agregar a mi agenda</button>
+                <hr />
+                <label class="form__label">Valorar</label>
+                <div class="stars">★ ★ ★ ★ ☆</div>
+                <label class="form__label">Comentario (≤150)</label>
+                <textarea class="input" rows="3" maxlength="150" placeholder="Breve opinión…"></textarea>
+                <button class="btn btn--accent btn--full-width">Enviar</button>
             </aside>
         </section>
     </main>
+
     <footer>
         <div class="container footer-row"><span>© 2025 FestiMap Ecuador</span></div>
     </footer>
