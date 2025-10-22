@@ -1,0 +1,49 @@
+.badge {
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+    padding: 4px 8px;
+    border-radius: 999px;
+    background: #eaf4fb;
+    color: #0f4777;
+    font-weight: 700;
+    font-size: 12px
+}
+
+.alert {
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px solid #ffe5b4;
+    background: #fff7e6;
+    color: #8a6116
+}
+
+.dropzone {
+    border: 2px dashed var(--gray-300);
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+    color: var(--gray-700);
+    background: #fafcff
+}
+
+.history {
+    border: 1px solid var(--gray-200);
+    border-radius: 10px;
+    padding: 10px;
+    background: #fff
+}
+
+.chip.is-on {
+    background: #ffe5ef;
+    color: #a71e4d
+}
+
+.header.admin {
+    background: #0f4777;
+    color: #fff
+}
+
+.header.admin .brand h1 {
+    color: #fff
+}

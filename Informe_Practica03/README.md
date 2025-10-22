@@ -5,15 +5,12 @@
 
 2. Objetivo breve de la práctica
 
-- Refinar backlog y plan de sprint.
-
-- Diseñar diagramas de casos de uso y modelo de requisitos.
-
-- Crear mockups iniciales del proyecto y maquetarlos en HTML según las restricciones del curso.
+- Pasar mockups a HTML/CSS del proyecto.
 
 - Descripcion:
 
-FestiMap Ecuador es una maqueta web para descubrir festividades y rutas culturales del país. El usuario puede:
+FestiMap Ecuador es una maqueta web para descubrir festividades, pueblos mágicos y rutas culturales del país.
+ El usuario puede:
 
 Explorar “Hoy y cerca de ti”, filtrar por región, tipo y fecha, ver detalle del evento y agregarlo a su agenda.
 
@@ -26,47 +23,48 @@ Gestionar cuenta, intereses y permisos de ubicación.
 Un módulo inicial de administración permite listar eventos y completar un formulario de creación/edición, además de una vista de reportes.
 
 El entregable actual se centra en maquetar vistas coherentes con historias y casos de uso, dejando la lógica y el diseño visual avanzado para etapas posteriores.
+Este maquetado se hizo en HTML y un CSS básico esto con el fin de poder pasar los mockups desarrollados en excel al proyecto, este maquetado tiene habilitada sus funciones para controles con hipervinculos a otras páginas de la aplicación.
 
-4. Conclusiones y Recomendaciones
+3. Conclusiones y Recomendaciones
 
 Verónica Aguilar
 
 Conclusiones
 
-En los mockups en Excel confirmamos que “Hoy y cerca de ti”, los filtros y la ficha de evento sostienen la navegación principal. Al depurar pantallas, eliminamos redundancias y dejamos un flujo claro para explorar, buscar y agendar. La coherencia de Historias de Usuario, Casos de Uso y Mockups se mantiene visible en cada vista priorizada.
+La conversión de los mockups diseñados en Excel a un formato HTML permitió entender la importancia de la estructura semántica en el desarrollo web. A través de las etiquetas adecuadas, se logró dar sentido y organización al contenido, mejorando la comprensión tanto para los desarrolladores como para los navegadores.
 
-A partir de los requerimientos funcionales y no funcionales, junto con los casos de uso definidos, se elaboraron los mockups iniciales en Excel, lo que permitió representar visualmente la interfaz propuesta y comprobar su coherencia con las necesidades planteadas en el sistema.
+El uso de CSS resultó esencial para transformar un diseño estático en una interfaz visualmente atractiva. Se evidenció cómo los estilos permiten controlar aspectos como los colores, fuentes, márgenes y alineaciones, haciendo que la página web tenga una presentación más profesional y acorde con el mockup original.
 
 Recomendaciones
 
-Se recomienda continuar utilizando mockups sencillos en Excel u otras herramientas accesibles en las primeras fases, ya que permiten validar rápidamente la interfaz y realizar ajustes antes de pasar a un diseño más avanzado.
+Es recomendable mantener una buena organización del código separando el contenido HTML de la presentación CSS. Esto no solo facilita futuras modificaciones, sino que también mejora la legibilidad y mantenimiento del proyecto.
 
-Se recomienda tener bien definida la idea del proyecto desde el inicio, con el fin de precisar adecuadamente los mockups y las funciones que debe realizar la aplicación.
+Antes de finalizar un diseño, es necesario verificar que este funcione correctamente, esto con el fin de poder evitar que en un futuro una mala definición como puede ser en la etiquete link los elementos CSS definidos no logren implementarse en los códigos HTML.
 
 Xavier Anatoa
 
 Conclusiones
 
-Verificamos que el diagrama UML refleja el dominio esencial: Evento, Usuario, Interés, Ruta, Parada y Reporte. Las relaciones sostienen los casos de uso priorizados y facilitan escalabilidad. La trazabilidad HU↔CU↔UI↔UML queda clara y verificable.
+Esta práctica permitió comprender cómo un prototipo gráfico puede transformarse en un sitio funcional mediante la aplicación de etiquetas y estilos. Se reforzó el entendimiento sobre cómo el diseño y la programación deben complementarse para lograr resultados coherentes y visualmente equilibrados.
 
-En el módulo de administración, confirmamos que el CRUD de eventos y la validación de formularios cubren el flujo editorial mínimo. La maqueta permite evaluar reglas de publicación y estados del evento sin depender aún del back-end.
+Al trabajar con HTML y CSS se desarrollaron habilidades fundamentales de maquetación, como el uso correcto de divisiones, contenedores y clases. Además, se adquirió una visión más clara sobre la importancia del diseño responsivo para asegurar que el sitio se adapte correctamente a distintos dispositivos.
 
 Recomendaciones
 
-Completemos criterios de aceptación medibles por historia (filtros, paginación, validaciones, accesibilidad). A partir de ellos derivemos casos de prueba funcionales para QA del MVP. Mantengamos la cobertura en una matriz simple.
+Antes de iniciar la codificación, se recomienda planificar la estructura del sitio web, definiendo jerarquías, secciones y componentes visuales. Una planificación adecuada evita confusiones y retrabajos durante el desarrollo.
 
-Mantengamos “trazabilidad viva”: cada ajuste de reglas o alcance debe reflejarse en Historias de Usuario, Casos de Uso, mockups y UML. Con esto prevenimos desviaciones al pasar a código y facilitamos la revisión entre sprints.
+Es importante comentar el código HTML y CSS para identificar las distintas secciones y funciones del diseño. Esto facilita la colaboración entre integrantes y mejora la comprensión del proyecto en futuras revisiones o modificaciones.
 
 Angelo Conterón
 
 Conclusiones
 
-Validamos que la planificación de punto A al punto B con paradas está modelada lo suficiente para revisar navegación y contenido. Podemos diferir mapa interactivo y cálculo de ruta sin perder intención de producto. Reducimos riesgo técnico en esta etapa.
+La implementación del mockup en HTML permitió visualizar de manera práctica cómo se distribuyen los elementos dentro de una página web, aplicando conceptos de diseño como el uso de cajas, márgenes, paddings y alineaciones. Esto fortaleció la comprensión sobre el funcionamiento del modelo de caja de CSS.
 
-Los permisos de ubicación y la agenda del usuario se perfilan como piezas críticas de la propuesta de valor. Al anclarlas en la maqueta, facilitamos futuras integraciones y pruebas con datos simulados.
+Se destacó la relevancia del CSS para mantener una apariencia uniforme y profesional en todo el sitio. Gracias a esta herramienta, fue posible aplicar estilos coherentes entre las diferentes secciones, logrando una identidad visual consistente con el diseño planteado en Excel.
 
 Recomendaciones
 
-Ejecutemos pruebas de concepto pequeñas: permisos de ubicación, carga de puntos de interés y render básico de rutas con datos mock. Validemos desempeño y mensajes de permiso antes del desarrollo completo. Documentemos hallazgos en la maqueta.
+Se recomienda seguir buenas prácticas de diseño web, como elegir paletas de colores armoniosas, mantener proporciones adecuadas y usar tipografías legibles, con el fin de mejorar la experiencia del usuario final.
 
-Prioricemos endpoints mínimos para el siguiente sprint (CRUD de Evento, autenticación, preferencias, listados y reportes). Esto habilita iteraciones cortas y medición temprana del valor entregado.
+Es conveniente realizar pruebas del diseño en diferentes navegadores y dispositivos, asegurando que el sitio mantenga su funcionalidad y presentación independientemente del entorno donde se visualice. Esto garantiza una experiencia uniforme para todos los usuarios.
