@@ -1,0 +1,30 @@
+/* Quitar superposición del header en registro */
+.header {
+    position: static;
+    backdrop-filter: none;
+    text-shadow: none;
+    z-index: auto
+}
+
+.header::after {
+    content: none
+}
+
+/* Radios coherentes con el formulario */
+.radio {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #e2e8f0;
+    font-weight: 600
+}
+
+.radio input {
+    inline-size: 18px;
+    block-size: 18px
+}
+
+/* Separación específica */
+.section-narrow {
+    margin: 64px auto 48px
+}

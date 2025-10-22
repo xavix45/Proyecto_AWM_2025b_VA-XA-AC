@@ -1,0 +1,86 @@
+.hero {
+    position: relative;
+    min-height: 98vh;
+    display: flex;
+    align-items: center
+}
+
+.hero__video {
+    position: absolute;
+    inset: 0;
+    object-fit: cover;
+    width: 100%;
+    height: 100%
+}
+
+.hero__content {
+    position: relative;
+    z-index: 1;
+    color: #fff;
+    padding: 20vh 8vw;
+    max-width: 800px
+}
+
+.hero::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0, 0, 0, .55), rgba(0, 0, 0, .35));
+    z-index: 0
+}
+
+.hero__content h1 {
+    font-size: 3rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 1rem;
+    letter-spacing: .2px;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, .35)
+}
+
+.hero__content p {
+    font-size: 1.1rem;
+    font-weight: 400;
+    max-width: 600px;
+    line-height: 1.5;
+    color: rgba(255, 255, 255, .85);
+    text-shadow: 0 1px 4px rgba(0, 0, 0, .35)
+}
+
+.hero__buttons {
+    margin-top: 2rem
+}
+
+/* sección “destacados” */
+.destacados h2 {
+    text-align: center;
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 800;
+    margin: 0 0 24px
+}
+
+.destacados h2 strong {
+    font-weight: 900
+}
+
+.cards-grid {
+    display: grid;
+    gap: 24px;
+    grid-template-columns: 2fr 1fr 1fr
+}
+
+.card--xl {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    min-height: 520px
+}
+
+@media (max-width:900px) {
+    .cards-grid {
+        grid-template-columns: 1fr
+    }
+
+    .card--xl {
+        grid-row: auto
+    }
+}

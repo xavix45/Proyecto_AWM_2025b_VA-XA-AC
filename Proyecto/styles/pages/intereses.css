@@ -1,0 +1,139 @@
+/* Tema claro tipo ecuador.travel */
+.theme-light {
+    background: #fff;
+    color: #0b2a4a
+}
+
+.theme-light .muted {
+    color: #5b7a99
+}
+
+.theme-light .header {
+    position: static;
+    backdrop-filter: none;
+    text-shadow: none
+}
+
+.theme-light .header::after {
+    content: none
+}
+
+.page-intereses {
+    margin: 56px auto 72px;
+    text-align: center
+}
+
+.page-title {
+    font-weight: 800;
+    font-size: clamp(22px, 3vw, 32px);
+    margin: 8px 0 6px
+}
+
+.page-subtitle {
+    margin: 0 0 24px
+}
+
+/* Grilla 4 → 2 → 1 */
+.chips-grid {
+    display: grid;
+    gap: 16px;
+    max-width: 1024px;
+    margin: 0 auto 20px;
+    grid-template-columns: repeat(4, 1fr)
+}
+
+@media (max-width:960px) {
+    .chips-grid {
+        grid-template-columns: repeat(2, 1fr)
+    }
+}
+
+@media (max-width:520px) {
+    .chips-grid {
+        grid-template-columns: 1fr
+    }
+}
+
+/* Card chip con details/summary */
+.chip {
+    border: 1px solid #d7e2ec;
+    border-radius: 12px;
+    background: #fff;
+    overflow: hidden;
+    transition: box-shadow .2s, border-color .2s, background .2s
+}
+
+.chip summary {
+    list-style: none;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    gap: 8px;
+    padding: 22px 12px;
+    font-weight: 700;
+    color: #0b2a4a
+}
+
+.chip summary::-webkit-details-marker {
+    display: none
+}
+
+.chip:hover {
+    box-shadow: 0 6px 18px rgba(0, 0, 0, .06)
+}
+
+.chip[open] {
+    border-color: #0ea5e9;
+    background: #e8f6ff
+}
+
+.chip__icon {
+    font-size: 18px
+}
+
+/* Subintereses */
+.subchips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 12px 14px 18px;
+    justify-content: center
+}
+
+.subchips label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    border: 1px solid #cbd9e5;
+    background: #fff;
+    font-weight: 600;
+    color: #0b2a4a;
+    cursor: pointer;
+    transition: background .2s, border-color .2s
+}
+
+.subchips input {
+    accent-color: #0ea5e9
+}
+
+.subchips label:hover {
+    background: #f2f7fb
+}
+
+/* Acciones */
+.actions {
+    justify-content: center;
+    margin-top: 22px
+}
+
+.btn--ghost {
+    background: transparent;
+    border: 2px solid #b7c7d6;
+    color: #0b2a4a
+}
+
+.btn--ghost:hover {
+    background: #f4f8fb
+}

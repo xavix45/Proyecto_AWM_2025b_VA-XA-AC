@@ -1,0 +1,12 @@
+:root {
+    --ink: #0f172a;
+    --muted: #e2e8f0;
+    --ghost: #0b1220cc;
+    --brand: #0ea5e9;
+    --brand-dark: #0369a1;
+    --accent: #ffb800;
+    --surface: #0b1220;
+    --radius: 12px;
+    --container: 1200px;
+    --space: clamp(16px, 2vw, 28px);
+}

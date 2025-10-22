@@ -5,8 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Registro — FestiMap</title>
-    <link rel="stylesheet" href="/styles/style.css" />
-    <link rel="stylesheet" href="/styles/components.css" />
+    <link rel="stylesheet" href="../styles/main.css">
 </head>
 
 <body>
@@ -18,22 +17,38 @@
             </div>
         </div>
     </header>
-    <main class="container section-narrow">
+
+    <main id="main" class="container section-narrow" role="main">
         <h2 class="page-title">Crear cuenta</h2>
-        <form class="form" autocomplete="off">
-            <label class="form__label">Nombre y apellido <input class="input" required /></label>
-            <label class="form__label">Correo <input type="email" class="input" required /></label>
-            <label class="form__label">Contraseña <input type="password" class="input" minlength="8" required /><small
-                    class="muted">Mínimo 8 caracteres, 1 mayúscula y 1 número.</small></label>
-            <div class="form__row"><label class="radio"><input type="radio" name="viajero" checked />
-                    Turista</label><label class="radio"><input type="radio" name="viajero" /> Residente</label><label
-                    class="radio"><input type="radio" name="viajero" /> Estudiante</label></div>
+
+        <form class="form" autocomplete="on">
+            <label class="form__label" for="reg-name">Nombre y apellido
+                <input id="reg-name" class="input" name="name" autocomplete="name" required>
+            </label>
+
+            <label class="form__label" for="reg-email">Correo
+                <input id="reg-email" class="input" type="email" name="email" autocomplete="email" required>
+            </label>
+
+            <label class="form__label" for="reg-pass">Contraseña
+                <input id="reg-pass" class="input" type="password" name="new-password" autocomplete="new-password"
+                    minlength="8" pattern="(?=.*[A-Z])(?=.*\d).{8,}" aria-describedby="pass-help" required>
+                <small id="pass-help" class="muted">Mínimo 8 caracteres, 1 mayúscula y 1 número.</small>
+            </label>
+
+            <fieldset class="form__row" role="radiogroup" aria-label="Tipo de viajero">
+                <label class="radio"><input type="radio" name="viajero" value="turista" checked> Turista</label>
+                <label class="radio"><input type="radio" name="viajero" value="residente"> Residente</label>
+                <label class="radio"><input type="radio" name="viajero" value="estudiante"> Estudiante</label>
+            </fieldset>
+
             <button class="btn btn--primary form__submit" type="submit">Crear cuenta</button>
             <p class="muted center">Ya tengo cuenta <a class="link" href="/pages/login.html">Iniciar sesión</a></p>
         </form>
     </main>
+
     <footer>
-        <div class="container footer-row"><span>© 2025 FestiMap Ecuador</span></div>
+        <div class="container footer-row">© 2025 FestiMap Ecuador</div>
     </footer>
 </body>
 
