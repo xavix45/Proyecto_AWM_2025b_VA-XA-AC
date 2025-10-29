@@ -8,12 +8,11 @@
     <link rel="stylesheet" href="../styles/main.css">
 </head>
 
-<body>
+<body data-page="explorar-region">
     <header class="header">
         <div class="container nav">
-            <a class="brand" href="../index.html"> 
-                <div class="logo">FM</div>
-                <span>FestiMap Ecuador</span> 
+            <a class="brand" href="../index.html">
+                <div class="logo">FM</div><span>FestiMap Ecuador</span>
             </a>
         </div>
     </header>
@@ -22,7 +21,6 @@
         <h2 class="page-title">Explorar por región</h2>
 
         <div class="filters-bar">
-            
             <div class="tabs">
                 <button class="tab">Costa</button>
                 <button class="tab is-active">Sierra</button>
@@ -34,14 +32,14 @@
                 <select class="input">
                     <option>Provincia</option>
                     <option>Pichincha</option>
-                    <option>Cotopaxi</option>
                     <option>Imbabura</option>
+                    <option>Cotopaxi</option>
                 </select>
                 <select class="input">
                     <option>Cantón</option>
                     <option>Quito</option>
-                    <option>Latacunga</option>
                     <option>Otavalo</option>
+                    <option>Latacunga</option>
                 </select>
                 <input type="search" class="input" placeholder="Buscar..." />
                 <button class="btn btn--primary">Aplicar</button>
@@ -50,69 +48,39 @@
 
         <div class="grid-2 grid-region">
             <div class="map">
-                <iframe 
-                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d97800.7902467131!2d-78.48278353405519!3d-0.19234468418149084!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x91d59a4002427c9f%3A0x44b991e158ef5572!2sQuito!5e0!3m2!1ses-419!2sec!4v1761113230163!5m2!1ses-419!2sec" 
-                    width="600" height="450" 
-                    style="border:0;" 
-                    allowfullscreen="" 
-                    loading="lazy" 
+                <iframe title="Mapa de Quito"
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d97800.7902467131!2d-78.48278353405519!3d-0.19234468418149084!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x91d59a4002427c9f%3A0x44b991e158ef5572!2sQuito!5e0!3m2!1ses-419!2sec!4v1761113230163!5m2!1ses-419!2sec"
+                    width="600" height="450" style="border:0;" allowfullscreen loading="lazy"
                     referrerpolicy="no-referrer-when-downgrade">
                 </iframe>
             </div>
-            
+
             <div class="list">
                 <h3 class="list-title">Eventos activos en Sierra</h3>
 
-                <article class="list-item-region">
-                    <div class="list-item-region__image">
-                        <img src="https://www.quitoinforma.gob.ec/wp-content/uploads/2018/10/ColadaMoradaFByTW-800x418.jpg" alt="Colada Morada">
-                    </div>
-                    <div class="list-item-region__info">
-                        <h4>Festival de la Colada Morada</h4>
-                        <p class="muted">1-2 Nov • Quito</p>
-                        <div class="tags">
-                            <span class="tag">Gastronomía</span>
-                        </div>
-                        <div class="actions">
-                            <a href="#" class="link">Ver en mapa</a>
-                            <a href="#" class="link">Agregar a mi viaje</a>
-                        </div>
-                    </div>
-                    <a href="/pages/detalle-evento.html" class="btn btn--primary">Ver detalle</a>
-                </article>
+                <!-- Filtro guía para el script: provincia Pichincha -->
+                <div id="region-wrap" data-provincia="Pichincha"></div>
 
-                <article class="list-item-region">
-                    <div class="list-item-region__image">
-                        <img src="https://www.quitoinforma.gob.ec/wp-content/uploads/2018/06/Presentacion9FByTW.jpg" alt="Fiesta de las Luces">
-                    </div>
-                    <div class="list-item-region__info">
-                        <h4>Fiesta de las Luces</h4>
-                        <p class="muted">Ago 08–12 • Quito</p>
-                        <div class="tags">
-                            <span class="tag">Cultura</span>
-                            <span class="tag">Evento</span>
-                        </div>
-                        <div class="actions">
-                            <a href="#" class="link">Ver en mapa</a>
-                            <a href="#" class="link">Agregar a mi viaje</a>
-                        </div>
-                    </div>
-                    <a href="/pages/detalle-evento.html" class="btn btn--primary">Ver detalle</a>
-                </article>
+                <!-- Lista dinámica -->
+                <section id="region-list" class="cards-grid"></section>
 
                 <nav class="pagination">
-                    <span><</span>
+                    <span>&lt;</span>
                     <a href="#" class="is-active">1</a>
                     <a href="#">2</a>
                     <a href="#">3</a>
                     <span>...</span>
-                    <a href="#">Siguiente ></a>
+                    <a href="#">Siguiente &gt;</a>
                 </nav>
             </div>
         </div>
     </main>
+
     <footer>
         <div class="container footer-row"><span>© 2025 FestiMap Ecuador</span></div>
     </footer>
+
+    <script type="module" src="../scripts/events-view.js" defer></script>
 </body>
+
 </html>

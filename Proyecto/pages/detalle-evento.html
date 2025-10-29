@@ -6,29 +6,26 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Detalle del evento — FestiMap</title>
     <link rel="stylesheet" href="../styles/main.css">
-
 </head>
 
-<body>
+<body data-page="detalle">
     <header class="header">
         <div class="container nav">
             <a class="brand" href="../index.html">
-                <div class="logo">FM</div>
-                <span>FestiMap Ecuador</span>
+                <div class="logo">FM</div><span>FestiMap Ecuador</span>
             </a>
         </div>
     </header>
 
     <main class="container section">
-
         <div class="banner">
-            <img src="https://www.quitoinforma.gob.ec/wp-content/uploads/2018/10/ColadaMoradaFByTW-800x418.jpg"
-                alt="Festival de la Colada Morada" class="banner-img">
+            <img id="evt-img" src="" alt="" class="banner-img">
         </div>
+
         <div class="detail-head">
             <div>
-                <h2 class="page-title">Festival de la Colada Morada</h2>
-                <p class="muted">📅 1-2 Nov • ⏰ 10:00–20:00 • 📍 Centro Histórico, Quito</p>
+                <h2 id="evt-title" class="page-title"></h2>
+                <p class="muted">📅 <span id="evt-when"></span> • 📍 <span id="evt-where"></span></p>
             </div>
             <div class="detail-actions">
                 <a class="btn btn--ghost" href="#">Agregar a favoritos</a>
@@ -37,32 +34,20 @@
             </div>
         </div>
 
-        <div class="detail-description-bar">
-            Descubre las mejores coladas moradas y guaguas de pan de la capital en este festival gastronómico.
-        </div>
+        <div class="detail-description-bar" id="evt-desc"></div>
+        <a id="evt-url" href="#" target="_blank" hidden class="btn btn--primary btn--full-width">Ir al sitio oficial</a>
 
         <section class="grid-2">
             <article>
                 <h3>Descripción</h3>
-                <p>Disfruta de la bebida ancestral de temporada, aprende sobre su preparación y acompaña con deliciosas
-                    guaguas de pan. Un evento imperdible para celebrar el Día de los Difuntos.</p>
+                <p id="evt-desc-long" class="muted"> </p>
 
                 <h3>Galería</h3>
-                <div class="grid-3 thumbs">
-                    <div class="thumb">
-                        <img src="https://periodismopublicoec.com/wp-content/uploads/2024/10/photo_2024-10-17-15.38.29-1.jpeg"
-                            alt="Guaguas de pan" class="thumb-img">
-                    </div>
-                    <div class="thumb">
-                        <img src="https://www.quitoinforma.gob.ec/wp-content/uploads/2024/10/WhatsApp-Image-2024-10-21-at-11.12.28.jpeg"
-                            alt="Venta de colada morada" class="thumb-img">
-                    </div>
-                    <div class="thumb">
-                        <img src="https://www.eluniverso.com/resizer/v2/OO7PPFEY5ZFHNJBMRP2AS4XVVM.jpg?auth=cd053e09267372e3f5596a1365a75e4fbdd5eb9afc7b47f18836d70d7b33b624&width=1005&height=670&quality=75&smart=true"
-                            alt="Colada morada tradicional" class="thumb-img">
-                    </div>
+                <div class="grid-3 thumbs" id="evt-gallery">
+                    <!-- podrías poblarla luego; por ahora queda estático o vacío -->
                 </div>
-                <a class="btn btn--ghost btn--full-width" href="/pages/home.html">Volver al mapa cultural</a>
+
+                <a class="btn btn--ghost btn--full-width" href="../pages/home.html">Volver al mapa cultural</a>
             </article>
 
             <aside class="panel">
@@ -76,11 +61,16 @@
                 <button class="btn btn--accent btn--full-width">Enviar</button>
             </aside>
         </section>
+
+        <h3>También cerca</h3>
+        <section class="cards-grid" id="relacionados"></section>
     </main>
 
     <footer>
         <div class="container footer-row"><span>© 2025 FestiMap Ecuador</span></div>
     </footer>
+
+    <script type="module" src="../scripts/events-view.js" defer></script>
 </body>
 
 </html>

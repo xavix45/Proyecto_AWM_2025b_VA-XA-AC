@@ -8,12 +8,11 @@
     <link rel="stylesheet" href="../styles/main.css">
 </head>
 
-<body>
+<body data-page="explorar-tema">
     <header class="header">
         <div class="container nav">
             <a class="brand" href="../index.html">
-                <div class="logo">FM</div>
-                <span>FestiMap Ecuador</span>
+                <div class="logo">FM</div><span>FestiMap Ecuador</span>
             </a>
         </div>
     </header>
@@ -21,14 +20,19 @@
     <main class="container section">
         <h2 class="page-title">Explora por tema o palabra clave</h2>
 
-        <form class="main-search-bar" role="search">
-            <input type="search" class="input-search" placeholder="Buscar colada morada, kpop, feria artesanal…">
+        <form class="main-search-bar" role="search" onsubmit="return false">
+            <input id="buscador" type="search" class="input-search"
+                placeholder="Buscar colada morada, kpop, feria artesanal…">
             <button class="btn btn--primary" type="submit">Buscar</button>
         </form>
 
         <div class="filters">
-            <select class="input">
-                <option>Categoría</option>
+            <select id="filtro-tipo" class="input">
+                <option value="">Categoría</option>
+                <option value="cívica">Cívica</option>
+                <option value="tradición">Tradición</option>
+                <option value="religiosa">Religiosa</option>
+                <option value="ancestral">Ancestral</option>
             </select>
             <select class="input">
                 <option>Provincia</option>
@@ -42,52 +46,15 @@
             <label class="checkbox"><input type="checkbox" /> Dentro de tu viaje</label>
         </div>
 
-        <div class="explore-list">
-
-            <article class="list-item">
-                <div class="list-item__image">
-                    <img src="https://www.quitoinforma.gob.ec/wp-content/uploads/2018/10/ColadaMoradaFByTW-800x418.jpg"
-                        alt="Colada Morada">
-                </div>
-                <div class="list-item__content">
-                    <h4 class="list-item__title">Colada Morada & Guaguas de Pan</h4>
-                    <p class="list-item__meta">Gastronomía</p>
-                </div>
-                <p class="list-item__date">Oct 31 – Nov 2</p>
-                <a href="/pages/detalle-evento.html" class="btn btn--primary">Ver más</a>
-            </article>
-
-            <article class="list-item">
-                <div class="list-item__image">
-                    <img src="https://media.gettyimages.com/id/2165166592/es/foto/los-angeles-california-h1ve-perform-at-the-k-pop-cover-dance-festival-during-the-grammy-museum.jpg?s=612x612&w=gi&k=20&c=0HHP2OIh-RAy0Uz0WryCLN1a0QWjiG7Y1z3NgyAY4DE="
-                        alt="K-Pop Dance Festival">
-                </div>
-                <div class="list-item__content">
-                    <h4 class="list-item__title">K-Pop Dance Night</h4>
-                    <p class="list-item__meta">Música</s_p>
-                </div>
-                <p class="list-item__date">Vie 20:00</p>
-                <a href="/pages/detalle-evento.html" class="btn btn--primary">Ver más</a>
-            </article>
-
-            <article class="list-item">
-                <div class="list-item__image">
-                    <img src="https://www.quitoinforma.gob.ec/wp-content/uploads/2018/06/Presentacion9FByTW.jpg"
-                        alt="Fiesta de las Luces Quito">
-                </div>
-                <div class="list-item__content">
-                    <h4 class="list-item__title">Fiesta de las Luces</h4>
-                    <p class="list-item__meta">Cultura / Evento</p>
-                </div>
-                <p class="list-item__date">Ago 08 – Ago 12</p>
-                <a href="/pages/detalle-evento.html" class="btn btn--primary">Ver más</a>
-            </article>
-
-        </div>
+        <!-- Lista dinámica -->
+        <div class="explore-list" id="tema-list"></div>
     </main>
+
     <footer>
         <div class="container footer-row"><span>© 2025 FestiMap Ecuador</span></div>
     </footer>
+
+    <script type="module" src="../scripts/events-view.js" defer></script>
 </body>
 
 </html>

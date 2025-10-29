@@ -6,25 +6,24 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Hoy y cerca de ti — FestiMap</title>
     <link rel="stylesheet" href="../styles/main.css">
-
 </head>
 
-<body>
+<body data-page="home">
     <header class="header">
         <div class="container nav">
             <a class="brand" href="../index.html">
-                <div class="logo">FM</div>
-                <span>FestiMap Ecuador</span>
+                <div class="logo">FM</div><span>FestiMap Ecuador</span>
             </a>
-            <nav class="navlinks"><a href="/pages/explorar-tema.html">Explorar</a><a
-                    href="/pages/plan-de-viaje.html">Plan de viaje</a><a class="btn btn--ghost"
-                    href="/pages/agenda-alertas.html">Mi agenda</a><a class="btn btn--primary"
-                    href="/pages/mi-cuenta.html">Mi cuenta</a></nav>
+            <nav class="navlinks">
+                <a href="../pages/explorar-tema.html">Explorar</a>
+                <a href="../pages/plan-de-viaje.html">Plan de viaje</a>
+                <a class="btn btn--ghost" href="../pages/agenda-alertas.html">Mi agenda</a>
+                <a class="btn btn--primary" href="../pages/mi-cuenta.html">Mi cuenta</a>
+            </nav>
         </div>
     </header>
 
     <main class="container section">
-
         <form class="main-search-bar" role="search">
             <input type="search" class="input-search" placeholder="Buscar colada morada, Inti Raymi...">
             <button class="btn btn--primary" type="submit">Buscar</button>
@@ -44,15 +43,16 @@
                 <option>Gastronomía</option>
                 <option>Cultura</option>
             </select>
-            <input type="date" /><label class="checkbox"><input type="checkbox" checked /> Dentro de tu viaje</label>
+            <input type="date" />
+            <label class="checkbox"><input type="checkbox" checked /> Dentro de tu viaje</label>
         </div>
 
         <h2 class="section-title">Festividades para descubrir</h2>
         <div class="grid-2">
-
+            <!-- Deja tu slider tal cual -->
             <div class="slider-container">
                 <div class="slider-track">
-                    <a href="/pages/detalle-evento.html" class="slide">
+                    <a href="../pages/detalle-evento.html" class="slide">
                         <img src="https://www.turismo.gob.ec/wp-content/uploads/2019/03/fiesta-chonta-C04.jpg"
                             alt="Fiesta de la Chonta">
                         <div class="slide-caption">
@@ -60,7 +60,7 @@
                             <p>Amazonía</p>
                         </div>
                     </a>
-                    <a href="/pages/detalle-evento.html" class="slide">
+                    <a href="../pages/detalle-evento.html" class="slide">
                         <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS-v4_kvXAtEpEGmAQCPA0gjnLhXRUduMxGaQ&s"
                             alt="Rodeo Montubio">
                         <div class="slide-caption">
@@ -68,7 +68,7 @@
                             <p>Costa</p>
                         </div>
                     </a>
-                    <a href="/pages/detalle-evento.html" class="slide">
+                    <a href="../pages/detalle-evento.html" class="slide">
                         <img src="https://www.turismo.gob.ec/wp-content/uploads/2019/06/WhatsApp-Image-2019-06-17-at-08.34.49.jpeg"
                             alt="Inti Raymi">
                         <div class="slide-caption">
@@ -76,7 +76,7 @@
                             <p>Sierra</p>
                         </div>
                     </a>
-                    <a href="/pages/detalle-evento.html" class="slide">
+                    <a href="../pages/detalle-evento.html" class="slide">
                         <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSZycmiMTFovmbnwlYFIdMeFnZstcLjDFIRqA&s"
                             alt="Carnaval de Guaranda">
                         <div class="slide-caption">
@@ -84,40 +84,7 @@
                             <p>Sierra</p>
                         </div>
                     </a>
-                    <a href="/pages/detalle-evento.html" class="slide">
-                        <img src="https://cloudfront-us-east-1.images.arcpublishing.com/eluniverso/LX7FIBCIFZDWFKFBCNPOQBL7CQ.jpg"
-                            alt="Fiesta Kasama">
-                        <div class="slide-caption">
-                            <h3>Fiesta Kasama</h3>
-                            <p>Costa</p>
-                        </div>
-                    </a>
-
-                    <a href="/pages/detalle-evento.html" class="slide">
-                        <img src="https://www.turismo.gob.ec/wp-content/uploads/2019/03/fiesta-chonta-C04.jpg"
-                            alt="Fiesta de la Chonta">
-                        <div class="slide-caption">
-                            <h3>Fiesta de la Chonta</h3>
-                            <p>Amazonía</p>
-                        </div>
-                    </a>
-                    <a href="/pages/detalle-evento.html" class="slide">
-                        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS-v4_kvXAtEpEGmAQCPA0gjnLhXRUduMxGaQ&s"
-                            alt="Rodeo Montubio">
-                        <div class="slide-caption">
-                            <h3>Rodeo Montubio</h3>
-                            <p>Costa</p>
-                        </div>
-                    </a>                    
-                    <a href="/pages/detalle-evento.html" class="slide">
-                        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSZycmiMTFovmbnwlYFIdMeFnZstcLjDFIRqA&s"
-                            alt="Carnaval de Guaranda">
-                        <div class="slide-caption">
-                            <h3>Carnaval de Guaranda</h3>
-                            <p>Sierra</p>
-                        </div>
-                    </a>
-                    <a href="/pages/detalle-evento.html" class="slide">
+                    <a href="../pages/detalle-evento.html" class="slide">
                         <img src="https://cloudfront-us-east-1.images.arcpublishing.com/eluniverso/LX7FIBCIFZDWFKFBCNPOQBL7CQ.jpg"
                             alt="Fiesta Kasama">
                         <div class="slide-caption">
@@ -128,43 +95,19 @@
                 </div>
             </div>
 
+            <!-- Lista dinámica desde EVENTOS -->
             <div class="list">
                 <a class="btn btn--primary btn--full-width" href="#">Ver mapa completo</a>
-
-                <article class="list-card-home">
-                    <div class="list-card-home__image">
-                        <img src="https://www.quitoinforma.gob.ec/wp-content/uploads/2018/10/ColadaMoradaFByTW-800x418.jpg"
-                            alt="Colada Morada">
-                    </div>
-                    <div class="list-card-home__info">
-                        <h4>Festival de la Colada Morada</h4>
-                        <p class="muted">1-2 Nov • Quito</p>
-                        <div class="card-actions">
-                            <a class="btn btn--ghost" href="/pages/detalle-evento.html">Ver detalle</a>
-                            <a class="btn btn--primary" href="#">Ver en mapa</a>
-                        </div>
-                    </div>
-                </article>
-                <article class="list-card-home">
-                    <div class="list-card-home__image">
-                        <img src="https://www.quitoinforma.gob.ec/wp-content/uploads/2018/06/Presentacion9FByTW.jpg"
-                            alt="Fiesta de las Luces">
-                    </div>
-                    <div class="list-card-home__info">
-                        <h4>Fiesta de las Luces</h4>
-                        <p class="muted">Ago 08–12 • Quito</p>
-                        <div class="card-actions">
-                            <a class="btn btn--ghost" href="/pages/detalle-evento.html">Ver detalle</a>
-                            <a class="btn btn--primary" href="#">Ver en mapa</a>
-                        </div>
-                    </div>
-                </article>
+                <section id="home-list" class="cards-grid"></section>
             </div>
         </div>
     </main>
+
     <footer>
         <div class="container footer-row"><span>© 2025 FestiMap Ecuador</span></div>
     </footer>
+
+    <script type="module" src="../scripts/events-view.js" defer></script>
 </body>
 
 </html>
