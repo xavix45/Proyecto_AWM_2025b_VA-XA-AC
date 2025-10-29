@@ -11,8 +11,11 @@ document.addEventListener('DOMContentLoaded', () => {
         { nombre: "Admin", email: "admin@epn.edu.ec", contra: "admin123" }
     ];
 
-    // Combinamos ambas listas en una sola para facilitar la búsqueda
-    const todosLosUsuarios = [...usuario, ...admin];
+    // Obtenemos los usuarios guardados durante el registro
+    const usuariosRegistrados = JSON.parse(localStorage.getItem('usuarios')) || [];
+
+    // Combinamos TODAS las listas: los harcodeados, los admin y los nuevos registrados
+    const todosLosUsuarios = [...usuario, ...admin, ...usuariosRegistrados];
 
     // 1. Seleccionar los elementos del DOM que necesitamos
     const loginForm = document.getElementById('login-form');
