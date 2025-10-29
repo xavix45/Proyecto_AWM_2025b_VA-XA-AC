@@ -21,21 +21,24 @@
     </header>
     <main class="container section-narrow">
         <h2 class="page-title">Iniciar sesión</h2>
-        <form class="form" autocomplete="on">
+        <form class="form" autocomplete="on" id="login-form">
             <label class="form__label">Correo electrónico <input type="email" class="input"
-                    placeholder="tucorreo@ejemplo.com" required /></label>
+                    placeholder="tucorreo@ejemplo.com" required id="email"/></label>
             <label class="form__label">Contraseña <input type="password" class="input" placeholder="••••••••"
-                    required /></label>
+                    required id="password"/></label>
             <div class="form__row"><label class="checkbox"><input type="checkbox" /> Recuérdame</label>
                 <a class="link" href="/pages/reset-solicitud.html">¿Olvidaste tu contraseña?</a>
             </div>
-            <button class="btn btn--primary form__submit" type="submit">Entrar</button>
+            <input class="btn btn--primary form__submit" type="submit" value="Entrar" />
             <p class="muted center">¿No tienes cuenta? <a class="link" href="/pages/registro.html">Regístrate</a></p>
         </form>
     </main>
     <footer>
         <div class="container footer-row"><span>© 2025 FestiMap Ecuador</span></div>
     </footer>
+
+    <script src="../scripts/login.js"></script>
+
 </body>
 
 </html>
