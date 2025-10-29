@@ -1,0 +1,309 @@
+/* --- styles/pages/plan-de-viaje.css --- */
+
+/* 1. Header */
+.header {
+    position: static;
+    background: var(--surface-card);
+    border-bottom: 1px solid var(--border-light);
+    color: var(--ink);
+}
+
+.header::after {
+    content: none;
+}
+
+.header .navlinks a {
+    color: var(--ink);
+}
+
+.header .navlinks a:hover {
+    color: var(--brand);
+}
+
+.header .navlinks a.is-active {
+    color: var(--accent);
+    font-weight: 700;
+    border-bottom: 2px solid var(--accent);
+}
+
+/* 2. Título */
+.page-title {
+    color: var(--ink);
+    font-weight: 800;
+    margin-bottom: 24px;
+    text-align: left;
+}
+
+/* 3. Panel de Formulario Superior */
+.form-panel {
+    background: var(--surface);
+    padding: 24px;
+    margin-bottom: 32px;
+}
+
+.form--grid {
+    display: grid;
+    /* 4 columnas por defecto */
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px 20px;
+}
+
+.form--grid .form__label {
+    display: grid;
+    gap: 6px;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.form--grid .input {
+    padding: 10px 12px;
+    font-size: 0.95rem;
+}
+
+/* Fieldset de Intereses */
+.form__fieldset {
+    border: none;
+    padding: 0;
+    margin: 0;
+}
+
+.form__fieldset legend {
+    margin-bottom: 8px;
+}
+
+.form__fieldset--full {
+    grid-column: 1 / -1;
+}
+
+.chips-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.chips-group .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid var(--border-light);
+    background: var(--surface-card);
+    color: var(--muted);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all .2s;
+}
+
+.chips-group .chip input {
+    display: none;
+}
+
+.chips-group .chip:hover {
+    border-color: var(--ink);
+    color: var(--ink);
+}
+
+.chips-group .chip:has(input:checked) {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #111;
+}
+
+/* Acciones del formulario */
+.form__actions {
+    grid-column: 1 / -1;
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-light);
+    margin-top: 8px;
+}
+
+.form__actions--full {
+    grid-column: 1 / -1;
+}
+
+/* 4. Layout Mapa + Itinerario */
+.grid-planner {
+    grid-template-columns: 1.5fr 1fr;
+    align-items: start;
+    gap: 32px;
+}
+
+.section-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin: 0 0 16px;
+}
+
+/* 5. Mapa Placeholder */
+.map-planner-placeholder {
+    height: 500px;
+    background: #f1f5f9;
+    border: 1px dashed var(--border-light);
+    border-radius: var(--radius);
+    display: grid;
+    place-items: center;
+    color: var(--muted);
+    font-weight: 500;
+}
+
+/* 6. Panel de Sugerencias */
+.suggestions-panel {
+    margin-top: 24px;
+    padding: 20px;
+}
+
+.suggestions-panel h4 {
+    margin: 0 0 12px;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.suggestions-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.suggestions-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.95rem;
+}
+
+.suggestions-list .btn-add {
+    padding: 4px 8px;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+/* 7. Panel de Itinerario */
+.itinerary-panel {
+    padding: 20px;
+    position: sticky;
+    top: 24px;
+}
+
+.itinerary-panel .tabs {
+    margin-bottom: 20px;
+}
+
+.tabpanel {
+    border: 1px solid var(--border-light);
+    border-top: none;
+    padding: 16px;
+    border-radius: 0 0 var(--radius) var(--radius);
+}
+
+.tabpanel.is-active {
+    display: block;
+}
+
+.tabpanel:not(.is-active) {
+    display: none;
+}
+
+.itinerary-list {
+    list-style-type: decimal;
+    padding-left: 20px;
+    margin: 0 0 16px;
+}
+
+.itinerary-item {
+    padding: 8px 0;
+    border-bottom: 1px dashed var(--border-light);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+.itinerary-item:last-child {
+    border-bottom: none;
+}
+
+.btn-remove {
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 4px;
+}
+
+.btn-remove:hover {
+    color: #f44336;
+}
+
+.itinerary-actions {
+    margin-top: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.itinerary-actions .btn {
+    width: 100%;
+    text-align: center;
+}
+
+.meta {
+    font-size: 0.85rem;
+    color: var(--muted);
+    font-weight: 500;
+    text-align: center;
+    margin-top: 8px;
+}
+
+.itinerary-panel hr {
+    margin: 24px 0;
+    border: 0;
+    border-top: 1px solid var(--border-light);
+}
+
+.final-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+/* 8. Responsive */
+@media (max-width: 900px) {
+    .form--grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .grid-planner {
+        grid-template-columns: 1fr;
+    }
+
+    .itinerary-panel {
+        position: static;
+        margin-top: 32px;
+    }
+}
+
+@media (max-width: 600px) {
+    .form--grid {
+        grid-template-columns: 1fr;
+    }
+
+    .form__actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .final-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}

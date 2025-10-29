@@ -10,58 +10,122 @@
 
 <body>
     <header class="header admin">
-        <div class="container nav">
-            <div class="brand">
+        <div class="container nav nav--space-between">
+            <a class="brand" href="#">
                 <div class="logo">FM</div>
-                <h1>Admin — FestiMap</h1>
-            </div>
+                <span>FestiMap — Administración / Eventos</span>
+            </a>
+            <a href="/pages/login.html" class="logout-link">Salir</a>
         </div>
     </header>
-    <main class="container section">
-        <div class="toolbar">
-            <input class="input" placeholder="Buscar por nombre/ciudad…" /><select>
-                <option>Región</option>
-            </select><select>
-                <option>Categoría</option>
-            </select><select>
-                <option>Estado</option>
-            </select>
-            <button class="btn btn--primary">Aplicar</button><button class="btn btn--ghost">Exportar CSV</button><a
-                class="btn btn--accent" href="/pages/admin/evento-formulario.html">Crear evento</a>
+
+    <main class="container section section-admin">
+
+        <div class="toolbar-wrapper">
+            <div class="toolbar toolbar--filters"> <input class="input input-search-main"
+                    placeholder="Buscar por nombre/ciudad…" />
+                <select class="input">
+                    <option>Región</option>
+                </select>
+                <select class="input">
+                    <option>Categoría</option>
+                </select>
+                <select class="input">
+                    <option>Estado</option> ...
+                </select>
+                <button class="btn btn--primary">Aplicar</button>
+                <button class="btn btn--ghost">Exportar CSV</button>
+            </div>
+            <a class="btn btn--primary btn-create-event" href="/pages/admin/evento-formulario.html">Crear evento</a>
         </div>
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Nombre</th>
-                    <th>Región</th>
-                    <th>Ciudad</th>
-                    <th>Categoría</th>
-                    <th>Fecha</th>
-                    <th>Estado</th>
-                    <th>Asist.</th>
-                    <th>Rating</th>
-                    <th>Visitas</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>Feria de Saquisilí</td>
-                    <td>Sierra</td>
-                    <td>Saquisilí</td>
-                    <td>Ferias</td>
-                    <td>Jue 09–14</td>
-                    <td>Aprobado</td>
-                    <td>420</td>
-                    <td>4.6★</td>
-                    <td>12.3k</td>
-                    <td>✏️ 👁️ ⏱️ 🗑️</td>
-                </tr>
-            </tbody>
-        </table>
+
+        <div class="bulk-actions-bar">
+            <button class="btn btn--ghost"><input type="checkbox" style="margin-right: 8px;"> Seleccionar todo</button>
+            <button class="btn btn-action-approve">Aprobar</button>
+            <button class="btn btn-action-schedule">Programar</button>
+            <button class="btn btn-action-unpublish">Despublicar</button>
+            <button class="btn btn-action-delete">Eliminar</button>
+        </div>
+
+        <div class="table-responsive-wrapper">
+            <table class="table table-admin-events">
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" title="Seleccionar todo"></th>
+                        <th>Nombre</th>
+                        <th>Región</th>
+                        <th>Ciudad</th>
+                        <th>Categoría</th>
+                        <th>Fecha</th>
+                        <th>Estado</th>
+                        <th>Asist.</th>
+                        <th>Rating</th>
+                        <th>Visitas</th>
+                        <th>Acc.</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><input type="checkbox"></td>
+                        <td>Feria de Saquisilí</td>
+                        <td>Sierra</td>
+                        <td>Saquisilí</td>
+                        <td>Ferias</td>
+                        <td>Jue 09–14</td>
+                        <td><span class="status-badge status-approved">Aprobado</span></td>
+                        <td>420</td>
+                        <td>4.6★</td>
+                        <td>12.3k</td>
+                        <td class="actions-cell">
+                            <a href="/pages/admin/evento-formulario.html" title="Editar">✏️</a>
+                            <a href="/pages/detalle-evento.html" title="Ver" target="_blank">👁️</a>
+                            <button title="Programar">⏱️</button>
+                            <button title="Eliminar">🗑️</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><input type="checkbox"></td>
+                        <td>Fiesta Kasama</td>
+                        <td>Costa</td>
+                        <td>Sto. Domingo</td>
+                        <td>Festividades</td>
+                        <td>Abr 14–16</td>
+                        <td><span class="status-badge status-draft">Borrador</span></td>
+                        <td>—</td>
+                        <td>—</td>
+                        <td>34.1k</td>
+                        <td class="actions-cell">
+                            <a href="/pages/admin/evento-formulario.html" title="Editar">✏️</a>
+                            <a href="/pages/detalle-evento.html" title="Ver" target="_blank">👁️</a>
+                            <button title="Programar">⏱️</button>
+                            <button title="Eliminar">🗑️</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><input type="checkbox"></td>
+                        <td>Ruta del Cacao</td>
+                        <td>Costa</td>
+                        <td>Quevedo</td>
+                        <td>Gastronomía</td>
+                        <td>Sáb 10–18</td>
+                        <td><span class="status-badge status-approved">Aprobado</span></td>
+                        <td>205</td>
+                        <td>4.2★</td>
+                        <td>6.7k</td>
+                        <td class="actions-cell">
+                            <a href="/pages/admin/evento-formulario.html" title="Editar">✏️</a>
+                            <a href="/pages/detalle-evento.html" title="Ver" target="_blank">👁️</a>
+                            <button title="Programar">⏱️</button>
+                            <button title="Eliminar">🗑️</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </main>
+
     <footer>
-        <div class="container footer-row"><span>© 2025 FestiMap Admin</span></div>
+        <div class="container footer-row"><span>© 2025 FestiMap Ecuador • Administración • Eventos</span></div>
     </footer>
 </body>
 

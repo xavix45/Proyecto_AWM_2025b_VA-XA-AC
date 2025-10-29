@@ -3,51 +3,157 @@
 
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Plan de viaje — FestiMap</title>
-    <link rel="stylesheet" href="../styles/main.css">
-
+    <link rel="stylesheet" href="../styles/main.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 </head>
 
 <body>
     <header class="header">
-        <div class="container nav">
-            <div class="brand">
-                <div class="logo">FM</div>
-                <h1>FestiMap Ecuador</h1>
-            </div>
+        <div class="container nav" role="navigation" aria-label="Principal">
+            <a class="brand" href="../index.html">
+                <div class="logo" aria-hidden="true">FM</div>
+                <span class="site-title">FestiMap Ecuador</span>
+            </a>
+            <nav class="navlinks">
+                <a href="/pages/explorar-tema.html">Explorar</a>
+                <a class="is-active" href="/pages/plan-de-viaje.html" aria-current="page">Plan de viaje</a>
+                <a href="/pages/agenda-alertas.html">Mi agenda</a>
+                <a class="btn btn--primary" href="/pages/mi-cuenta.html">Mi cuenta</a>
+            </nav>
         </div>
     </header>
+
     <main class="container section">
-        <h2 class="page-title">Rutas culturales A→B</h2>
-        <div class="grid-2">
-            <div>
-                <div class="form__row"><input class="input" placeholder="Origen (ciudad/lugar)" /><input class="input"
-                        placeholder="Destino (ciudad/lugar)" /><select>
-                        <option>Radio: 2 km</option>
-                        <option>3 km</option>
+        <h2 class="page-title">Planifica tu viaje</h2>
+
+        <section class="panel panel--soft form-panel" aria-labelledby="filtros-title">
+            <h3 id="filtros-title" class="sr-only">Parámetros del plan</h3>
+
+            <form id="planner-form" class="form form--grid" autocomplete="off">
+                <label class="form__label">Origen <input id="origen" name="origen" class="input" type="text"
+                        placeholder="Quito Centro o -0.22,-78.51" required></label>
+                <label class="form__label">Destino <input id="destino" name="destino" class="input" type="text"
+                        placeholder="Otavalo Plaza o 0.23,-78.26" required></label>
+                <label class="form__label">Fecha inicio <input id="fecha-ini" name="fechaIni" class="input" type="date"
+                        required></label>
+                <label class="form__label">Días <select id="dias" name="dias" class="input">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3" selected>3</option>
+                        <option value="5">5</option>
+                        <option value="7">7</option>
+                    </select></label>
+
+                <label class="form__label">Ritmo <select id="ritmo" name="ritmo" class="input">
+                        <option value="relajado">Relajado</option>
+                        <option value="normal" selected>Normal</option>
+                        <option value="intenso">Intenso</option>
+                    </select></label>
+                <label class="form__label">Radio <select id="radio" name="radio" class="input">
+                        <option>2 km</option>
+                        <option selected>3 km</option>
                         <option>5 km</option>
-                    </select><button class="btn btn--primary">Buscar ruta</button></div>
-                <div class="map tall">[Ruta trazada + pines cercanos]</div>
+                        <option>8 km</option>
+                    </select></label>
+
+                <fieldset class="form__fieldset form__fieldset--full" aria-label="Intereses">
+                    <legend class="form__label">Intereses principales</legend>
+                    <div class="chips-group">
+                        <label class="chip"><input type="checkbox" name="tags" value="cultura"> Cultura</label>
+                        <label class="chip"><input type="checkbox" name="tags" value="artesania"> Artesanía</label>
+                        <label class="chip"><input type="checkbox" name="tags" value="gastronomia"> Gastronomía</label>
+                        <label class="chip"><input type="checkbox" name="tags" value="naturaleza"> Naturaleza</label>
+                        <label class="chip"><input type="checkbox" name="tags" value="festividad"> Festividades</label>
+                    </div>
+                </fieldset>
+
+                <div class="form__actions form__actions--full">
+                    <button id="btn-generar" type="button" class="btn btn--primary">Generar ruta sugerida</button>
+                    <button id="btn-auto" type="button" class="btn btn--ghost">Generar automática</button>
+                    <button id="btn-guardar" type="button" class="btn btn--ghost">Guardar Plan</button>
+                </div>
+            </form>
+        </section>
+
+        <section class="grid-2 grid-planner">
+            <div>
+                <h3 class="section-title">Mapa y paradas sugeridas</h3>
+                <div class="map map-planner-placeholder" id="map" role="application" aria-label="Mapa de ruta">
+                    <p>El mapa interactivo se cargará aquí</p>
+                </div>
+                <div class="panel suggestions-panel" aria-live="polite">
+                    <h4>Paradas sugeridas cerca de tu ruta</h4>
+                    <ul id="lista-sugeridas" class="suggestions-list">
+                        <li><span>Plaza de Ponchos (Otavalo)</span> <button class="btn btn--ghost btn-add">+
+                                Añadir</button></li>
+                        <li><span>Cascada de Peguche</span> <button class="btn btn--ghost btn-add">+ Añadir</button>
+                        </li>
+                        <li><span>Mercado Copacabana (Otavalo)</span> <button class="btn btn--ghost btn-add">+
+                                Añadir</button></li>
+                    </ul>
+                </div>
             </div>
-            <aside class="panel">
-                <h3>Paradas sugeridas</h3>
-                <ul class="plain">
-                    <li>Feria artesanal — Jue 10:00 [ + Añadir ]</li>
-                    <li>Comida típica — 13:00 [ + Añadir ]</li>
-                </ul>
+
+            <aside class="panel itinerary-panel" aria-labelledby="itin-title">
+                <h3 id="itin-title">Tu itinerario</h3>
+                <div class="tabs" role="tablist" aria-label="Días">
+                    <button class="tab is-active" role="tab" aria-selected="true" aria-controls="dia-1" id="tab-1">Día
+                        1</button>
+                    <button class="tab" role="tab" aria-selected="false" aria-controls="dia-2" id="tab-2">Día 2</button>
+                    <button class="tab" role="tab" aria-selected="false" aria-controls="dia-3" id="tab-3">Día 3</button>
+                </div>
+
+                <div id="dia-1" class="tabpanel is-active" role="tabpanel" aria-labelledby="tab-1">
+                    <ol id="itin-dia-1" class="itinerary-list">
+                        <li class="itinerary-item"><span>08:30 Salida desde Quito Centro</span> <button
+                                class="btn-remove" title="Quitar">✖</button></li>
+                        <li class="itinerary-item"><span>10:00 Visita Plaza de Ponchos</span> <button class="btn-remove"
+                                title="Quitar">✖</button></li>
+                        <li class="itinerary-item"><span>12:30 Almuerzo en Mercado Copacabana</span> <button
+                                class="btn-remove" title="Quitar">✖</button></li>
+                        <li class="itinerary-item"><span>14:30 Paseo Cascada de Peguche</span> <button
+                                class="btn-remove" title="Quitar">✖</button></li>
+                        <li class="itinerary-item"><span>17:00 Regreso hacia Quito</span> <button class="btn-remove"
+                                title="Quitar">✖</button></li>
+                    </ol>
+                    <div class="itinerary-actions">
+                        <button class="btn btn--primary" id="btn-recalcular-1">Optimizar día 1</button>
+                        <p class="meta" id="resumen-1">~180 km • ~4 h 30 min • 5 paradas</p>
+                    </div>
+                </div>
+                <div id="dia-2" class="tabpanel" role="tabpanel" aria-labelledby="tab-2" hidden>
+                    <ol id="itin-dia-2" class="itinerary-list">
+                        <li>(Vacío)</li>
+                    </ol>
+                    <div class="itinerary-actions">
+                        <button class="btn btn--primary" id="btn-recalcular-2">Optimizar día 2</button>
+                        <p class="meta" id="resumen-2">0 km • 0 min • 0 paradas</p>
+                    </div>
+                </div>
+                <div id="dia-3" class="tabpanel" role="tabpanel" aria-labelledby="tab-3" hidden>
+                    <ol id="itin-dia-3" class="itinerary-list">
+                        <li>(Vacío)</li>
+                    </ol>
+                    <div class="itinerary-actions">
+                        <button class="btn btn--primary" id="btn-recalcular-3">Optimizar día 3</button>
+                        <p class="meta" id="resumen-3">0 km • 0 min • 0 paradas</p>
+                    </div>
+                </div>
                 <hr />
-                <h3>Tu itinerario</h3>
-                <ol class="plain">
-                    <li>Día 1 — 10:00 — Otavalo (mercado)</li>
-                </ol>
-                <div class="form__row"><button class="btn btn--primary">Guardar ruta</button><a class="btn btn--ghost"
-                        href="/pages/agenda-alertas.html">Ver itinerario</a></div>
+                <div class="final-actions">
+                    <button id="btn-exportar" type="button" class="btn btn--ghost">Exportar PDF/CSV</button>
+                    <a class="btn btn--ghost" href="/pages/agenda-alertas.html">Ver agenda</a>
+                </div>
             </aside>
-        </div>
+        </section>
     </main>
+
     <footer>
-        <div class="container footer-row"><span>© 2025 FestiMap Ecuador</span></div>
+        <div class="container footer-row">
+            <span>© 2025 FestiMap Ecuador</span>
+        </div>
     </footer>
 </body>
 

@@ -11,53 +11,146 @@
 <body>
     <header class="header admin">
         <div class="container nav">
-            <div class="brand">
-                <div class="logo">FM</div>
-                <h1>Admin — FestiMap</h1>
+            <a class="brand" href="#"> <div class="logo">FM</div>
+                <span>FestiMap — Administración / Reportes</span> 
+            </a>
+            <a href="/pages/login.html" class="logout-link">Salir</a> 
+            </div>
+    </header>
+
+    <main class="container section section-admin">
+        <h2 class="page-title">Reportes y estadísticas</h2>
+        
+        <div class="toolbar">
+            <select class="input">
+                <option>Rango de fechas</option>
+                <option>Últimos 7 días</option>
+                <option>Últimos 30 días</option>
+                <option>Este mes</option>
+            </select>
+            <select class="input">
+                <option>Región</option>
+                <option>Todas</option>
+                <option>Sierra</option>
+                <option>Costa</option>
+                </select>
+            <select class="input">
+                <option>Categoría</option>
+                <option>Todas</option>
+                <option>Gastronomía</option>
+                <option>Cultura</option>
+            </select>
+            <button class="btn btn--primary">Aplicar</button>
+            <button class="btn btn--ghost">Exportar CSV</button> <button class="btn btn--ghost">Exportar PDF</button>
+        </div>
+        
+        <section class="kpis">
+            <div class="kpi">
+                <span class="kpi__label">Asistencias confirmadas</span>
+                <span class="kpi__value">1,284</span>
+                <span class="kpi__trend positive">+8.2% vs. semana anterior</span> 
+            </div>
+            <div class="kpi">
+                <span class="kpi__label">Valoración promedio</span>
+                <span class="kpi__value">4.3★</span>
+                <span class="kpi__trend positive">+0.2 pts</span>
+            </div>
+            <div class="kpi">
+                <span class="kpi__label">Eventos activos</span>
+                <span class="kpi__value">126</span>
+                <span class="kpi__trend negative">–5.0% (después de feriado)</span>
+            </div>
+            <div class="kpi">
+                <span class="kpi__label">Comentarios aprobados</span>
+                <span class="kpi__value">342</span>
+                 <span class="kpi__trend positive">+3.1%</span>
+            </div>
+        </section>
+
+        <div class="grid-2">
+            <div class="panel tall graph-placeholder">[ Gráfico — Asistencias por semana ]</div>
+            <div class="panel tall graph-placeholder">[ Gráfico — Valoración promedio por región ]</div>
+        </div>
+
+        <div class="table-container">
+            <div class="table-wrapper">
+                <h3>Top eventos de la semana</h3>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Evento</th>
+                            <th>Región</th>
+                            <th>Asistencias</th>
+                            <th>Valoración</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Feria de Saquisilí</td>
+                            <td>Sierra</td>
+                            <td>420</td>
+                            <td>4.6★</td>
+                        </tr>
+                        <tr>
+                            <td>Festival del Maíz</td>
+                            <td>Sierra</td>
+                            <td>310</td>
+                            <td>4.4★</td>
+                        </tr>
+                         <tr>
+                            <td>Ruta del Cacao</td>
+                            <td>Costa</td>
+                            <td>205</td>
+                            <td>4.2★</td>
+                        </tr>
+                         <tr>
+                            <td>Artesanías Otavalo</td>
+                            <td>Sierra</td>
+                            <td>188</td>
+                            <td>4.5★</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="table-wrapper">
+                <h3>Actividad por región</h3>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Región</th>
+                            <th>Eventos</th>
+                            <th>Asistencias</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Sierra</td>
+                            <td>62</td>
+                            <td>780</td>
+                        </tr>
+                        <tr>
+                            <td>Costa</td>
+                            <td>38</td>
+                            <td>360</td>
+                        </tr>
+                         <tr>
+                            <td>Amazonía</td>
+                            <td>14</td>
+                            <td>92</td>
+                        </tr>
+                         <tr>
+                            <td>Galápagos</td>
+                            <td>12</td>
+                            <td>52</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
-    </header>
-    <main class="container section">
-        <h2 class="page-title">Reportes y estadísticas</h2>
-        <div class="toolbar"><input type="date" class="input" /><input type="date" class="input" /><select
-                class="input">
-                <option>Región</option>
-            </select><select class="input">
-                <option>Categoría</option>
-            </select><button class="btn btn--primary">Aplicar</button><button class="btn btn--ghost">Exportar
-                PDF</button></div>
-        <section class="kpis">
-            <div class="kpi"><span class="kpi__label">Asistencias</span><span class="kpi__value">1,245</span></div>
-            <div class="kpi"><span class="kpi__label">Valoración prom.</span><span class="kpi__value">4.4★</span></div>
-            <div class="kpi"><span class="kpi__label">Eventos activos</span><span class="kpi__value">86</span></div>
-            <div class="kpi"><span class="kpi__label">Comentarios OK</span><span class="kpi__value">312</span></div>
-        </section>
-        <div class="grid-2">
-            <div class="panel tall">[Gráfico: Asistencias por semana]</div>
-            <div class="panel tall">[Gráfico: Valoración por región]</div>
-        </div>
-        <h3>Top eventos de la semana</h3>
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Evento</th>
-                    <th>Ciudad</th>
-                    <th>Asistencias</th>
-                    <th>Rating</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>Feria de Saquisilí</td>
-                    <td>Saquisilí</td>
-                    <td>420</td>
-                    <td>4.6★</td>
-                </tr>
-            </tbody>
-        </table>
-    </main>
+        </main>
+
     <footer>
-        <div class="container footer-row"><span>© 2025 FestiMap Admin</span></div>
+        <div class="container footer-row"><span>© 2025 FestiMap Ecuador • Administración • Reportes</span></div>
     </footer>
 </body>
 

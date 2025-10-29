@@ -18,8 +18,15 @@
 @import "./pages/explorar-tema.css";
 @import "./pages/explorar-region.css";
 @import "./pages/agenda.css";
+@import "./pages/plan-de-viaje.css";
 
 /* Último: legado, hasta terminar migración */
 @import "./base/_legacy.css";
 @import "./components/_legacy-components.css";
 
+/* --- INICIO Páginas Admin --- */
+@import "./pages/admin/admin-estadisticas.css"; 
+@import "./pages/admin/admin-evento-formulario.css";
+@import "./pages/admin/admin-eventos-listado.css"; 
+/* (Aquí irían otras páginas de admin si las hubiera) */
+/* --- FIN Páginas Admin --- */
