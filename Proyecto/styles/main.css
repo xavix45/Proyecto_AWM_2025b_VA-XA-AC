@@ -27,6 +27,6 @@
 /* --- INICIO Páginas Admin --- */
 @import "./pages/admin/admin-estadisticas.css"; 
 @import "./pages/admin/admin-evento-formulario.css";
-@import "./pages/admin/admin-eventos-listado.css"; 
+@import "./pages/admin/eventos-listado.css"; 
 /* (Aquí irían otras páginas de admin si las hubiera) */
 /* --- FIN Páginas Admin --- */

@@ -36,10 +36,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 6. Mostrar resultado
         if (usuarioEncontrado) {
-            // Si encontramos al usuario
-            alert(`¡Bienvenido, ${usuarioEncontrado.nombre}!`);
-            // Opcional: Redirigir a otra página
-            // window.location.href = '../index.html'; // Por ejemplo, a la página principal
+            //Redirigir a otra página
+            window.location.href = '../pages/home.html';
         } else {
             // Si no se encontró el usuario
             alert('Correo electrónico o contraseña incorrectos.');
