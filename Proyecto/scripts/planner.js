@@ -56,8 +56,24 @@ window.addEventListener("DOMContentLoaded", () => {
         markers.forEach(m => map.removeLayer(m)); markers = [];
 
         // Filtrar eventos dentro del buffer
+        // Filtrar eventos dentro del buffer y por mes de la fecha seleccionada
+        const fechaInicio = qs("#fecha-ini").value;
+        const fechaFiltro = new Date(fechaInicio);
+
+        // 1. Crear puntos GeoJSON de todos los eventos
         const pts = turf.featureCollection(EVENTOS.map(e => turf.point([e.lng, e.lat], e)));
-        const dentro = turf.pointsWithinPolygon(pts, buffer).features.map(f => f.properties);
+
+        // 2. Buscar los que están dentro del corredor
+        const dentro = turf.pointsWithinPolygon(pts, buffer).features
+            .map(f => f.properties)
+            .filter(ev => {
+                // Si el evento no tiene fecha, se muestra igual
+                if (!ev.fecha) return true;
+                // Solo mantener los eventos del mismo mes que el inicio del viaje
+                const f = new Date(ev.fecha);
+                return f.getMonth() === fechaFiltro.getMonth();
+            });
+
         const ranked = dentro.map(e => ({
             ...e,
             score: turf.pointToLineDistance(turf.point([e.lng, e.lat]), route.geometry, { units: "kilometers" })
@@ -149,4 +165,52 @@ window.addEventListener("DOMContentLoaded", () => {
         }
         return out;
     }
+});
+// Guardar el itinerario completo
+qs("#btn-guardar").addEventListener("click", () => {
+    const data = {
+        origen: qs("#origen").value,
+        destino: qs("#destino").value,
+        ritmo: qs("#ritmo").value,
+        radio: qs("#radio").value,
+        dias: qs("#dias").value,
+        fechaIni: qs("#fecha-ini").value,
+        itinerario
+    };
+    localStorage.setItem("festi_itinerario", JSON.stringify(data));
+    alert("Tu plan de viaje ha sido guardado correctamente.");
+});
+
+// Cargar automáticamente si existe un plan anterior
+window.addEventListener("DOMContentLoaded", () => {
+    const saved = localStorage.getItem("festi_itinerario");
+    if (!saved) return;
+    const plan = JSON.parse(saved);
+    qs("#origen").value = plan.origen || "";
+    qs("#destino").value = plan.destino || "";
+    qs("#ritmo").value = plan.ritmo || "normal";
+    qs("#radio").value = plan.radio || "3 km";
+    qs("#dias").value = plan.dias || "3";
+    qs("#fecha-ini").value = plan.fechaIni || "";
+
+    // Recuperar itinerario
+    Object.keys(plan.itinerario || {}).forEach(idx => {
+        itinerario[idx] = plan.itinerario[idx];
+        renderDay(parseInt(idx));
+    });
+});
+// Exportar a CSV simple
+qs("#btn-exportar").addEventListener("click", () => {
+    let csv = "Día,Parada,Duración (min)\n";
+    Object.entries(itinerario).forEach(([idx, stops]) => {
+        stops.forEach((s, i) => {
+            csv += `${parseInt(idx) + 1},${s.name},${s.durMin}\n`;
+        });
+    });
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "FestiMap_plan.csv";
+    a.click();
 });
