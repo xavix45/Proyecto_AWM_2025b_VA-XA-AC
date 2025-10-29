@@ -1,106 +1,133 @@
 // /scripts/planner.js
 import { EVENTOS } from "../data/eventos.js";
-
 const qs = s => document.querySelector(s);
+const qsa = s => [...document.querySelectorAll(s)];
 
 window.addEventListener("DOMContentLoaded", () => {
+    // ---- Referencias UI ----
     const origenI = qs("#origen");
     const destinoI = qs("#destino");
     const radioSel = qs("#radio");
     const ritmoSel = qs("#ritmo");
+    const diasSel = qs("#dias");
+    const fechaI = qs("#fecha-ini");
+
     const btnGen = qs("#btn-generar");
+    const btnAuto = qs("#btn-auto");
+    const btnGuardar = qs("#btn-guardar");
+    const btnExport = qs("#btn-exportar");
+
     const sugeridas = qs("#lista-sugeridas");
-    const tabs = [...document.querySelectorAll(".tab")];
-    const panels = [...document.querySelectorAll(".tabpanel")];
+    let tabs = qsa(".tab");
+    let panels = qsa(".tabpanel");
 
-    // --- Inicializar mapa ---
+    const itinerario = {}; // { diaIndex: [{id,name,lat,lng,durMin,fecha?}] }
+
+    // ---- Inicializar mapa ----
     const map = L.map("map").setView([-0.22, -78.51], 9);
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: "© OpenStreetMap"
-    }).addTo(map);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { attribution: "© OpenStreetMap" }).addTo(map);
+    let rutaLayer = null, bufferLayer = null, markers = [];
 
-    let rutaLayer = null;
-    let bufferLayer = null;
-    let markers = [];
-    const itinerario = {};
+    // ---- Tabs ----
+    function bindTabs() {
+        tabs.forEach((t, i) => t.addEventListener("click", () => activateDay(i)));
+    }
+    function activateDay(i) {
+        tabs.forEach(x => x.classList.remove("is-active"));
+        panels.forEach(p => { p.classList.remove("is-active"); p.hidden = true; });
+        tabs[i]?.classList.add("is-active");
+        panels[i] && (panels[i].classList.add("is-active"), panels[i].hidden = false);
+    }
+    function syncTabsWithDays() {
+        const n = parseInt(diasSel.value, 10);
+        tabs.forEach((t, i) => t.style.display = (i < n ? "" : "none"));
+        panels.forEach((p, i) => p.style.display = (i < n ? "" : "none"));
+        if (!tabs.some(t => t.classList.contains("is-active") && t.style.display !== "none")) activateDay(0);
+    }
+    bindTabs();
+    syncTabsWithDays();
+    diasSel.addEventListener("change", syncTabsWithDays);
 
-    // --- Tabs de días ---
-    tabs.forEach((t, i) => {
-        t.addEventListener("click", () => {
-            tabs.forEach(x => x.classList.remove("is-active"));
-            panels.forEach(p => { p.classList.remove("is-active"); p.hidden = true; });
-            t.classList.add("is-active");
-            panels[i].classList.add("is-active");
-            panels[i].hidden = false;
-        });
-    });
-
-    // --- Botón principal: generar ruta ---
+    // ---- Generar ruta y sugerencias ----
     btnGen.addEventListener("click", async () => {
-        const radioKm = parseInt((radioSel.value.match(/\d+/) || [3])[0]);
+        const radioKm = parseInt((radioSel.value.match(/\d+/) || [3])[0], 10);
         const o = await geocode(origenI.value);
         const d = await geocode(destinoI.value);
-        if (!o || !d) { alert("No se pudo geocodificar."); return; }
+        if (!o || !d) return alert("No se pudo geocodificar origen/destino.");
 
         const route = await osrmRoute(o, d);
-        if (!route) { alert("No se pudo trazar ruta."); return; }
+        if (!route) return alert("No se pudo trazar la ruta.");
 
+        // Dibujar ruta
         if (rutaLayer) map.removeLayer(rutaLayer);
-        rutaLayer = L.geoJSON(route.geometry).addTo(map);
+        rutaLayer = L.geoJSON(route.geometry, { color: "#007f7f", weight: 4 }).addTo(map);
         map.fitBounds(rutaLayer.getBounds());
 
+        // Buffer (radio)
         const buffer = turf.buffer(route.geometry, radioKm, { units: "kilometers" });
         if (bufferLayer) map.removeLayer(bufferLayer);
-        bufferLayer = L.geoJSON(buffer, { style: { fillOpacity: 0.1 } }).addTo(map);
+        bufferLayer = L.geoJSON(buffer, { style: { fillColor: "#00ffff", fillOpacity: 0.1, color: "#00b3b3" } }).addTo(map);
 
         markers.forEach(m => map.removeLayer(m)); markers = [];
 
-        // Filtrar eventos dentro del buffer
-        // Filtrar eventos dentro del buffer y por mes de la fecha seleccionada
-        const fechaInicio = qs("#fecha-ini").value;
-        const fechaFiltro = new Date(fechaInicio);
-
-        // 1. Crear puntos GeoJSON de todos los eventos
+        // ---- Filtrado de eventos dentro del corredor y rango de fechas ----
         const pts = turf.featureCollection(EVENTOS.map(e => turf.point([e.lng, e.lat], e)));
+        let dentro = turf.pointsWithinPolygon(pts, buffer).features.map(f => f.properties);
 
-        // 2. Buscar los que están dentro del corredor
-        const dentro = turf.pointsWithinPolygon(pts, buffer).features
-            .map(f => f.properties)
-            .filter(ev => {
-                // Si el evento no tiene fecha, se muestra igual
+        const fechaInicio = fechaI.value ? new Date(fechaI.value) : null;
+        if (fechaInicio) {
+            const fechaFin = new Date(fechaInicio);
+            fechaFin.setDate(fechaFin.getDate() + parseInt(diasSel.value, 10));
+
+            dentro = dentro.filter(ev => {
                 if (!ev.fecha) return true;
-                // Solo mantener los eventos del mismo mes que el inicio del viaje
                 const f = new Date(ev.fecha);
-                return f.getMonth() === fechaFiltro.getMonth();
+                return f >= fechaInicio && f <= fechaFin;
             });
+        }
 
+        sugeridas.innerHTML = "";
+        if (dentro.length === 0) {
+            sugeridas.innerHTML = "<li>No hay eventos en esas fechas dentro de la ruta seleccionada.</li>";
+            return;
+        }
+
+        // Ordenar por proximidad a la ruta
         const ranked = dentro.map(e => ({
             ...e,
             score: turf.pointToLineDistance(turf.point([e.lng, e.lat]), route.geometry, { units: "kilometers" })
         })).sort((a, b) => a.score - b.score);
 
-        sugeridas.innerHTML = "";
         ranked.forEach(e => {
             const li = document.createElement("li");
-            li.innerHTML = `<span>${e.name}</span> <button class="btn btn--ghost btn-add">+ Añadir</button>`;
+            li.innerHTML = `<span>${e.name}${e.fecha ? " (" + e.fecha + ")" : ""}</span> 
+        <button class="btn btn--ghost btn-add">+ Añadir</button>`;
             sugeridas.appendChild(li);
 
-            const mk = L.marker([e.lat, e.lng]).addTo(map).bindPopup(e.name);
+            const mk = L.marker([e.lat, e.lng]).addTo(map)
+                .bindPopup(`${e.name}${e.fecha ? "<br>" + e.fecha : ""}`);
             markers.push(mk);
 
-            li.querySelector(".btn-add").addEventListener("click", () => addStopToDay(e));
+            li.querySelector(".btn-add").addEventListener("click", () => addStopToActiveDay(e));
         });
     });
 
-    // --- Añadir parada a día activo ---
-    function addStopToDay(poi) {
-        const activeIdx = tabs.findIndex(t => t.classList.contains("is-active"));
-        if (!itinerario[activeIdx]) itinerario[activeIdx] = [];
-        itinerario[activeIdx].push(poi);
-        renderDay(activeIdx);
+    // ---- Generar automática ----
+    btnAuto.addEventListener("click", () => {
+        const items = qsa("#lista-sugeridas li .btn-add");
+        if (items.length === 0) return alert("Primero genera la ruta para ver sugerencias.");
+        items.slice(0, 5).forEach(btn => btn.click());
+    });
+
+    // ---- Añadir/Quitar paradas ----
+    function addStopToActiveDay(poi) {
+        const idx = tabs.findIndex(t => t.classList.contains("is-active") && t.style.display !== "none");
+        if (idx < 0) return;
+        if (!itinerario[idx]) itinerario[idx] = [];
+        itinerario[idx].push(poi);
+        renderDay(idx);
     }
 
-    // --- Render día ---
     function renderDay(idx) {
         const ol = qs(`#itin-dia-${idx + 1}`);
         const resumen = qs(`#resumen-${idx + 1}`);
@@ -110,26 +137,135 @@ window.addEventListener("DOMContentLoaded", () => {
 
         let totalMin = 0, km = 0;
         ol.innerHTML = "";
-        for (let i = 0; i < ordered.length; i++) {
-            let dur = ordered[i].durMin;
-            if (ritmo === "relajado") dur *= 1.2;
-            if (ritmo === "intenso") dur *= 0.8;
+
+        ordered.forEach((stop, i) => {
+            let dur = stop.durMin || 60;
+            if (ritmo === "relajado") dur = Math.round(dur * 1.2);
+            if (ritmo === "intenso") dur = Math.round(dur * 0.8);
 
             if (i > 0) {
                 const prev = ordered[i - 1];
-                const dkm = turf.distance([prev.lng, prev.lat], [ordered[i].lng, ordered[i].lat], { units: "kilometers" });
+                const dkm = turf.distance([prev.lng, prev.lat], [stop.lng, stop.lat], { units: "kilometers" });
                 km += dkm;
-                totalMin += Math.max(10, dkm * 2);
+                totalMin += Math.max(10, Math.round(dkm * 2));
             }
             totalMin += dur;
+
             const li = document.createElement("li");
-            li.textContent = `Parada ${i + 1} — ${ordered[i].name} — ${Math.round(dur)} min`;
+            li.className = "itinerary-item";
+            li.innerHTML = `<span>${i + 1}. ${stop.name} — ${dur} min</span>
+        <button class="btn-remove" title="Quitar">✖</button>`;
             ol.appendChild(li);
-        }
-        resumen.textContent = `${km.toFixed(1)} km • ${Math.round(totalMin)} min • ${ordered.length} paradas`;
+
+            // Eliminar parada al hacer clic
+            li.querySelector(".btn-remove").addEventListener("click", () => {
+                itinerario[idx] = itinerario[idx].filter(x => x.id !== stop.id);
+                renderDay(idx);
+            });
+        });
+
+        resumen.textContent = `${km.toFixed(1)} km • ${totalMin} min • ${ordered.length} paradas`;
     }
 
-    // --- Utilidades ---
+    // ---- Guardar/Cargar plan ----
+    btnGuardar.addEventListener("click", () => {
+        const data = {
+            origen: origenI.value, destino: destinoI.value,
+            ritmo: ritmoSel.value, radio: radioSel.value,
+            dias: diasSel.value, fechaIni: fechaI.value,
+            itinerario
+        };
+        localStorage.setItem("festi_itinerario", JSON.stringify(data));
+        alert("Plan guardado.");
+    });
+
+    (function loadSaved() {
+        const saved = localStorage.getItem("festi_itinerario");
+        if (!saved) return;
+        const plan = JSON.parse(saved);
+        origenI.value = plan.origen || "";
+        destinoI.value = plan.destino || "";
+        ritmoSel.value = plan.ritmo || "normal";
+        radioSel.value = plan.radio || "3 km";
+        diasSel.value = plan.dias || "3";
+        fechaI.value = plan.fechaIni || "";
+        syncTabsWithDays();
+        Object.keys(plan.itinerario || {}).forEach(idx => {
+            itinerario[idx] = plan.itinerario[idx];
+            renderDay(parseInt(idx, 10));
+        });
+    })();
+
+    // ---- Exportar PDF (tipo folleto) ----
+    btnExport.addEventListener("click", () => {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+
+        // Encabezado
+        doc.setFillColor(15, 150, 150);
+        doc.rect(0, 0, 210, 30, "F");
+        doc.setTextColor(255, 255, 255);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(20);
+        doc.text("FestiMap Ecuador", 14, 19);
+        doc.setFontSize(12);
+        doc.text("Plan de Viaje Cultural", 196, 19, { align: "right" });
+
+        // Datos generales
+        let y = 42;
+        doc.setTextColor(0, 0, 0);
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(12);
+        doc.text(`Origen: ${origenI.value || "—"}`, 14, y); y += 7;
+        doc.text(`Destino: ${destinoI.value || "—"}`, 14, y); y += 7;
+        doc.text(`Fecha inicio: ${fechaI.value || "—"}`, 14, y); y += 7;
+        doc.text(`Ritmo: ${ritmoSel.value}`, 14, y); y += 7;
+        doc.text(`Duración: ${diasSel.value} día(s)`, 14, y);
+
+        // Línea separadora
+        y += 6;
+        doc.setDrawColor(200, 200, 200);
+        doc.line(14, y, 196, y);
+        y += 10;
+
+        // Itinerario
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(14);
+        doc.setTextColor(15, 150, 150);
+        doc.text("Itinerario Detallado", 14, y);
+        y += 8;
+
+        const diasOrden = Object.keys(itinerario).map(n => parseInt(n, 10)).sort((a, b) => a - b);
+        if (diasOrden.length === 0) {
+            doc.setFont("helvetica", "normal"); doc.setFontSize(12); doc.setTextColor(80, 80, 80);
+            doc.text("No se han agregado paradas.", 14, y);
+        } else {
+            diasOrden.forEach(idx => {
+                const stops = itinerario[idx] || [];
+                doc.setFont("helvetica", "bold"); doc.setFontSize(13); doc.setTextColor(0, 100, 100);
+                doc.text(`Día ${idx + 1}`, 14, y); y += 6;
+                doc.setFont("helvetica", "normal"); doc.setFontSize(11); doc.setTextColor(0, 0, 0);
+                if (stops.length === 0) { doc.text("— sin paradas —", 18, y); y += 6; }
+                stops.forEach((s, i) => {
+                    const line = `${i + 1}. ${s.name}${s.fecha ? " (" + s.fecha + ")" : ""} — ${s.durMin || 60} min`;
+                    doc.text(line, 18, y); y += 6;
+                    if (y > 270) { doc.addPage(); y = 20; }
+                });
+                y += 4;
+                doc.setDrawColor(220, 220, 220);
+                doc.line(14, y, 196, y);
+                y += 6;
+            });
+        }
+
+        // Pie
+        doc.setFontSize(10);
+        doc.setTextColor(100, 100, 100);
+        doc.text("Generado con FestiMap Ecuador — folleto cultural", 14, 290);
+        doc.save("FestiMap_Itinerario.pdf");
+    });
+
+    // ---- Utilidades ----
     async function geocode(q) {
         const m = q.trim().match(/^\s*(-?\d+(\.\d+)?),\s*(-?\d+(\.\d+)?)\s*$/);
         if (m) return { lat: +m[1], lng: +m[3] };
@@ -147,11 +283,8 @@ window.addEventListener("DOMContentLoaded", () => {
 
     function nearestNeighbor(items) {
         if (items.length <= 2) return items.slice();
-        const used = new Set();
-        const out = [];
-        let curr = items[0];
-        out.push(curr);
-        used.add(curr.id);
+        const used = new Set(); const out = [];
+        let curr = items[0]; out.push(curr); used.add(curr.id);
         while (out.length < items.length) {
             let best = null, bestD = Infinity;
             for (const c of items) {
@@ -159,58 +292,8 @@ window.addEventListener("DOMContentLoaded", () => {
                 const d = turf.distance([curr.lng, curr.lat], [c.lng, c.lat], { units: "kilometers" });
                 if (d < bestD) { bestD = d; best = c; }
             }
-            out.push(best);
-            used.add(best.id);
-            curr = best;
+            out.push(best); used.add(best.id); curr = best;
         }
         return out;
     }
-});
-// Guardar el itinerario completo
-qs("#btn-guardar").addEventListener("click", () => {
-    const data = {
-        origen: qs("#origen").value,
-        destino: qs("#destino").value,
-        ritmo: qs("#ritmo").value,
-        radio: qs("#radio").value,
-        dias: qs("#dias").value,
-        fechaIni: qs("#fecha-ini").value,
-        itinerario
-    };
-    localStorage.setItem("festi_itinerario", JSON.stringify(data));
-    alert("Tu plan de viaje ha sido guardado correctamente.");
-});
-
-// Cargar automáticamente si existe un plan anterior
-window.addEventListener("DOMContentLoaded", () => {
-    const saved = localStorage.getItem("festi_itinerario");
-    if (!saved) return;
-    const plan = JSON.parse(saved);
-    qs("#origen").value = plan.origen || "";
-    qs("#destino").value = plan.destino || "";
-    qs("#ritmo").value = plan.ritmo || "normal";
-    qs("#radio").value = plan.radio || "3 km";
-    qs("#dias").value = plan.dias || "3";
-    qs("#fecha-ini").value = plan.fechaIni || "";
-
-    // Recuperar itinerario
-    Object.keys(plan.itinerario || {}).forEach(idx => {
-        itinerario[idx] = plan.itinerario[idx];
-        renderDay(parseInt(idx));
-    });
-});
-// Exportar a CSV simple
-qs("#btn-exportar").addEventListener("click", () => {
-    let csv = "Día,Parada,Duración (min)\n";
-    Object.entries(itinerario).forEach(([idx, stops]) => {
-        stops.forEach((s, i) => {
-            csv += `${parseInt(idx) + 1},${s.name},${s.durMin}\n`;
-        });
-    });
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "FestiMap_plan.csv";
-    a.click();
 });
