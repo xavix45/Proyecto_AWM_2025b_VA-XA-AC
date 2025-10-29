@@ -27,44 +27,51 @@
 
                 <section class="form__section">
                     <h3>Datos principales</h3>
-                    <label class="form__label">Nombre del evento* <input class="input" required /></label>
-                    <label class="form__label">Descripción corta* <textarea class="input" rows="3"
-                            required></textarea></label>
+                    <label class="form__label">Nombre del evento* <input class="input" name="eventName"
+                            required /></label>
+                    <label class="form__label">Descripción corta* <textarea class="input" name="shortDescription"
+                            rows="3" maxlength="200" required></textarea></label>
                     <div class="form__row">
-                        <label class="form__label half">Categoría* <select class="input">
-                                <option>Selecciona...</option>
+                        <label class="form__label half">Categoría* <select class="input" name="category" required>
+                                <option value="">Selecciona...</option>
                             </select></label>
-                        <label class="form__label half">Tipo* <select class="input">
-                                <option>Selecciona...</option>
+                        <label class="form__label half">Tipo* <select class="input" name="type" required>
+                                <option value="">Selecciona...</option>
                             </select></label>
                     </div>
                     <div class="form__row">
-                        <label class="form__label half">Región* <select class="input">
-                                <option>Selecciona...</option>
+                        <label class="form__label half">Región* <select class="input" name="region" required>
+                                <option value="">Selecciona...</option>
                             </select></label>
-                        <label class="form__label half">Ciudad / Parroquia* <input class="input" /></label>
+                        <label class="form__label half">Ciudad / Parroquia* <input class="input" name="city"
+                                required /></label>
                     </div>
                     <div class="form__row">
-                        <label class="form__label half">Dirección* <input class="input" /></label>
-                        <label class="form__label half">Referencia <input class="input" /></label>
+                        <label class="form__label half">Dirección* <input class="input" name="address"
+                                required /></label>
+                        <label class="form__label half">Referencia <input class="input" name="reference" /></label>
                     </div>
                     <div class="form__row">
-                        <label class="form__label half">Latitud <input class="input" placeholder="-0.8301" /></label>
-                        <label class="form__label half">Longitud <input class="input" placeholder="-78.6150" /></label>
+                        <label class="form__label half">Latitud <input class="input" name="latitude" type="number"
+                                step="any" placeholder="-0.8301" /></label>
+                        <label class="form__label half">Longitud <input class="input" name="longitude" type="number"
+                                step="any" placeholder="-78.6150" /></label>
                     </div>
                 </section>
 
                 <section class="form__section">
                     <h3>Fechas y horarios</h3>
                     <div class="form__row">
-                        <label class="form__label half">Fecha inicio* <input type="date" class="input"
+                        <label class="form__label half">Fecha inicio* <input type="date" class="input" name="startDate"
                                 required /></label>
-                        <label class="form__label half">Fecha fin* <input type="date" class="input" required /></label>
+                        <label class="form__label half">Fecha fin* <input type="date" class="input" name="endDate"
+                                required /></label>
                     </div>
                     <div class="form__row">
-                        <label class="form__label half">Horario* <input class="input" placeholder="09:00–14:00"
-                                required /></label>
-                        <label class="form__label half">Repetición <select class="input">
+                        <label class="form__label half">Horario* <input class="input" name="schedule"
+                                placeholder="09:00–14:00 o Varios" required /></label>
+                        <label class="form__label half">Repetición <select class="input" name="repetition">
+                                <option>No se repite</option>
                                 <option>Semanal (Jueves)</option>
                             </select></label>
                     </div>
@@ -73,15 +80,17 @@
                 <section class="form__section">
                     <h3>Contacto y extras</h3>
                     <div class="form__row">
-                        <label class="form__label half">Organizador <input class="input" /></label>
-                        <label class="form__label half">Teléfono / WhatsApp <input class="input" /></label>
+                        <label class="form__label half">Organizador <input class="input" name="organizer" /></label>
+                        <label class="form__label half">Teléfono / WhatsApp <input class="input" name="phone"
+                                type="tel" /></label>
                     </div>
                     <div class="form__row">
-                        <label class="form__label half">Website / enlace <input class="input" /></label>
-                        <label class="form__label half">Precio (opcional) <input class="input"
+                        <label class="form__label half">Website / enlace <input class="input" name="website"
+                                type="url" /></label>
+                        <label class="form__label half">Precio (opcional) <input class="input" name="price"
                                 placeholder="Ej: $5.00 o Gratuito" /></label>
                     </div>
-                    <label class="form__label">Etiquetas <input class="input"
+                    <label class="form__label">Etiquetas <input class="input" name="tags"
                             placeholder="feria, comida, artesania (separadas por coma)" /></label>
                 </section>
 
@@ -100,24 +109,24 @@
                         <div class="thumbnails">[ Miniaturas de fotos subidas ]</div>
                     </div>
                 </section>
-
                 <section class="panel__section">
                     <h3>Moderación de comentarios</h3>
-                    <label class="checkbox"><input type="checkbox" checked /> Permitir comentarios</label>
-                    <label class="checkbox"><input type="checkbox" /> Requiere aprobación de admin</label>
+                    <label class="checkbox"><input type="checkbox" name="allowComments" checked /> Permitir
+                        comentarios</label>
+                    <label class="checkbox"><input type="checkbox" name="requireApproval" /> Requiere aprobación de
+                        admin</label>
                 </section>
-
                 <section class="panel__section">
                     <h3>Estado del evento</h3>
-                    <label class="form__label">Estado <select class="input">
-                            <option>Borrador</option>
-                            <option>Pendiente</option>
-                            <option>Aprobado</option>
-                            <option>Rechazado</option>
+                    <label class="form__label">Estado <select class="input" name="status">
+                            <option value="draft">Borrador</option>
+                            <option value="pending">Pendiente</option>
+                            <option value="approved">Aprobado</option>
+                            <option value="rejected">Rechazado</option>
                         </select></label>
-                    <textarea class="input" rows="3" placeholder="Motivo de rechazo (si aplica)"></textarea>
+                    <textarea class="input" name="rejectReason" rows="3"
+                        placeholder="Motivo de rechazo (si aplica)"></textarea>
                 </section>
-
                 <section class="panel__section">
                     <h3>Estadísticas rápidas</h3>
                     <ul class="stats-list">
@@ -126,7 +135,6 @@
                         <li>Comentarios aprobados: <strong>92</strong></li>
                     </ul>
                 </section>
-
                 <section class="panel__section">
                     <h3>Historial de cambios</h3>
                     <div class="history">

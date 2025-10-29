@@ -20,12 +20,24 @@
     </header>
     <main class="container section-narrow">
         <h2 class="page-title">Define tu nueva contraseña</h2>
-        <form class="form"><label class="form__label">Nueva contraseña <input type="password" class="input"
-                    minlength="8" required /></label>
-            <label class="form__label">Confirmar contraseña <input type="password" class="input" minlength="8"
-                    required /></label>
-            <div class="form__row form__row--center"><button class="btn btn--primary">Guardar nueva contraseña</button><a
-                    class="btn btn--ghost" href="/pages/login.html">Cancelar</a></div>
+        <form class="form">
+            <label class="form__label">Nueva contraseña
+                <input type="password" class="input" name="new-password" id="new-password" autocomplete="new-password"
+                    minlength="8" pattern="(?=.*[A-Z])(?=.*\d).{8,}" aria-describedby="pass-help-reset" required />
+                <small id="pass-help-reset" class="muted">Mínimo 8 caracteres, 1 mayúscula y 1 número.</small>
+            </label>
+
+            <label class="form__label">Confirmar contraseña
+                <input type="password" class="input" name="confirm-password" id="confirm-password"
+                    autocomplete="new-password" minlength="8" required />
+                <small id="confirm-help" class="muted error-message" style="display: none;">Las contraseñas no
+                    coinciden.</small>
+            </label>
+
+            <div class="form__row form__row--center">
+                <button class="btn btn--primary">Guardar nueva contraseña</button>
+                <a class="btn btn--ghost" href="/pages/login.html">Cancelar</a>
+            </div>
         </form>
     </main>
     <footer>
