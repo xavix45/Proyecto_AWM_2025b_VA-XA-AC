@@ -5,7 +5,7 @@
 
 2. Objetivo breve de la práctica
 
-- Pasar mockups a HTML/CSS del proyecto.
+    - CSS avanzado: Flexbox y Grid.
 
 - Descripcion:
 
