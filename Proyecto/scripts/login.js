@@ -3,9 +3,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Tus datos de usuario (los que ya tenías)
     const usuario = [
-        { nombre: "Xavier Anatoa", email: "xavier.anatoa@epn.edu.ec", contra: "12345" },
-        { nombre: "Angelo Conterón", email: "angelo.conteron@epn.edu.ec", contra: "12345" },
-        { nombre: "Veronica Aguilar", email: "veronica.aguilar@epn.edu.ec", contra: "12345" }
+        { nombre: "Xavier Anatoa", email: "xavier.anatoa@epn.edu.ec", contra: "12345", tipoViajero: "estudiante" },
+        { nombre: "Angelo Conterón", email: "angelo.conteron@epn.edu.ec", contra: "12345", tipoViajero: "estudiante"},
+        { nombre: "Veronica Aguilar", email: "veronica.aguilar@epn.edu.ec", contra: "12345", tipoViajero: "estudiante" }
     ];
     const admin = [
         { nombre: "Admin", email: "admin@epn.edu.ec", contra: "admin123" }
