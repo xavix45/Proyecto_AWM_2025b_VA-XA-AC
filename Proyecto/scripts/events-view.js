@@ -27,7 +27,7 @@ const cardHTML = e => `
   <a class="card__link" href="${detalleURL(e.id)}" aria-label="Ver detalle de ${e.name}">
     <div class="card__image">
       <img src="${safe(e.imagen)}" alt="${e.name}" loading="lazy"
-           onerror="this.onerror=null;this.src='/assets/placeholder.jpg'">
+           onerror="this.onerror=null;this.src='../assets/placeholder.jpg'">
     </div>
     <div class="card__content">
       <h3 class="card__title">${e.name}</h3>
