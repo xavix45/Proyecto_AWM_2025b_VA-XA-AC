@@ -14,6 +14,12 @@
             <a class="brand" href="../index.html">
                 <div class="logo">FM</div><span>FestiMap Ecuador</span>
             </a>
+            <nav class="navlinks">
+                <a href="/pages/explorar-tema.html">Explorar</a>
+                <a href="/pages/plan-de-viaje.html">Plan de viaje</a>
+                <a class="btn btn--ghost" href="/pages/agenda-alertas.html">Mi agenda</a>
+                <a class="btn btn--primary" href="/pages/mi-cuenta.html">Mi cuenta</a>
+            </nav>
         </div>
     </header>
 
@@ -22,48 +28,48 @@
 
         <div class="filters-bar">
             <div class="tabs">
-                <button class="tab">Costa</button>
-                <button class="tab is-active">Sierra</button>
-                <button class="tab">Amazonía</button>
-                <button class="tab">Galápagos</button>
+                <button class="tab" data-region="Costa">Costa</button>
+                <button class="tab is-active" data-region="Sierra">Sierra</button>
+                <button class="tab" data-region="Amazonía">Amazonía</button>
+                <button class="tab" data-region="Galápagos">Galápagos</button>
             </div>
 
             <div class="filters">
-                <select class="input">
-                    <option>Provincia</option>
-                    <option>Pichincha</option>
-                    <option>Imbabura</option>
-                    <option>Cotopaxi</option>
+                <select class="input" id="f-provincia">
+                    <option value="">Provincia (todas)</option>
                 </select>
-                <select class="input">
-                    <option>Cantón</option>
-                    <option>Quito</option>
-                    <option>Otavalo</option>
-                    <option>Latacunga</option>
+                <select class="input" id="f-canton">
+                    <option value="">Cantón / Ciudad (todos)</option>
                 </select>
-                <input type="search" class="input" placeholder="Buscar..." />
-                <button class="btn btn--primary">Aplicar</button>
+                <input type="search" class="input" id="f-texto" placeholder="Buscar por nombre o ciudad..." />
+                <button class="btn btn--primary" id="btn-aplicar-filtros">Aplicar</button>
             </div>
         </div>
 
         <div class="grid-2 grid-region">
+            <!-- Lado del mapa -->
             <div class="map">
-                <iframe title="Mapa de Quito"
-                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d97800.7902467131!2d-78.48278353405519!3d-0.19234468418149084!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x91d59a4002427c9f%3A0x44b991e158ef5572!2sQuito!5e0!3m2!1ses-419!2sec!4v1761113230163!5m2!1ses-419!2sec"
-                    width="600" height="450" style="border:0;" allowfullscreen loading="lazy"
-                    referrerpolicy="no-referrer-when-downgrade">
+                <iframe id="region-map" title="Mapa de eventos" width="600" height="450"
+                    style="border:0; width:100%; border-radius: 12px;" loading="lazy"
+                    referrerpolicy="no-referrer-when-downgrade"
+                    src="https://www.google.com/maps?q=Ecuador&z=6&output=embed">
                 </iframe>
+                <p id="map-caption" class="muted" style="margin-top: 8px; font-size: 0.85rem;">
+                    Selecciona un evento de la lista para centrar el mapa.
+                </p>
             </div>
 
+            <!-- Lado de la lista -->
             <div class="list">
-                <h3 class="list-title">Eventos activos en Sierra</h3>
+                <h3 class="list-title" id="region-title">Eventos activos en Sierra</h3>
 
-                <!-- Filtro guía para el script: provincia Pichincha -->
-                <div id="region-wrap" data-provincia="Pichincha"></div>
+                <!-- contenedor auxiliar -->
+                <div id="region-wrap" data-region="Sierra"></div>
 
                 <!-- Lista dinámica -->
                 <section id="region-list" class="cards-grid"></section>
 
+                <!-- Paginación (solo decorativa por ahora) -->
                 <nav class="pagination">
                     <span>&lt;</span>
                     <a href="#" class="is-active">1</a>
@@ -80,7 +86,7 @@
         <div class="container footer-row"><span>© 2025 FestiMap Ecuador</span></div>
     </footer>
 
-    <script type="module" src="../scripts/events-view.js" defer></script>
+    <script type="module" src="../scripts/page-region.js" defer></script>
 </body>
 
 </html>

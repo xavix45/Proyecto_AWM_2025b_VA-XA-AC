@@ -11,71 +11,84 @@
 <body>
     <header class="header admin">
         <div class="container nav">
-            <a class="brand" href="#"> <div class="logo">FM</div>
-                <span>FestiMap — Administración / Reportes</span> 
+            <a class="brand" href="#">
+                <div class="logo">FM</div>
+                <span>FestiMap — Administración / Reportes</span>
             </a>
-            <a href="/pages/login.html" class="logout-link">Salir</a> 
-            </div>
+            <a href="/pages/login.html" class="logout-link">Salir</a>
+        </div>
     </header>
 
     <main class="container section section-admin">
         <h2 class="page-title">Reportes y estadísticas</h2>
-        
+
         <div class="toolbar">
-            <select class="input">
-                <option>Rango de fechas</option>
-                <option>Últimos 7 días</option>
-                <option>Últimos 30 días</option>
-                <option>Este mes</option>
+            <!-- Filtros con IDs -->
+            <select class="input" id="stats-range">
+                <option value="">Rango de fechas</option>
+                <option value="7">Últimos 7 días</option>
+                <option value="30">Últimos 30 días</option>
+                <option value="month">Este mes</option>
             </select>
-            <select class="input">
-                <option>Región</option>
-                <option>Todas</option>
-                <option>Sierra</option>
-                <option>Costa</option>
-                </select>
-            <select class="input">
-                <option>Categoría</option>
-                <option>Todas</option>
-                <option>Gastronomía</option>
-                <option>Cultura</option>
+            <select class="input" id="stats-region">
+                <option value="">Región</option>
+                <option value="Todas">Todas</option>
+                <option value="Sierra">Sierra</option>
+                <option value="Costa">Costa</option>
+                <option value="Amazonía">Amazonía</option>
+                <option value="Galápagos">Galápagos</option>
             </select>
-            <button class="btn btn--primary">Aplicar</button>
-            <button class="btn btn--ghost">Exportar CSV</button> <button class="btn btn--ghost">Exportar PDF</button>
+            <select class="input" id="stats-category">
+                <option value="">Categoría</option>
+                <option value="Todas">Todas</option>
+                <option value="Gastronomía">Gastronomía</option>
+                <option value="Cultura">Cultura</option>
+                <option value="Tradición">Tradición</option>
+                <option value="Religiosa">Religiosa</option>
+                <option value="Cívica">Cívica</option>
+            </select>
+
+            <button class="btn btn--primary" id="stats-apply">Aplicar</button>
+            <button class="btn btn--ghost" id="stats-export-csv">Exportar CSV</button>
+            <button class="btn btn--ghost" id="stats-export-pdf">Exportar PDF</button>
         </div>
-        
+
         <section class="kpis">
             <div class="kpi">
                 <span class="kpi__label">Asistencias confirmadas</span>
-                <span class="kpi__value">1,284</span>
-                <span class="kpi__trend positive">+8.2% vs. semana anterior</span> 
+                <span class="kpi__value" id="kpi-asistencias">0</span>
+                <span class="kpi__trend positive" id="kpi-asistencias-trend">vs. periodo anterior</span>
             </div>
             <div class="kpi">
                 <span class="kpi__label">Valoración promedio</span>
-                <span class="kpi__value">4.3★</span>
-                <span class="kpi__trend positive">+0.2 pts</span>
+                <span class="kpi__value" id="kpi-rating">0.0★</span>
+                <span class="kpi__trend positive" id="kpi-rating-trend">vs. periodo anterior</span>
             </div>
             <div class="kpi">
                 <span class="kpi__label">Eventos activos</span>
-                <span class="kpi__value">126</span>
-                <span class="kpi__trend negative">–5.0% (después de feriado)</span>
+                <span class="kpi__value" id="kpi-activos">0</span>
+                <span class="kpi__trend" id="kpi-activos-trend">vs. periodo anterior</span>
             </div>
             <div class="kpi">
                 <span class="kpi__label">Comentarios aprobados</span>
-                <span class="kpi__value">342</span>
-                 <span class="kpi__trend positive">+3.1%</span>
+                <span class="kpi__value" id="kpi-comments">0</span>
+                <span class="kpi__trend" id="kpi-comments-trend">vs. periodo anterior</span>
             </div>
         </section>
 
         <div class="grid-2">
-            <div class="panel tall graph-placeholder">[ Gráfico — Asistencias por semana ]</div>
-            <div class="panel tall graph-placeholder">[ Gráfico — Valoración promedio por región ]</div>
+            <div class="panel tall graph-placeholder" id="graph-asistencias">
+                [ Gráfico — Asistencias por semana ]
+            </div>
+            <div class="panel tall graph-placeholder" id="graph-rating">
+                [ Gráfico — Valoración promedio por región ]
+            </div>
         </div>
 
         <div class="table-container">
             <div class="table-wrapper">
-                <h3>Top eventos de la semana</h3>
-                <table class="table">
+                <h3>Top eventos del periodo</h3>
+                <table class="table" id="table-top-events">
                     <thead>
                         <tr>
                             <th>Evento</th>
@@ -84,37 +97,14 @@
                             <th>Valoración</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr>
-                            <td>Feria de Saquisilí</td>
-                            <td>Sierra</td>
-                            <td>420</td>
-                            <td>4.6★</td>
-                        </tr>
-                        <tr>
-                            <td>Festival del Maíz</td>
-                            <td>Sierra</td>
-                            <td>310</td>
-                            <td>4.4★</td>
-                        </tr>
-                         <tr>
-                            <td>Ruta del Cacao</td>
-                            <td>Costa</td>
-                            <td>205</td>
-                            <td>4.2★</td>
-                        </tr>
-                         <tr>
-                            <td>Artesanías Otavalo</td>
-                            <td>Sierra</td>
-                            <td>188</td>
-                            <td>4.5★</td>
-                        </tr>
+                    <tbody id="tbody-top-events">
+                        <!-- Se llena por JS -->
                     </tbody>
                 </table>
             </div>
             <div class="table-wrapper">
                 <h3>Actividad por región</h3>
-                <table class="table">
+                <table class="table" id="table-region-activity">
                     <thead>
                         <tr>
                             <th>Región</th>
@@ -122,36 +112,19 @@
                             <th>Asistencias</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr>
-                            <td>Sierra</td>
-                            <td>62</td>
-                            <td>780</td>
-                        </tr>
-                        <tr>
-                            <td>Costa</td>
-                            <td>38</td>
-                            <td>360</td>
-                        </tr>
-                         <tr>
-                            <td>Amazonía</td>
-                            <td>14</td>
-                            <td>92</td>
-                        </tr>
-                         <tr>
-                            <td>Galápagos</td>
-                            <td>12</td>
-                            <td>52</td>
-                        </tr>
+                    <tbody id="tbody-region-activity">
+                        <!-- Se llena por JS -->
                     </tbody>
                 </table>
             </div>
         </div>
-        </main>
+    </main>
 
     <footer>
         <div class="container footer-row"><span>© 2025 FestiMap Ecuador • Administración • Reportes</span></div>
     </footer>
+
+    <script src="../../scripts/admin-stats.js"></script>
 </body>
 
 </html>

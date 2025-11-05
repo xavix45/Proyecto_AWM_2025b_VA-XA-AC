@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Explorar por tema — FestiMap</title>
     <link rel="stylesheet" href="../styles/main.css">
+    <link rel="stylesheet" href="../styles/pages/explorar-tema.css">
 </head>
 
 <body data-page="explorar-tema">
@@ -20,7 +21,7 @@
     <main class="container section">
         <h2 class="page-title">Explora por tema o palabra clave</h2>
 
-        <form class="main-search-bar" role="search" onsubmit="return false">
+        <form class="main-search-bar" role="search">
             <input id="buscador" type="search" class="input-search"
                 placeholder="Buscar colada morada, kpop, feria artesanal…">
             <button class="btn btn--primary" type="submit">Buscar</button>
@@ -33,17 +34,26 @@
                 <option value="tradición">Tradición</option>
                 <option value="religiosa">Religiosa</option>
                 <option value="ancestral">Ancestral</option>
+                <option value="cultural">Cultural</option>
+                <option value="gastronomía">Gastronomía</option>
             </select>
-            <select class="input">
-                <option>Provincia</option>
+
+            <select id="filtro-provincia" class="input">
+                <option value="">Provincia</option>
+                <!-- JS rellenará las provincias únicas -->
             </select>
-            <input class="input" type="date" />
-            <select class="input">
-                <option>Ordenar</option>
-                <option>Por fecha</option>
-                <option>Por relevancia</option>
+
+            <input id="filtro-fecha" class="input" type="date" />
+
+            <select id="filtro-orden" class="input">
+                <option value="">Ordenar</option>
+                <option value="fecha">Por fecha (más próximo primero)</option>
+                <option value="relevancia">Por relevancia (coincidencia texto)</option>
             </select>
-            <label class="checkbox"><input type="checkbox" /> Dentro de tu viaje</label>
+
+            <label class="checkbox">
+                <input id="chk-viaje" type="checkbox" /> Dentro de tu viaje
+            </label>
         </div>
 
         <!-- Lista dinámica -->
@@ -54,7 +64,7 @@
         <div class="container footer-row"><span>© 2025 FestiMap Ecuador</span></div>
     </footer>
 
-    <script type="module" src="../scripts/events-view.js" defer></script>
+    <script type="module" src="../scripts/page-explorar-tema.js" defer></script>
 </body>
 
 </html>

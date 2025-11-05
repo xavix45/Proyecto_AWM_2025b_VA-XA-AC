@@ -4,11 +4,12 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Intereses — FestiMap</title>
+    <title>Mis intereses culturales — FestiMap</title>
     <link rel="stylesheet" href="../styles/main.css">
+    <link rel="stylesheet" href="../styles/pages/intereses.css">
 </head>
 
-<body class="theme-light">
+<body>
     <header class="header">
         <div class="container nav">
             <a class="brand" href="../index.html">
@@ -18,128 +19,184 @@
         </div>
     </header>
 
-    <main id="main" class="container page-intereses theme-light" role="main">
-        <h2 class="page-title">Elige tus intereses culturales</h2>
-        <p class="page-subtitle muted">Selecciona al menos 3 categorías. Luego podrás cambiarlas.</p>
+    <main class="page-intereses">
+        <h2 class="page-title">Cuéntanos tus intereses culturales</h2>
+        <p class="page-subtitle">
+            Elige los temas que más te gustan. Usaremos esta información para sugerirte
+            festividades y eventos que se ajusten a tu estilo de viaje.
+        </p>
 
-
-        <section class="chips-grid" aria-label="Selecciona tus intereses">
-            <!-- 1 -->
+        <!-- Bloque de chips/categorías -->
+        <section class="chips-grid" aria-label="Intereses culturales">
+            <!-- Fiestas y tradiciones -->
             <details class="chip">
-                <summary><span class="chip__icon">🎵</span><span>Música</span></summary>
+                <summary>
+                    <span class="chip__icon">🎉</span>
+                    <span>Fiestas y tradiciones</span>
+                </summary>
                 <div class="subchips">
-                    <label><input type="checkbox"> Rock</label>
-                    <label><input type="checkbox"> Pop</label>
-                    <label><input type="checkbox"> Bachata</label>
-                    <label><input type="checkbox"> Pasillo</label>
+                    <label>
+                        <input type="checkbox" value="fiestas_quito" />
+                        Fiestas de Quito / desfiles cívicos
+                    </label>
+                    <label>
+                        <input type="checkbox" value="mama_negra" />
+                        Mama Negra y fiestas de Cotopaxi
+                    </label>
+                    <label>
+                        <input type="checkbox" value="carnaval" />
+                        Carnavales y comparsas
+                    </label>
+                    <label>
+                        <input type="checkbox" value="anoviejo" />
+                        Año Viejo y quema de monigotes
+                    </label>
                 </div>
             </details>
 
-            <!-- 2 -->
+            <!-- Gastronomía -->
             <details class="chip">
-                <summary><span class="chip__icon">🍽️</span><span>Gastronomía</span></summary>
+                <summary>
+                    <span class="chip__icon">🍲</span>
+                    <span>Sabores y gastronomía</span>
+                </summary>
                 <div class="subchips">
-                    <label><input type="checkbox"> Cacao</label>
-                    <label><input type="checkbox"> Ceviche</label>
-                    <label><input type="checkbox"> Hornado</label>
-                    <label><input type="checkbox"> Colada morada</label>
+                    <label>
+                        <input type="checkbox" value="colada_morada" />
+                        Colada morada y guaguas de pan
+                    </label>
+                    <label>
+                        <input type="checkbox" value="ferias_gastro" />
+                        Ferias gastronómicas y festivales de comida
+                    </label>
+                    <label>
+                        <input type="checkbox" value="cacao_chocolate" />
+                        Rutas del cacao y chocolate
+                    </label>
+                    <label>
+                        <input type="checkbox" value="comida_tipica" />
+                        Comidas típicas de sierra y costa
+                    </label>
                 </div>
             </details>
 
-            <!-- 3 -->
+            <!-- Música y danza -->
             <details class="chip">
-                <summary><span class="chip__icon">🏛️</span><span>Cultura</span></summary>
+                <summary>
+                    <span class="chip__icon">🎶</span>
+                    <span>Música y danza</span>
+                </summary>
                 <div class="subchips">
-                    <label><input type="checkbox"> Museos</label>
-                    <label><input type="checkbox"> Rutas históricas</label>
-                    <label><input type="checkbox"> Teatro</label>
+                    <label>
+                        <input type="checkbox" value="bandas_pueblo" />
+                        Bandas de pueblo y comparsas
+                    </label>
+                    <label>
+                        <input type="checkbox" value="folklore" />
+                        Danzas folklóricas
+                    </label>
+                    <label>
+                        <input type="checkbox" value="fusion_moderno" />
+                        Fusión tradicional + música moderna
+                    </label>
                 </div>
             </details>
 
-            <!-- 4 -->
+            <!-- Naturaleza y comunidad -->
             <details class="chip">
-                <summary><span class="chip__icon">🏞️</span><span>Naturaleza</span></summary>
+                <summary>
+                    <span class="chip__icon">🌿</span>
+                    <span>Naturaleza y comunidad</span>
+                </summary>
                 <div class="subchips">
-                    <label><input type="checkbox"> Volcanes</label>
-                    <label><input type="checkbox"> Cascadas</label>
-                    <label><input type="checkbox"> Playas</label>
+                    <label>
+                        <input type="checkbox" value="caminatas" />
+                        Caminatas, cascadas y rutas verdes
+                    </label>
+                    <label>
+                        <input type="checkbox" value="comunidades" />
+                        Visitas a comunidades indígenas
+                    </label>
+                    <label>
+                        <input type="checkbox" value="artesania" />
+                        Artesanías y mercados locales
+                    </label>
                 </div>
             </details>
 
-            <!-- 5 -->
+            <!-- En familia -->
             <details class="chip">
-                <summary><span class="chip__icon">🎨</span><span>Arte</span></summary>
+                <summary>
+                    <span class="chip__icon">👨‍👩‍👧</span>
+                    <span>Planes en familia</span>
+                </summary>
                 <div class="subchips">
-                    <label><input type="checkbox"> Murales</label>
-                    <label><input type="checkbox"> Escultura</label>
-                    <label><input type="checkbox"> Arte urbano</label>
-                </div>
-            </details>
-
-            <!-- 6 -->
-            <details class="chip">
-                <summary><span class="chip__icon">🎉</span><span>Festividades</span></summary>
-                <div class="subchips">
-                    <label><input type="checkbox"> Inti Raymi</label>
-                    <label><input type="checkbox"> Carnaval</label>
-                    <label><input type="checkbox"> Fiesta de las Flores y Frutas</label>
-                    <label><input type="checkbox"> Yamor</label>
-                </div>
-            </details>
-
-            <!-- 7 -->
-            <details class="chip">
-                <summary><span class="chip__icon">🧵</span><span>Artesanías</span></summary>
-                <div class="subchips">
-                    <label><input type="checkbox"> Tagua</label>
-                    <label><input type="checkbox"> Cerámica</label>
-                    <label><input type="checkbox"> Paja toquilla</label>
-                </div>
-            </details>
-
-            <!-- 8 -->
-            <details class="chip">
-                <summary><span class="chip__icon">🩰</span><span>Danza</span></summary>
-                <div class="subchips">
-                    <label><input type="checkbox"> Folclor</label>
-                    <label><input type="checkbox"> Ballet</label>
-                    <label><input type="checkbox"> Urbano</label>
+                    <label>
+                        <input type="checkbox" value="ninos" />
+                        Actividades para niños
+                    </label>
+                    <label>
+                        <input type="checkbox" value="petfriendly" />
+                        Lugares pet-friendly
+                    </label>
+                    <label>
+                        <input type="checkbox" value="seguro" />
+                        Lugares tranquilos / seguros
+                    </label>
                 </div>
             </details>
         </section>
 
-        <!-- rango de edad -->
+        <!-- Bloque Rango de edad -->
         <section class="age-block">
-            <label class="age-label" for="age">Rango de edad:</label>
+            <label class="age-label" for="age-range">Rango de edad del grupo viajero (promedio)</label>
 
-            <!-- leyenda de marcas -->
             <div class="age-legend">
-                <span>18</span><span>25</span><span>35</span><span>45</span><span>60+</span>
+                <span>18</span>
+                <span>25</span>
+                <span>35</span>
+                <span>45</span>
+                <span>55</span>
+                <span>65+</span>
             </div>
 
-            <!-- slider -->
-            <input id="age" class="age-range" type="range" min="18" max="60" step="1" value="35" list="ticks">
-            <datalist id="ticks">
+            <input id="age-range" class="age-range" type="range" min="18" max="70" step="1" value="30" list="age-ticks">
+
+            <datalist id="age-ticks">
                 <option value="18"></option>
                 <option value="25"></option>
                 <option value="35"></option>
                 <option value="45"></option>
-                <option value="60"></option>
+                <option value="55"></option>
+                <option value="65"></option>
             </datalist>
+
+            <p id="age-output" class="muted center" style="margin-top: 8px;">
+                Edad promedio seleccionada: <strong>30</strong> años
+            </p>
         </section>
 
-
-        <div class="form__row actions">
-            <button class="btn btn--primary" type="submit">Guardar preferencias</button>
-            <a class="btn btn--ghost" href="/pages/home.html">Omitir por ahora</a>
+        <!-- Botones -->
+        <div class="actions">
+            <button id="btn-save-interests" class="btn--primary" type="button">
+                Guardar intereses
+            </button>
+            <button id="btn-clear-interests" class="btn--ghost" type="button">
+                Limpiar selección
+            </button>
         </div>
 
-        <p class="muted center">Podrás editarlas en Perfil &gt; Intereses.</p>
+        <p class="muted center">
+            Puedes cambiar tus intereses cuando quieras. Más adelante los usaremos para sugerirte
+            rutas y festividades personalizadas.
+        </p>
     </main>
 
     <footer>
-        <div class="container footer-row">© 2025 FestiMap Ecuador</div>
+        <div class="container footer-row"><span>© 2025 FestiMap Ecuador</span></div>
     </footer>
+
+    <script type="module" src="../scripts/page-intereses.js"></script>
 </body>
 
 </html>

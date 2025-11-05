@@ -15,32 +15,40 @@
                 <div class="logo">FM</div>
                 <span>FestiMap — Administración / Eventos</span>
             </a>
-            <a href="/pages/login.html" class="logout-link">Salir</a>
+            <a href="../login.html" class="logout-link">Salir</a>
         </div>
     </header>
 
     <main class="container section section-admin">
 
         <div class="toolbar-wrapper">
-            <div class="toolbar toolbar--filters"> <input class="input input-search-main"
-                    placeholder="Buscar por nombre/ciudad…" />
-                <select class="input">
-                    <option>Región</option>
+            <div class="toolbar toolbar--filters">
+                <input id="search-admin" class="input input-search-main" placeholder="Buscar por nombre/ciudad…">
+
+                <select id="filter-region" class="input">
+                    <option value="">Región</option>
                 </select>
-                <select class="input">
-                    <option>Categoría</option>
+
+                <select id="filter-category" class="input">
+                    <option value="">Categoría</option>
                 </select>
-                <select class="input">
-                    <option>Estado</option> ...
+
+                <select id="filter-status" class="input">
+                    <option value="">Estado</option>
                 </select>
-                <button class="btn btn--primary">Aplicar</button>
-                <button class="btn btn--ghost">Exportar CSV</button>
+
+                <button id="btn-filter" class="btn btn--primary">Aplicar</button>
+                <button id="btn-export" class="btn btn--ghost">Exportar PDF</button>
             </div>
-            <a class="btn btn--primary btn-create-event" href="/pages/admin/evento-formulario.html">Crear evento</a>
+
+            <!-- usa ruta relativa para evitar el error -->
+            <a class="btn btn--primary btn-create-event" href="evento-formulario.html">Crear evento</a>
         </div>
 
         <div class="bulk-actions-bar">
-            <button class="btn btn--ghost"><input type="checkbox" style="margin-right: 8px;"> Seleccionar todo</button>
+            <button class="btn btn--ghost">
+                <input type="checkbox" id="check-all" style="margin-right: 8px;"> Seleccionar todo
+            </button>
             <button class="btn btn-action-approve">Aprobar</button>
             <button class="btn btn-action-schedule">Programar</button>
             <button class="btn btn-action-unpublish">Despublicar</button>
@@ -51,7 +59,7 @@
             <table class="table table-admin-events">
                 <thead>
                     <tr>
-                        <th><input type="checkbox" title="Seleccionar todo"></th>
+                        <th><input type="checkbox" id="check-all-header" title="Seleccionar todo"></th>
                         <th>Nombre</th>
                         <th>Región</th>
                         <th>Ciudad</th>
@@ -64,69 +72,19 @@
                         <th>Acc.</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <tr>
-                        <td><input type="checkbox"></td>
-                        <td>Feria de Saquisilí</td>
-                        <td>Sierra</td>
-                        <td>Saquisilí</td>
-                        <td>Ferias</td>
-                        <td>Jue 09–14</td>
-                        <td><span class="status-badge status-approved">Aprobado</span></td>
-                        <td>420</td>
-                        <td>4.6★</td>
-                        <td>12.3k</td>
-                        <td class="actions-cell">
-                            <a href="/pages/admin/evento-formulario.html" title="Editar">✏️</a>
-                            <a href="/pages/detalle-evento.html" title="Ver" target="_blank">👁️</a>
-                            <button title="Programar">⏱️</button>
-                            <button title="Eliminar">🗑️</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><input type="checkbox"></td>
-                        <td>Fiesta Kasama</td>
-                        <td>Costa</td>
-                        <td>Sto. Domingo</td>
-                        <td>Festividades</td>
-                        <td>Abr 14–16</td>
-                        <td><span class="status-badge status-draft">Borrador</span></td>
-                        <td>—</td>
-                        <td>—</td>
-                        <td>34.1k</td>
-                        <td class="actions-cell">
-                            <a href="/pages/admin/evento-formulario.html" title="Editar">✏️</a>
-                            <a href="/pages/detalle-evento.html" title="Ver" target="_blank">👁️</a>
-                            <button title="Programar">⏱️</button>
-                            <button title="Eliminar">🗑️</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><input type="checkbox"></td>
-                        <td>Ruta del Cacao</td>
-                        <td>Costa</td>
-                        <td>Quevedo</td>
-                        <td>Gastronomía</td>
-                        <td>Sáb 10–18</td>
-                        <td><span class="status-badge status-approved">Aprobado</span></td>
-                        <td>205</td>
-                        <td>4.2★</td>
-                        <td>6.7k</td>
-                        <td class="actions-cell">
-                            <a href="/pages/admin/evento-formulario.html" title="Editar">✏️</a>
-                            <a href="/pages/detalle-evento.html" title="Ver" target="_blank">👁️</a>
-                            <button title="Programar">⏱️</button>
-                            <button title="Eliminar">🗑️</button>
-                        </td>
-                    </tr>
-                </tbody>
+                <!-- aquí JS pintará las filas -->
+                <tbody id="admin-events-body"></tbody>
             </table>
         </div>
     </main>
 
     <footer>
-        <div class="container footer-row"><span>© 2025 FestiMap Ecuador • Administración • Eventos</span></div>
+        <div class="container footer-row">
+            <span>© 2025 FestiMap Ecuador • Administración • Eventos</span>
+        </div>
     </footer>
+
+    <script type="module" src="../../scripts/admin-listado.js"></script>
 </body>
 
 </html>
