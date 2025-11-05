@@ -4,23 +4,9 @@
 .header {
     position: static;
     backdrop-filter: none;
-    text-shadow: none;
-    z-index: auto;
     background: var(--surface-card);
     border-bottom: 1px solid var(--border-light);
     color: var(--ink);
-}
-
-.header::after {
-    content: none;
-}
-
-.header .nav-links a {
-    color: var(--ink);
-}
-
-.header .nav-links a:hover {
-    color: var(--brand);
 }
 
 /* 2. Título */
@@ -30,7 +16,7 @@
     margin-bottom: 24px;
 }
 
-/* 3. Pestañas (Tabs) */
+/* 3. Tabs */
 .tabs {
     display: flex;
     gap: 8px;
@@ -60,7 +46,7 @@
     border-bottom-color: var(--accent);
 }
 
-/* 4. Barra de Filtros */
+/* 4. Barra de filtros */
 .filters-bar {
     background: var(--surface-card);
     border: 1px solid var(--border-light);
@@ -75,36 +61,37 @@
 }
 
 .filters-bar .filters {
-    box-shadow: none;
-    border: none;
     border-top: 1px solid var(--border-light);
-    border-radius: 0;
-    margin: 0;
     padding: 16px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
 }
 
-.filters-bar .filters .input[type="search"] {
-    flex-grow: 1;
+.filters-bar .filters .input {
+    flex: 1;
+    min-width: 160px;
 }
 
-/* 5. Mapa (Iframe) */
+/* 5. Mapa */
 .map {
-    min-height: 500px;
+    min-height: 480px;
     border-radius: var(--radius);
     border: 1px solid var(--border-light);
     overflow: hidden;
     position: sticky;
     top: 24px;
     background: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .map iframe {
     width: 100%;
-    height: 500px;
+    height: 480px;
     border: 0;
 }
 
-/* 6. Título de la Lista */
+/* 6. Título de lista */
 .list-title {
     font-size: 1.4rem;
     font-weight: 700;
@@ -114,99 +101,67 @@
     border-bottom: 1px solid var(--border-light);
 }
 
-/* 7. ITEM DE LA LISTA (CON IMAGEN) - ¡CORREGIDO! */
-.list-item-region {
+/* 7. Grid de tarjetas */
+.cards-grid {
     display: grid;
-    /* Col 1: Imagen, Col 2: Info, Col 3: Botón */
-    /* Damos 120px fijos al botón y 100px a la imagen */
-    /* El 1fr (info) tomará todo el espacio restante */
-    grid-template-columns: 100px 1fr 120px;
-    gap: 16px;
-    padding: 20px;
-    /* Padding en todos los lados */
-    border-bottom: 1px solid var(--border-light);
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: 20px;
 }
 
-.list-item-region:last-of-type {
-    border-bottom: none;
-}
-
-/* La Imagen */
-.list-item-region__image {
-    width: 100px;
-    height: 80px;
+/* 8. Tarjeta de evento */
+.card {
+    background: var(--surface-card);
+    border: 1px solid var(--border-light);
     border-radius: var(--radius);
     overflow: hidden;
-    background: #f1f5f9;
+    transition: all 0.25s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
 }
 
-.list-item-region__image img {
+.card img {
     width: 100%;
-    height: 100%;
+    height: 150px;
     object-fit: cover;
 }
 
-/* La Info (centro) */
-.list-item-region__info {
+.card__body {
+    padding: 10px 12px 14px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    align-self: center;
+    justify-content: space-between;
+    flex-grow: 1;
 }
 
-.list-item-region h4 {
-    margin: 0;
-    font-size: 1.2rem;
+.card h4 {
+    font-size: 1rem;
     font-weight: 700;
     color: var(--ink);
+    margin: 0 0 6px;
+    line-height: 1.2;
 }
 
-.list-item-region .muted {
-    margin: 0;
-    font-size: 0.95rem;
-    color: var(--muted);
-}
-
-.tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-.tag {
-    background: var(--surface);
-    color: var(--muted);
-    font-size: 0.8rem;
-    font-weight: 600;
-    padding: 4px 8px;
-    border-radius: 4px;
-}
-
-.actions {
-    display: flex;
-    gap: 16px;
-}
-
-.actions .link {
-    font-size: 0.85rem;
-    font-weight: 600;
-    white-space: nowrap;
-    /* Evita que los enlaces se partan */
-}
-
-.list-item-region .btn {
-    width: 100%;
-    height: 25%;
-    box-sizing: border-box;
-    padding: 10px;
+.card p.muted {
     font-size: 0.9rem;
-
-    /* ESTO CENTRA EL TEXTO: */
-    display: grid;
-    place-items: center;
+    margin-bottom: 8px;
+    color: var(--muted);
 }
 
-/* 8. Paginación */
+/* 9. Efecto hover y seleccionado */
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+    border-color: var(--accent);
+}
+
+.card.is-selected {
+    border: 2px solid var(--accent);
+    box-shadow: 0 0 10px rgba(255, 184, 0, 0.35);
+    transform: scale(1.02);
+}
+
+/* 10. Paginación */
 .pagination {
     display: flex;
     justify-content: center;
@@ -239,7 +194,14 @@
     padding: 8px;
 }
 
-/* 9. Responsive */
+/* 11. Layout general */
+.grid-region {
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    align-items: start;
+}
+
+/* 12. Responsive */
 @media (max-width: 900px) {
     .grid-2 {
         grid-template-columns: 1fr;
@@ -253,32 +215,18 @@
     .map iframe {
         height: 300px;
     }
+
+    .cards-grid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    }
 }
 
 @media (max-width: 600px) {
-    .list-item-region {
-        grid-template-columns: 1fr;
+    .cards-grid {
+        grid-template-columns: 1fr 1fr;
     }
 
-    .list-item-region__image {
-        width: 100%;
-        height: 150px;
+    .card img {
+        height: 120px;
     }
-
-    .list-item-region .btn {
-        grid-row: auto;
-        align-self: auto;
-    }
-}
-
-/* 10. Corrección de Layout (¡La más importante!) */
-/* Le damos a la lista (col 2) más espacio que al mapa (col 1) */
-/* 10. Corrección de Layout ... */
-.grid-region {
-    grid-template-columns: 1.2fr 1fr;
-    /* 55% / 45% */
-
-    /* ESTO ARREGLA EL MAPA Y LA PAGINACIÓN: */
-    align-items: start;
-    /* Evita que las columnas se estiren */
 }
