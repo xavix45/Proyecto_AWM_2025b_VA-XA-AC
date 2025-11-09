@@ -39,8 +39,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 6. Mostrar resultado
         if (usuarioEncontrado) {
-            //Redirigir a otra página
-            window.location.href = '../pages/home.html';
+            // ¡Login exitoso! Guardar quién es el usuario actual
+    localStorage.setItem('currentUserEmail', usuarioEncontrado.email);
+    
+    // Redirigir a la página de permisos
+    window.location.href = '../pages/permiso-ubicacion.html';
         } else {
             // Si no se encontró el usuario
             alert('Correo electrónico o contraseña incorrectos.');

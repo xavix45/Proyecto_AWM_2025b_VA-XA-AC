@@ -35,8 +35,6 @@ document.addEventListener('DOMContentLoaded', () => {
             email: email,
             contra: contra,
             tipoViajero: tipoViajero
-            // OJO: En un proyecto real, la contraseña NUNCA se guarda así.
-            // Se guarda un "hash" (una versión encriptada).
         };
 
         // 7. Añadir el nuevo usuario al array
@@ -46,11 +44,11 @@ document.addEventListener('DOMContentLoaded', () => {
         // JSON.stringify() convierte el array en un texto plano para guardarlo
         localStorage.setItem('usuarios', JSON.stringify(usuarios));
 
-        // 9. Informar al usuario y redirigir
-        alert('¡Cuenta creada con éxito! Serás redirigido a la página principal.');
-        
-        // 10. Redirigir al home (index.html)
-        // Asumiendo que index.html está un nivel arriba (fuera de la carpeta /pages/)
-        window.location.href = '../pages/home.html';
+        // 9. Guardar al usuario actual en la "sesión" (localStorage)
+        localStorage.setItem('currentUserEmail', nuevoUsuario.email);
+
+        // 10. Redirigir a la página de permisos
+        alert('¡Cuenta creada con éxito! Ahora, configura tus permisos.');
+        window.location.href = '../pages/permiso-ubicacion.html';
     });
 });
