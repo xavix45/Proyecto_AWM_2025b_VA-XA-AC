@@ -1,0 +1,29 @@
+.fm-header {
+    position: sticky;
+    top: 0;
+    background: var(--surface, #fff);
+    border-bottom: 1px solid #eee;
+    z-index: 10;
+}
+
+.fm-nav {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    padding: 12px 20px;
+}
+
+.fm-nav .brand {
+    font-weight: 700;
+}
+
+.fm-footer {
+    margin-top: 48px;
+    padding: 24px;
+    text-align: center;
+    color: var(--muted, #666);
+}
+
+main {
+    padding: 24px;
+}
