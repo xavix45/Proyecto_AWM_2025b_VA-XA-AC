@@ -1,128 +1,175 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>FestiMap Ecuador</title>
-  <link rel="stylesheet" href="styles/main.css">
+  <link rel="stylesheet" href="styles/main.css" />
 </head>
 
-<body>
-  <!-- SECCION 1 -->
-  <header>
-    <nav>
+<body class="modo-oscuro-bienvenida">
+  <!-- HEADER -->
+  <header class="site-header">
+    <nav class="nav">
       <strong class="logo">FestiMap Ecuador</strong>
-
-      <div class="nav-links">        
-        <a href="./pages/login.html" class="btn-login">Inicio de sesión</a>
+      <div class="nav-actions">
+        <a href="./pages/login.html" class="btn btn-login">Inicio de sesión</a>
       </div>
     </nav>
-
   </header>
 
+  <!-- HERO -->
   <section class="hero">
-
     <video class="hero__video" autoplay muted loop playsinline>
-
-      <source src="intro2.mp4" type="video/mp4">
-
+      <source src="intro2.mp4" type="video/mp4" />
     </video>
-
     <div class="hero__content">
-
       <h1>Explora, vive y comparte — Descubre Ecuador</h1>
       <p>Encuentra festividades cerca de ti, arma rutas culturales y crea tu itinerario.</p>
-
       <div class="hero__buttons">
-
         <a href="./pages/registro.html" class="btn btn-primary">Crear cuenta gratuita</a>
-        <a href="#comoFunciona" class="btn btn-secondary">Como Funciona</a>
-
+        <a href="#servicios" class="btn btn-secondary">Cómo funciona</a>
       </div>
-
     </div>
-
   </section>
 
-  <!-- SECCION 2 -->
-
-  <!-- sección: festividades de temporada -->
-  <section class="section section--light destacados">
-    <div class="container" id="comoFunciona">
-
-      <!-- título centrado -->
+  <!-- TEMPORADA -->
+  <section class="section temporada">
+    <div class="container">
       <h2>Festividades <strong>de temporada</strong></h2>
 
-      <!-- grilla 3 columnas: 2fr 1fr 1fr -->
-      <div class="cards-grid">
-
-        <!-- GRAN DESTACADO (ocupa 2 filas) -->
-        <article class="card card--xl">
-          <!-- pon tu foto en assets/inti-raymi.jpg -->
+      <div class="cards">
+        <!-- 1 -->
+        <article class="card">
           <img
             src="https://www.patrimoniocultural.gob.ec/wp-content/uploads/2020/06/Fotograf%C3%ADa-Inti-Raymi-Ingapirca.jpg"
-            alt="Inti Raymi en Otavalo">
-          <div class="card-content">
+            alt="Inti Raymi — Otavalo" />
+          <div class="card__overlay"></div>
+          <div class="card__content">
             <h3>Inti Raymi — Otavalo</h3>
-            <a href="./pages/login.html" class="btn">Ver más</a>
+            <a href="./pages/login.html" class="btn btn-ghost">Ver más</a>
           </div>
         </article>
 
-        <!-- tarjeta 2 -->
+        <!-- 2 -->
         <article class="card">
-          <!-- assets/carnaval-guaranda.jpg -->
           <img src="https://img.goraymi.com/2019/01/03/fc390ddbad9cc33cb2586868883cda3e_xl.jpg"
-            alt="Carnaval de Guaranda">
-          <div class="card-content">
+            alt="Carnaval de Guaranda" />
+          <div class="card__overlay"></div>
+          <div class="card__content">
             <h3>Carnaval de Guaranda</h3>
-            <a href="./pages/login.html" class="btn">Ver más</a>
+            <a href="./pages/login.html" class="btn btn-ghost">Ver más</a>
           </div>
         </article>
 
-        <!-- tarjeta 3 -->
+        <!-- 3 -->
         <article class="card">
-          <!-- assets/ffl-ambato.jpg -->
           <img
             src="https://www.metroecuador.com.ec/resizer/gsCFHVh2ty-TrtPaMfzA1o2KjL8=/arc-photo-metroworldnews/arc2-prod/public/PUUDSDCV6BF4JDL6MGTVPSPVT4.jpg"
-            alt="Fiesta de la Fruta y de las Flores — Ambato">
-          <div class="card-content">
+            alt="Fiesta de la Fruta y de las Flores — Ambato" />
+          <div class="card__overlay"></div>
+          <div class="card__content">
             <h3>Fiesta de la Fruta y de las Flores — Ambato</h3>
-            <a href="./pages/login.html" class="btn">Ver más</a>
+            <a href="./pages/login.html" class="btn btn-ghost">Ver más</a>
           </div>
         </article>
 
-        <!-- tarjeta 4 -->
+        <!-- 4 -->
         <article class="card">
-          <!-- assets/pase-nino-cuenca.jpg -->
           <img src="https://gadolmedo.gob.ec/wp-content/uploads/2023/10/FESTIVAL-COLADA-MORADA-1-907x1024.jpg"
-            alt="Festividad de la Colada Morada">
-          <div class="card-content">
+            alt="Festividad de la Colada Morada" />
+          <div class="card__overlay"></div>
+          <div class="card__content">
             <h3>Festividad de la Colada Morada</h3>
-            <a href="./pages/login.html" class="btn">Ver más</a>
+            <a href="./pages/login.html" class="btn btn-ghost">Ver más</a>
           </div>
         </article>
 
-        <!-- tarjeta 5 -->
+        <!-- 5 -->
         <article class="card">
-          <!-- assets/yamor-otavalo.jpg -->
           <img
             src="https://scontent.fuio10-1.fna.fbcdn.net/v/t39.30808-6/539011719_1080517167537738_3256996479070663681_n.jpg?_nc_cat=106&ccb=1-7&_nc_sid=6ee11a&_nc_ohc=6Yu8ygkftWsQ7kNvwFND6os&_nc_oc=AdlW8fPzhmhf90FS_ceD0WQYTBIPZdqpVLSOB5vRQ0s7jW7uutWWSX7yyKlqj75kZJg&_nc_zt=23&_nc_ht=scontent.fuio10-1.fna&_nc_gid=qj6z76FpbaSKRy7pWGZr6Q&oh=00_Affk20iJykLmcSTP16rOAPgeRoNXqqbr-Twd314VmzuooQ&oe=68FDD774"
-            alt="Fiesta del Yamor — Otavalo">
-          <div class="card-content">
+            alt="Fiesta del Yamor — Otavalo" />
+          <div class="card__overlay"></div>
+          <div class="card__content">
             <h3>Fiesta del Yamor — Otavalo</h3>
-            <a href="./pages/login.html" class="btn">Ver más</a>
+            <a href="./pages/login.html" class="btn btn-ghost">Ver más</a>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- SERVICIOS -->
+  <section id="servicios" class="section servicios">
+    <div class="container">
+      <h2>¿Qué podemos hacer juntos?</h2>
+
+      <div class="features">
+        <article class="feature">
+          <div class="feature__icon">📍</div>
+          <div class="feature__text">
+            <span class="chip">Eventos cerca de ti</span>
+            <h3>Hoy y esta semana</h3>
+            <p>Filtra por región, tipo y fecha. Mira el mapa, abre detalles y llega sin perderte.</p>
           </div>
         </article>
 
-      </div> <!-- /cards-grid -->
-    </div> <!-- /container -->
+        <article class="feature">
+          <div class="feature__icon">🧭</div>
+          <div class="feature__text">
+            <span class="chip">Plan de viaje</span>
+            <h3>Traza tu recorrido</h3>
+            <p>Crea un plan A→B con paradas recomendadas y guarda tus favoritos.</p>
+          </div>
+        </article>
+
+        <article class="feature">
+          <div class="feature__icon">🗓️</div>
+          <div class="feature__text">
+            <span class="chip">Agenda e itinerario</span>
+            <h3>Recibe alertas y guarda</h3>
+            <p>Confirma asistencia, agrega recordatorios y comenta para otros viajeros.</p>
+          </div>
+        </article>
+      </div>
+    </div>
   </section>
 
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div>
+        <div class="footer-logo">FM</div>
+        <p class="muted">Guía de festividades y rutas culturales de Ecuador.</p>
+      </div>
 
-  <main>
-    Contenido de prueba…
-  </main>
+      <div>
+        <h4>Más de Ecuador</h4>
+        <ul>
+          <li><a href="#">Costa</a></li>
+          <li><a href="#">Sierra</a></li>
+          <li><a href="#">Amazonía</a></li>
+          <li><a href="#">Galápagos</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h4>Enlaces</h4>
+        <ul>
+          <li><a href="#">Acerca de</a></li>
+          <li><a href="#">Contacto</a></li>
+          <li><a href="#">Términos</a></li>
+        </ul>
+      </div>
+
+
+    </div>
+    <div class="footer-bottom">
+      <div class="container">© 2025 FestiMap Ecuador</div>
+    </div>
+  </footer>
 </body>
 
 </html>

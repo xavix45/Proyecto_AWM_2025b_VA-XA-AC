@@ -33,16 +33,19 @@ nav {
 }
 
 .nav-links a {
-    color: #fff;
     text-decoration: none;
-    margin: 10px;
-    font-weight: 600;
-    opacity: .96
 }
 
 .nav-links a:hover {
+    text-decoration: none;
+    color: var(--violet-600);
     opacity: 1;
-    text-decoration: underline
+}
+
+.nav-links a:not(.btn-login):hover {
+    text-decoration: none;
+    color: var(--violet-600);
+    opacity: 1;
 }
 
 .logo {
@@ -50,36 +53,50 @@ nav {
     font-weight: 800;
     font-size: 22px
 }
+
 /* En header.css */
 
 /* Estilo para el contenedor .brand (que AHORA es un enlace <a>) */
 .brand {
-    display: flex;         /* <-- Los pone en línea horizontal */
-    align-items: center;   /* Los alinea verticalmente */
-    gap: 10px;             /* Espacio entre FM y el texto */
-    text-decoration: none; /* Quita el subrayado del enlace */
-    color: inherit;        /* Hereda el color de texto (oscuro en estas págs) */
+    display: flex;
+    /* <-- Los pone en línea horizontal */
+    align-items: center;
+    /* Los alinea verticalmente */
+    gap: 10px;
+    /* Espacio entre FM y el texto */
+    text-decoration: none;
+    /* Quita el subrayado del enlace */
+    color: inherit;
+    /* Hereda el color de texto (oscuro en estas págs) */
 }
 
 /* Estilo para el texto "FestiMap Ecuador" (que AHORA es un <span>) */
 .brand span {
-    font-size: 1.25rem; /* 20px aprox */
+    font-size: 1.25rem;
+    /* 20px aprox */
     font-weight: 700;
 }
+
+/* botón de login */
 .btn-login {
     background: var(--accent);
-    color: #000;
+    color: #111;
+    /* texto normal oscuro sobre acento */
     padding: 10px 16px;
     border-radius: 6px;
     margin-left: 10px;
     font-weight: 600;
     font-size: 12px;
-    box-shadow: 0 6px 18px rgba(255, 184, 0, .25)
+    box-shadow: 0 6px 18px rgba(255, 184, 0, .25);
 }
 
 .btn-login:hover {
-    filter: brightness(.95);
+    background: var(--violet-600);
     color: #fff;
-    background: var(--brand-dark);
-    cursor: pointer
+    /* mantener texto BLANCO al hover */
+    filter: none;
+}
+
+.nav-links a.btn-login:hover {
+    color: #fff !important;
 }

@@ -12,35 +12,42 @@
 
 .btn:hover {
     transform: translateY(-1px);
-    filter: brightness(1.02)
+    filter: none;
 }
 
+/* primario */
 .btn-primary {
     background: var(--accent);
-    color: #000
+    color: #111;
 }
 
 .btn-primary:hover {
-    background: #ffd84d
+    background: var(--violet-600);
+    color: #fff;
 }
 
+/* secundario: deja de subrayar y usa violeta al pasar */
 .btn-secondary {
     border: 2px solid #fff;
-    color: #fff
+    color: #fff;
 }
 
 .btn-secondary:hover {
-    background: rgba(255, 255, 255, .2)
+    background: var(--violet-600);
+    border-color: var(--violet-600);
+    color: #fff;
 }
 
+/* variante --primary coherente */
 .btn--primary {
     background: var(--accent);
     color: #111;
-    border: 0
+    border: 0;
 }
 
 .btn--primary:hover {
-    filter: brightness(1.05)
+    background: var(--violet-600);
+    color: #fff;
 }
 
 .btn--primary:focus-visible {

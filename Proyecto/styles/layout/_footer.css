@@ -1,0 +1,65 @@
+.site-footer {
+    background: var(--bg-darker);
+    /* El color más oscuro nuevo */
+    color: var(--text-muted-dark);
+    padding: 5rem 0 2rem;
+    margin-top: 0;
+    /* Quitamos margen si la sección anterior ya es oscura */
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.footer-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 3rem;
+    margin-bottom: 3rem;
+}
+
+.site-footer h4 {
+    color: #fff;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    font-size: 1.1rem;
+}
+
+.site-footer ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.site-footer ul li {
+    margin-bottom: 0.8rem;
+}
+
+.site-footer a {
+    text-decoration: none;
+    color: var(--text-muted-dark);
+    transition: color .2s ease;
+}
+
+.site-footer a:hover {
+    color: var(--accent);
+    /* Hover amarillo */
+}
+
+.footer-logo {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, var(--violet), var(--violet-600));
+    color: #fff;
+    font-weight: 900;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+}
+
+.footer-bottom {
+    text-align: center;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    font-size: 0.9rem;
+    opacity: 0.6;
+}
