@@ -3,12 +3,11 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
-import App from "./App.jsx";
+import BaseLayout from "./layouts/BaseLayout.jsx";      // <- IMPORTANTE
 
 import Landing from "./pages/Landing.jsx";
 import Home from "./pages/Home.jsx";
 import Login from "./pages/Login.jsx";
-// agrega el resto cuando los necesites
 
 import "./styles/reset.css";
 import "./styles/tokens.css";
@@ -16,7 +15,7 @@ import "./styles/main.css";
 
 const router = createBrowserRouter([
   {
-    element: <App />,
+    element: <BaseLayout />,           // <- usamos el layout nuevo
     children: [
       { path: "/", element: <Landing /> },
       { path: "/home", element: <Home /> },
