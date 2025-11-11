@@ -595,3 +595,4 @@ export const EVENTOS = [
     rejectReason: ""
   }
 ];
+export default EVENTOS;
