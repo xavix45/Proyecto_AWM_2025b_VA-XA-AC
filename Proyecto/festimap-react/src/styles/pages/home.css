@@ -1,0 +1,15 @@
+.page-home {
+    padding: 24px 16px;
+}
+
+.page-home .grid {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.page-home .card {
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 16px;
+}
