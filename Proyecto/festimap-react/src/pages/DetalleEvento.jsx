@@ -1,37 +1,122 @@
-import { useParams, Link } from "react-router-dom";
-import EVENTOS from "../data/eventos.js";
-import "../styles/pages/detalle-evento.css"; // ahora existe
+// src/pages/DetalleEvento.jsx
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { getById } from "../services/eventos.service";
+import { add as addAgenda } from "../services/agenda.service";
+import "../styles/pages/detalle-evento.css";
+
+const DEMO_USER_ID = "demo-user"; // luego Xavi lo reemplaza por el user real
 
 export default function DetalleEvento() {
   const { id } = useParams();
-  const evento = EVENTOS.find((e) => String(e.id) === String(id));
+  const navigate = useNavigate();
+
+  const evento = getById(id);
 
   if (!evento) {
     return (
-      <main className="container" style={{ padding: "24px 16px" }}>
+      <main className="container page-detalle">
         <p>Evento no encontrado.</p>
-        <Link to="/home">Volver</Link>
+        <Link className="btn btn--ghost" to="/home">
+          Volver a Home
+        </Link>
       </main>
     );
   }
 
+  const {
+    titulo,
+    nombre,
+    ciudad,
+    fecha,
+    descripcion,
+    tema,
+    categoria,
+    region,
+    imagen,
+    lugar,
+  } = evento;
+
+  const displayTitle = titulo || nombre || ciudad || "Detalle del evento";
+  const metaText = `${ciudad ? ciudad + " · " : ""}${fecha || ""}`;
+  const displayTema = tema || categoria;
+
+  function handleAgregarAgenda() {
+    // Fecha por defecto:
+    const fechaItem = fecha || new Date().toISOString().slice(0, 10);
+
+    addAgenda(DEMO_USER_ID, {
+      idEvento: evento.id,
+      fecha: fechaItem,
+      nota: "",
+    });
+
+    alert("Evento agregado a tu agenda (modo demo).");
+
+    // Más adelante podríamos redirigir:
+    // navigate("/agenda");
+  }
+
   return (
-    <main className="container" style={{ padding: "24px 16px" }}>
-      <h1>{evento.titulo ?? "Detalle del evento"}</h1>
-      <p><strong>Fecha:</strong> {evento.fecha}</p>
-      {evento.ciudad && <p><strong>Ciudad:</strong> {evento.ciudad}</p>}
-      {evento.descripcion && <p style={{ marginTop: 12 }}>{evento.descripcion}</p>}
+    <main className="container page-detalle">
+      <div className="detalle-evento">
+        {/* Imagen principal si existe */}
+        {imagen && (
+          <div className="detalle-evento__media">
+            <img
+              src={imagen.startsWith("http") ? imagen : `/images/${imagen}`}
+              alt={displayTitle}
+            />
+          </div>
+        )}
 
-      {evento.imagen && (
-        <img
-          src={evento.imagen.startsWith("http") ? evento.imagen : `/images/${evento.imagen}`}
-          alt={evento.titulo ?? "Evento"}
-          style={{ width: "100%", maxWidth: 720, borderRadius: 12, marginTop: 16 }}
-        />
-      )}
+        <div className="detalle-evento__body">
+          <h1 className="detalle-evento__title">{displayTitle}</h1>
 
-      <div style={{ marginTop: 16 }}>
-        <Link className="btn btn--primary" to="/home">Volver a Home</Link>
+          {metaText && (
+            <p className="detalle-evento__meta">
+              {metaText}
+            </p>
+          )}
+
+          <div className="detalle-evento__tags">
+            {displayTema && (
+              <span className="tag tag--tema">
+                {displayTema}
+              </span>
+            )}
+            {region && (
+              <span className="tag tag--region">
+                {region}
+              </span>
+            )}
+          </div>
+
+          {lugar && (
+            <p className="detalle-evento__lugar">
+              <strong>Lugar:</strong> {lugar}
+            </p>
+          )}
+
+          {descripcion && (
+            <p className="detalle-evento__description">
+              {descripcion}
+            </p>
+          )}
+
+          <div className="detalle-evento__actions">
+            <button
+              type="button"
+              className="btn btn--primary"
+              onClick={handleAgregarAgenda}
+            >
+              Agregar a mi agenda
+            </button>
+
+            <Link className="btn btn--ghost" to="/home">
+              Volver a Home
+            </Link>
+          </div>
+        </div>
       </div>
     </main>
   );

@@ -1,20 +1,19 @@
-import { Link } from "react-router-dom";
-import EVENTOS from "../data/eventos.js";
-import "../styles/pages/home.css"; // ahora existe (aunque esté vacío)
+// src/pages/Home.jsx
+import { list as listEventos } from "../services/eventos.service";
+import "../styles/pages/home.css";
+import EventCard from "../components/EventCard.jsx";
 
 export default function Home() {
+  // Obtenemos los eventos desde el servicio (ya preparado para overrides admin)
+  const EVENTOS = listEventos();
+
   return (
-    <main className="container" style={{ padding: "24px 16px" }}>
+    <main className="page-home container">
       <h1>Hogar</h1>
-      <div style={{ display: "grid", gap: 16, gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))" }}>
+
+      <div className="grid">
         {EVENTOS.map((ev) => (
-          <article key={ev.id} style={{ border: "1px solid #e5e7eb", borderRadius: 12, padding: 16 }}>
-            <h3 style={{ margin: "0 0 8px" }}>{ev.titulo ?? ev.ciudad ?? "Evento"}</h3>
-            <p style={{ margin: "0 0 12px" }}>
-              {(ev.ciudad ? `${ev.ciudad} · ` : "")}{ev.fecha}
-            </p>
-            <Link className="btn btn--primary" to={`/evento/${ev.id}`}>Ver detalle</Link>
-          </article>
+          <EventCard key={ev.id} event={ev} />
         ))}
       </div>
     </main>

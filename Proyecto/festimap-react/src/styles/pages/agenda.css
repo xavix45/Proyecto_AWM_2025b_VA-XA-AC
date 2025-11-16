@@ -1,0 +1,91 @@
+/* src/styles/pages/agenda.css */
+
+.page-agenda {
+    padding: 24px 16px 40px;
+}
+
+.page-agenda__header {
+    margin-bottom: 24px;
+}
+
+.page-agenda__header h1 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.page-agenda__subtitle {
+    font-size: 0.95rem;
+    color: #6b7280;
+    margin: 0;
+}
+
+.agenda-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.agenda-item {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 18px;
+    border-radius: 14px;
+    background: #ffffff;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+    border: 1px solid #e5e7eb;
+}
+
+.agenda-item__main {
+    flex: 1 1 220px;
+}
+
+.agenda-item__title {
+    margin: 0 0 4px;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #111827;
+}
+
+.agenda-item__meta {
+    margin: 0 0 6px;
+    font-size: 0.85rem;
+    color: #6b7280;
+}
+
+.agenda-item__tags {
+    margin-bottom: 6px;
+}
+
+.agenda-item__note {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #4b5563;
+}
+
+.agenda-item__actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-end;
+    justify-content: center;
+    min-width: 160px;
+}
+
+/* Botón "peligro" simple reutilizando estilo base de .btn */
+.btn.btn--danger {
+    background: #b91c1c;
+    color: #ffffff;
+}
+
+.btn.btn--danger:hover {
+    background: #991b1b;
+}
+
+.page-agenda__actions {
+    display: flex;
+    justify-content: flex-end;
+}

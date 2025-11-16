@@ -13,3 +13,73 @@
     border-radius: 12px;
     padding: 16px;
 }
+
+/* Tarjetas de eventos en Home */
+
+.event-card {
+    display: flex;
+    flex-direction: column;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #ffffff;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+}
+
+.event-card__media img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    display: block;
+}
+
+.event-card__body {
+    padding: 16px 18px 18px;
+}
+
+.event-card__title {
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin: 0 0 6px;
+    color: #111827;
+}
+
+.event-card__meta {
+    font-size: 0.85rem;
+    color: #6b7280;
+    margin: 0 0 8px;
+}
+
+.event-card__tags {
+    margin-bottom: 8px;
+}
+
+.tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    margin-right: 4px;
+    background-color: #e5e7eb;
+    color: #374151;
+}
+
+.tag--tema {
+    background-color: #fee2e2;
+    color: #b91c1c;
+}
+
+.tag--region {
+    background-color: #dbeafe;
+    color: #1d4ed8;
+}
+
+.event-card__description {
+    font-size: 0.85rem;
+    color: #4b5563;
+    margin: 0 0 10px;
+}
+
+.event-card__actions {
+    display: flex;
+    justify-content: flex-end;
+}
