@@ -8,6 +8,9 @@ import Landing from "./pages/Landing.jsx";
 import Home from "./pages/Home.jsx";
 import Login from "./pages/Login.jsx";
 import DetalleEvento from "./pages/DetalleEvento.jsx";
+import Agenda from "./pages/Agenda.jsx";
+import AdminEstadisticas from "./pages/admin/AdminEstadisticas.jsx";
+
 
 import "./styles/reset.css";
 import "./styles/tokens.css";
@@ -20,10 +23,15 @@ const router = createBrowserRouter([
       { path: "/", element: <Landing /> },
       { path: "/home", element: <Home /> },
       { path: "/login", element: <Login /> },
+      { path: "/agenda", element: <Agenda /> },
       { path: "/evento/:id", element: <DetalleEvento /> },
+
+      // Admin
+      { path: "/admin/estadisticas", element: <AdminEstadisticas /> },
     ],
   },
 ]);
+
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
