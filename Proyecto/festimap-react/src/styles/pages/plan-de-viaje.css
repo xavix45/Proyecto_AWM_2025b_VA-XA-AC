@@ -1,0 +1,76 @@
+/* src/styles/pages/plan-de-viaje.css */
+
+.page-plan {
+    padding: 24px 16px;
+}
+
+.page-plan__header h1 {
+    margin-bottom: 4px;
+}
+
+.page-plan__header p {
+    margin: 0 0 16px;
+    color: #4b5563;
+    font-size: 0.95rem;
+}
+
+.page-plan__empty {
+    color: #6b7280;
+    font-size: 0.9rem;
+}
+
+.page-plan__summary {
+    margin-bottom: 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+}
+
+.page-plan__summary h2 {
+    font-size: 0.95rem;
+    margin-bottom: 4px;
+}
+
+.page-plan__summary p {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.page-plan__list {
+    display: grid;
+    gap: 14px;
+}
+
+.plan-card {
+    border-radius: 14px;
+    border: 1px solid #e5e7eb;
+    padding: 14px 16px;
+    background: #ffffff;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05);
+}
+
+.plan-card__meta {
+    margin: 4px 0 0;
+    font-size: 0.9rem;
+    color: #6b7280;
+}
+
+.plan-card__note {
+    margin: 8px 0 0;
+    font-size: 0.9rem;
+    color: #4b5563;
+}
+
+.plan-card__footer {
+    margin-top: 10px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.page-plan__footer {
+    margin-top: 24px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}

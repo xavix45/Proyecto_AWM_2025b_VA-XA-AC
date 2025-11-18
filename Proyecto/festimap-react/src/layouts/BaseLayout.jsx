@@ -1,3 +1,4 @@
+// src/layouts/BaseLayout.jsx
 import { Outlet, NavLink } from "react-router-dom";
 import "../styles/reset.css";
 import "../styles/tokens.css";
@@ -11,7 +12,12 @@ export default function BaseLayout() {
                     <ul className="nav" style={{ display: "flex", gap: 16, listStyle: "none", padding: 0 }}>
                         <li><NavLink to="/" end>Mapa de festivales</NavLink></li>
                         <li><NavLink to="/home">Inicio</NavLink></li>
-                        <li><NavLink to="/agenda">Agenda</NavLink></li>   {/* <-- nuevo */}
+                        <li><NavLink to="/region">Región</NavLink></li>
+                        <li><NavLink to="/agenda">Agenda</NavLink></li>
+                        <li><NavLink to="/tema">Tema</NavLink></li>
+                        <li><NavLink to="/ubicacion">Ubicación</NavLink></li>
+                        <li><NavLink to="/plan">PlanViaje</NavLink></li>
+                        <li><NavLink to="/admin">AdminEventosListado</NavLink></li>
                         <li><NavLink to="/login">Ingresar</NavLink></li>
                     </ul>
                 </nav>
