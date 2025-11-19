@@ -1,0 +1,104 @@
+.form {
+    display: grid;
+    gap: 14px;
+    padding: 24px;
+    border-radius: var(--radius);
+    /* Usamos el token */
+    background: var(--surface-card);
+    /* Fondo blanco */
+    border: 1px solid var(--border-light);
+    /* Borde claro */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, .07);
+    /* Sombra más suave */
+}
+
+.form__label {
+    display: grid;
+    gap: 8px;
+    color: var(--ink);
+    /* Texto oscuro */
+    font-weight: 700;
+    font-size: .95rem;
+}
+
+.input {
+    appearance: none;
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--border-light);
+    /* Borde claro */
+    background: #ffffff;
+    /* Fondo blanco */
+    color: var(--ink);
+    /* Texto oscuro */
+    font-size: 1rem;
+    line-height: 1.2;
+    transition: border-color .15s, box-shadow .15s, background .15s;
+}
+
+.input::placeholder {
+    color: var(--muted);
+    /* Texto de placeholder gris oscuro */
+}
+
+.input:focus {
+    outline: 0;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(255, 184, 0, .25);
+    /* Mantenemos el foco amarillo */
+    background: #ffffff;
+}
+
+.form__row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin: 6px 0 2px;
+}
+
+.checkbox {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--muted);
+    /* Texto del checkbox gris oscuro */
+    font-weight: 600;
+}
+
+.checkbox input {
+    inline-size: 18px;
+    block-size: 18px;
+}
+
+.link {
+    color: var(--brand);
+    /* Color de enlace azul */
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.link:hover {
+    color: var(--brand-dark);
+}
+
+.form__submit {
+    width: 100%;
+    margin-top: 6px;
+}
+
+.muted {
+    color: var(--muted);
+    /* Texto "muted" gris oscuro */
+}
+
+.center {
+    text-align: center;
+}
+
+/* Modificador para centrar contenido en una fila de formulario */
+.form__row--center {
+    justify-content: center; /* Centra los botones */
+    gap: 16px; /* Les da un espacio agradable */
+}

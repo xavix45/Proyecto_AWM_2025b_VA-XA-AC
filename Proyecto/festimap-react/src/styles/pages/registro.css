@@ -1,0 +1,31 @@
+.section-narrow {
+  max-width: 520px;
+  margin: 96px auto 48px;
+  padding: 0 20px;
+}
+
+.page-title {
+  color: var(--ink);
+  font-weight: 800;
+  font-size: clamp(24px, 3vw, 32px);
+  margin: 0 0 16px;
+  text-align: center;
+}
+
+.form {
+  margin-top: 12px;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.form__row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+@media (max-width:520px) {
+  .section-narrow { margin: 80px auto 40px }
+}

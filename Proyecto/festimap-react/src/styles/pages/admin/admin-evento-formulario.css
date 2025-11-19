@@ -1,0 +1,213 @@
+/* --- styles/pages/admin/admin-evento-formulario.css (copiado desde /Proyecto/styles/pages/admin) --- */
+
+/* 1. Header Admin (Reutiliza estilos globales si los tienes, si no, copia de admin-estadisticas.css) */
+/* (Asegúrate que los estilos base de .header.admin estén definidos globalmente o cópialos aquí) */
+
+/* 2. Layout Página Formulario */
+.grid-form-page {
+    grid-template-columns: 1.75fr 1fr;
+    /* Más espacio para el formulario */
+    align-items: start;
+}
+
+/* 3. Formulario (Izquierda) */
+.form-stacked {
+    /* Usamos esta clase para aplicar estilos específicos al formulario */
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    /* Espacio entre secciones */
+    background: var(--surface-card);
+    padding: 24px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border-light);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, .05);
+}
+
+.form__section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    /* Espacio entre campos dentro de una sección */
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.form__section:last-of-type {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.form__section h3 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin: 0 0 4px;
+}
+
+/* Ajustes a .form__label y .form__row para este layout */
+.form-stacked .form__label {
+    display: grid;
+    /* Permite que label y input estén bien alineados */
+    gap: 6px;
+}
+
+.form-stacked .form__row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    /* 2 columnas por defecto */
+    gap: 16px;
+    margin: 0;
+    /* Resetea margen */
+    align-items: end;
+    /* Alinea elementos al final si tienen diferente altura */
+}
+
+
+/* Botones al final del formulario */
+.form__actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    /* Alinea botones a la derecha */
+    padding-top: 16px;
+    border-top: 1px solid var(--border-light);
+    margin-top: 8px;
+}
+
+
+/* 4. Panel Lateral (Derecha) */
+.panel-sticky {
+    /* Hacemos que el panel sea sticky */
+    position: sticky;
+    top: 80px;
+    /* Ajusta según la altura de tu header sticky */
+    align-self: start;
+    /* Asegura que se pegue arriba */
+
+    /* Reutiliza estilos de .panel si los tienes, o defínelos aquí */
+    background: var(--surface-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, .05);
+}
+
+.panel__section {
+    padding: 20px;
+    border-bottom: 1px solid var(--border-light);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    /* Espacio entre elementos de la sección */
+}
+
+.panel__section:last-child {
+    border-bottom: none;
+}
+
+.panel__section h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin: 0 0 4px;
+}
+
+/* Dropzone */
+.dropzone {
+    border: 2px dashed var(--border-light);
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 32px 20px;
+    text-align: center;
+    color: var(--muted);
+    cursor: pointer;
+    transition: background .2s, border-color .2s;
+}
+
+.dropzone:hover {
+    background: #eef2ff;
+    /* Un azul muy claro */
+    border-color: var(--brand);
+}
+
+.dropzone p {
+    margin: 0 0 4px;
+    font-weight: 600;
+}
+
+.dropzone small {
+    font-size: 0.8rem;
+}
+
+.dropzone .thumbnails {
+    margin-top: 16px;
+    font-size: 0.9rem;
+    color: var(--muted);
+    /* Aquí irían las miniaturas reales */
+}
+
+/* Estadísticas rápidas */
+.stats-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--muted);
+}
+
+.stats-list li {
+    margin-bottom: 6px;
+}
+
+.stats-list strong {
+    color: var(--ink);
+    font-weight: 700;
+}
+
+/* Historial */
+.history {
+    font-size: 0.85rem;
+    color: var(--muted);
+    max-height: 150px;
+    /* Limita altura */
+    overflow-y: auto;
+    /* Permite scroll */
+}
+
+.history p {
+    margin: 0 0 6px;
+}
+
+
+/* 5. Responsive */
+@media (max-width: 900px) {
+    .grid-form-page {
+        grid-template-columns: 1fr;
+        /* 1 columna */
+    }
+
+    .panel-sticky {
+        position: static;
+        /* Quitamos sticky */
+        margin-top: 24px;
+    }
+}
+
+@media (max-width: 600px) {
+    .form-stacked .form__row {
+        grid-template-columns: 1fr;
+        /* 1 columna en móvil */
+    }
+
+    .toolbar .btn {
+        margin-left: 0;
+    }
+
+    /* Ajuste del toolbar si aplica */
+    .form__actions {
+        flex-direction: column;
+        /* Apila botones */
+        align-items: stretch;
+        /* Estira botones */
+    }
+}

@@ -1,0 +1,209 @@
+/* ----- Página de intereses culturales ----- */
+
+.page-intereses {
+  max-width: 1200px;
+  margin: 80px auto 96px;
+  padding: 0 24px;
+  text-align: center;
+  color: var(--ink);
+  background: var(--surface);
+}
+
+.page-title {
+  font-weight: 800;
+  font-size: clamp(24px, 3vw, 32px);
+  margin-bottom: 8px;
+  color: var(--ink);
+}
+
+.page-subtitle {
+  font-size: 1rem;
+  color: var(--muted);
+  margin-bottom: 40px;
+}
+
+/* ----- Grilla de chips ----- */
+
+.chips-grid {
+  display: grid;
+  gap: 24px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  justify-content: center;
+  margin-bottom: 48px;
+}
+
+/* ----- Chips (categorías principales) ----- */
+
+.chip {
+  background: var(--surface-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  transition: all 0.2s ease;
+  overflow: hidden;
+}
+
+.chip:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+/* Resumen visible (categoría) */
+.chip summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 20px 16px;
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background 0.2s;
+}
+
+.chip summary::-webkit-details-marker {
+  display: none;
+}
+
+.chip summary:hover {
+  background: #f5f7fa;
+}
+
+/* Iconos */
+.chip__icon {
+  font-size: 1.3rem;
+}
+
+/* Subcategorías (subchips) */
+.subchips {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  background: #fff;
+  border-top: 1px solid var(--border-light);
+}
+
+.subchips label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.subchips input[type="checkbox"] {
+  accent-color: var(--accent);
+  width: 16px;
+  height: 16px;
+}
+
+/* ----- Botones inferiores ----- */
+
+.actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin: 40px 0 20px;
+}
+
+.btn--primary {
+  padding: 12px 24px;
+  font-weight: 600;
+  background: var(--accent);
+  color: #111;
+  border: none;
+  border-radius: 6px;
+  box-shadow: 0 6px 16px rgba(255, 184, 0, 0.3);
+  transition: filter 0.2s, transform 0.2s;
+}
+
+.btn--primary:hover {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+}
+
+.btn--ghost {
+  background: transparent;
+  border: 2px solid var(--border-light);
+  color: var(--ink);
+  font-weight: 600;
+  border-radius: 6px;
+  padding: 12px 24px;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.btn--ghost:hover {
+  background: #f1f5f9;
+  transform: translateY(-1px);
+}
+
+/* ----- Texto inferior ----- */
+
+.muted.center {
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+/* ----- Responsivo ----- */
+
+@media (max-width: 600px) {
+  .chips-grid {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  }
+  .actions {
+    flex-direction: column;
+    gap: 12px;
+  }
+}
+/* ----- Rango de Edad (Tu nueva versión) ----- */
+
+/* 1. El contenedor principal */
+.age-block {
+    /* Mismos estilos de caja que antes */
+    border: 1px solid var(--border-light);
+    background: var(--surface-card);
+    border-radius: var(--radius);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    
+    /* Centrado y espaciado */
+    max-width: 700px; 
+    margin: 0 auto 40px; 
+    padding: 20px 24px;
+}
+
+/* 2. La etiqueta "Rango de edad:" */
+.age-label {
+    display: block; /* Para que ocupe su propia línea */
+    font-weight: 700;
+    color: var(--ink);
+    font-size: 1rem;
+    text-align: center; /* Centramos la etiqueta */
+    margin-bottom: 12px; /* Espacio antes de los números */
+}
+
+/* 3. La leyenda de números (18, 25, 35...) */
+.age-legend {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 4px; /* Pequeño ajuste para alinear con el slider */
+}
+
+.age-legend span {
+    font-size: 0.9rem;
+    color: var(--muted);
+    font-weight: 500;
+}
+
+/* 4. El slider */
+.age-range {
+    width: 100%;
+    cursor: pointer;
+    margin-top: 4px; /* Espacio desde la leyenda de números */
+    
+    /* Esto colorea el slider con tu color de acento */
+    accent-color: var(--accent); 
+}

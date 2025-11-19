@@ -16,6 +16,11 @@ import Tema from "./pages/Tema.jsx";   // <- nuevo
 import Ubicacion from "./pages/Ubicacion.jsx";   // <- nuevo
 import PlanViaje from "./pages/PlanViaje.jsx";
 import AdminEventosListado from "./pages/admin/EventosListado.jsx";
+import EventForm from "./pages/admin/EventForm.jsx";
+import PermisoUbicacion from "./pages/PermisoUbicacion.jsx";
+import Intereses from "./pages/Intereses.jsx";
+import Cuenta from "./pages/Cuenta.jsx";
+import Register from "./pages/Register.jsx";
 
 import "./styles/reset.css";
 import "./styles/tokens.css";
@@ -29,12 +34,18 @@ const router = createBrowserRouter([
       { path: "/", element: <Landing /> },
       { path: "/home", element: <Home /> },
       { path: "/login", element: <Login /> },
+      { path: "/registro", element: <Register /> },
+      { path: "/permiso-ubicacion", element: <PermisoUbicacion /> },
+      { path: "/intereses", element: <Intereses /> },
+      { path: "/cuenta", element: <Cuenta /> },
       { path: "/agenda", element: <Agenda /> },
       { path: "/region", element: <Region /> },          // <- nueva ruta
       { path: "/tema", element: <Tema /> },            // <- nuevo
       { path: "/ubicacion", element: <Ubicacion /> },   // <- nuevo
       { path: "/plan", element: <PlanViaje /> },
       { path: "/admin", element: <AdminEventosListado /> },
+      { path: "/admin/evento", element: <EventForm /> },
+      { path: "/admin/evento/:id", element: <EventForm /> },
       { path: "/evento/:id", element: <DetalleEvento /> },
       { path: "/admin/estadisticas", element: <AdminEstadisticas /> },
     ],

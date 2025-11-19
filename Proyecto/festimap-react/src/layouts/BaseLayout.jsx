@@ -18,6 +18,7 @@ export default function BaseLayout() {
                         <li><NavLink to="/ubicacion">Ubicación</NavLink></li>
                         <li><NavLink to="/plan">PlanViaje</NavLink></li>
                         <li><NavLink to="/admin">AdminEventosListado</NavLink></li>
+                        <li><NavLink to="/cuenta">Mi cuenta</NavLink></li>
                         <li><NavLink to="/login">Ingresar</NavLink></li>
                     </ul>
                 </nav>
