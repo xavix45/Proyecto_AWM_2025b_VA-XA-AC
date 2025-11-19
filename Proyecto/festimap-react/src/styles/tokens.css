@@ -1,0 +1,39 @@
+:root {
+    /* --- Paleta de Colores --- */
+    --ink: #0f172a;
+    /* Texto principal */
+    --muted: #64748b;
+    /* Texto secundario */
+    --surface: #f8fafc;
+    /* Fondo general */
+    --surface-card: #ffffff;
+    /* Tarjetas / cajas */
+    --border-light: #e2e8f0;
+    /* Bordes suaves */
+
+    /* --- Colores de Marca --- */
+    --brand: #0ea5e9;
+    /* Celeste marca (por si lo usamos) */
+    --brand-dark: #0369a1;
+    --accent: #ffb800;
+    /* Botón amarillo */
+    --accent-strong: #e0a000;
+    /* Hover amarillo más oscuro */
+
+    /* --- Violeta para hover --- */
+    --violet: #5b21b6;
+    --violet-600: #7c3aed;
+
+    /* --- Layout tokens --- */
+    --radius: 12px;
+    --radius-sm: 8px;
+    --container: 1200px;
+    --space: clamp(16px, 2vw, 28px);
+
+    /* --- (Opcional) modo oscuro futuro --- */
+    --bg-dark: #0b0f1a;
+    --bg-card-dark: #13172d;
+    --text-light: #e2e8f0;
+    --text-muted-dark: #94a3b8;
+    --border-dark: rgba(255, 255, 255, 0.08);
+}

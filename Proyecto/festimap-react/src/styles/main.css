@@ -1,63 +1,79 @@
-.fm-header {
-    position: sticky;
-    top: 0;
-    background: var(--surface, #fff);
-    border-bottom: 1px solid #eee;
-    z-index: 10;
+/* Layout general */
+
+.container {
+    max-width: var(--container);
+    margin: 0 auto;
+    padding: 0 16px;
 }
 
-.fm-nav {
-    display: flex;
-    gap: 16px;
-    align-items: center;
-    padding: 12px 20px;
-}
-
-.fm-nav .brand {
-    font-weight: 700;
-}
-
-.fm-footer {
-    margin-top: 48px;
-    padding: 24px;
-    text-align: center;
-    color: var(--muted, #666);
-}
-
-main {
-    padding: 24px;
-}
+/* Header / Nav del layout React */
 
 .site-header {
-    padding: 12px 24px;
-    border-bottom: 1px solid #e5e7eb;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: var(--surface-card);
+    border-bottom: 1px solid var(--border-light);
+}
+
+.site-header .container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
 }
 
 .nav {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    gap: 24px;
 }
 
-.nav__links {
-    display: flex;
-    gap: 16px;
-    list-style: none;
-    padding: 0;
-    margin: 0;
+.nav a {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--ink);
+    text-decoration: none;
+    padding: 6px 8px;
+    border-radius: 999px;
+    transition: color .2s, background-color .2s;
 }
+
+.nav a.active {
+    color: var(--violet-600);
+}
+
+.nav a:hover {
+    color: #fff;
+    background-color: var(--violet-600);
+}
+
+/* Logo simple */
 
 .logo {
     font-weight: 700;
     text-decoration: none;
-    color: var(--ink, #111827);
+    color: var(--ink);
 }
 
+/* Footer */
+
 .site-footer {
-    padding: 24px;
+    margin-top: 48px;
+    padding: 24px 16px;
     text-align: center;
-    color: #6b7280;
+    color: var(--muted);
+    border-top: 1px solid var(--border-light);
+    background: var(--surface-card);
 }
+
+/* Main */
+
+main {
+    padding: 24px 0 40px;
+}
+
+/* Grid genérico (por si acaso) */
 
 .grid {
     display: grid;
@@ -65,11 +81,68 @@ main {
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
 }
 
+/* Botones genéricos */
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.55rem 1.1rem;
+    border-radius: 999px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    box-shadow: 0 6px 14px rgba(15, 23, 42, 0.12);
+    transition: background-color .2s, color .2s, box-shadow .2s, transform .1s;
+}
+
+.btn:active {
+    transform: translateY(1px);
+    box-shadow: 0 3px 8px rgba(15, 23, 42, 0.18);
+}
+
+/* Botón principal: amarillo */
+
+.btn--primary {
+    background: var(--accent);
+    color: #111827;
+}
+
+.btn--primary:hover {
+    background: var(--violet-600);
+    color: #ffffff;
+}
+
+/* Botón ghost: borde violeta */
+
+.btn--ghost {
+    background: #ffffff;
+    color: var(--violet-600);
+    border: 1px solid var(--violet-600);
+    box-shadow: none;
+}
+
+.btn--ghost:hover {
+    background: var(--violet-600);
+    color: #ffffff;
+}
+
+/* Para cuando queremos botón a todo el ancho */
+
+.btn--full-width {
+    width: 100%;
+}
+
+/* Tarjetas genéricas (por si alguna página las usa) */
+
 .card {
-    border: 1px solid #e5e7eb;
-    border-radius: 12px;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
     overflow: hidden;
-    background: #fff;
+    background: var(--surface-card);
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
 }
 
 .card__media {
@@ -79,27 +152,15 @@ main {
 }
 
 .card__body {
-    padding: 12px;
+    padding: 12px 14px;
 }
 
 .card__title {
-    margin: 0 0 4px 0;
+    margin: 0 0 4px;
     font-size: 1rem;
 }
 
 .card__meta {
     color: #6b7280;
-    font-size: .9rem;
-}
-
-.btn {
-    display: inline-block;
-    padding: .6rem 1rem;
-    border-radius: 8px;
-    text-decoration: none;
-}
-
-.btn--primary {
-    background: var(--accent, #2563eb);
-    color: #fff;
+    font-size: 0.85rem;
 }
