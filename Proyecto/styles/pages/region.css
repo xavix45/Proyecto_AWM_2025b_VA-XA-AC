@@ -1,0 +1,47 @@
+/* src/styles/pages/region.css */
+
+.page-region {
+    padding: 24px 16px;
+}
+
+.page-region__header h1 {
+    margin-bottom: 4px;
+}
+
+.page-region__header p {
+    margin: 0 0 16px;
+    color: #4b5563;
+    font-size: 0.95rem;
+}
+
+.page-region__filters {
+    margin-bottom: 16px;
+    display: flex;
+    flex-direction: column;
+    max-width: 320px;
+    gap: 4px;
+}
+
+.page-region__filters select {
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+}
+
+.page-region__hint,
+.page-region__empty {
+    margin-top: 8px;
+    font-size: 0.9rem;
+    color: #6b7280;
+}
+
+.page-region__grid {
+    margin-top: 20px;
+    display: grid;
+    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.page-region__footer {
+    margin-top: 24px;
+}
