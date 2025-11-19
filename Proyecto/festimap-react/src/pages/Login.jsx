@@ -31,6 +31,8 @@ export default function Login() {
     if (usuarioEncontrado) {
       // Guardar email del usuario actual
       localStorage.setItem('currentUserEmail', usuarioEncontrado.email);
+      // Notificar al resto de la app que el usuario cambió (para que headers se actualicen)
+      try { window.dispatchEvent(new Event('userChanged')); } catch (e) {}
       // Si el usuario ya existe (no es nueva cuenta), ir directo a home
       navigate('/home');
     } else {

@@ -10,6 +10,8 @@ export default function Cuenta() {
   const [currentUser, setCurrentUser] = useState(null);
   const [indexUser, setIndexUser] = useState(-1);
   const [usuarios, setUsuarios] = useState([]);
+  const DEFAULT_NOTIFS = { alerta24h: false, alerta1h: false, cambios: false, cercanos: false };
+  const [notificaciones, setNotificaciones] = useState(DEFAULT_NOTIFS);
 
   useEffect(() => {
     const email = localStorage.getItem(LS_CURRENT_USER_KEY);
@@ -20,26 +22,54 @@ export default function Cuenta() {
     }
 
     const all = JSON.parse(localStorage.getItem(LS_USUARIOS_KEY) || '[]');
-    const idx = all.findIndex(u => u.email === email);
+    let idx = all.findIndex(u => u.email === email);
+
+    // Si el usuario no existe en 'usuarios' (por ejemplo usuarios hardcode),
+    // creamos un perfil mínimo y lo guardamos para que la página de cuenta funcione.
     if (idx === -1) {
-      alert('Error al cargar el perfil de usuario.');
-      localStorage.removeItem(LS_CURRENT_USER_KEY);
-      navigate('/login');
-      return;
+      const nombre = email.split('@')[0] || email;
+      const nuevo = {
+        nombre,
+        email,
+        preferencias: {},
+        intereses: { tags: [] },
+        notificaciones: { alerta24h: false, alerta1h: false, cambios: false, cercanos: false },
+      };
+      all.push(nuevo);
+      localStorage.setItem(LS_USUARIOS_KEY, JSON.stringify(all));
+      idx = all.length - 1;
     }
 
     setUsuarios(all);
     setIndexUser(idx);
     setCurrentUser(all[idx]);
+    setNotificaciones(all[idx].notificaciones || DEFAULT_NOTIFS);
   }, [navigate]);
-
+  // Toggle handler using a dedicated state slice for notifications
   function setupNotifToggle(field) {
     return (e) => {
-      e.preventDefault();
+      e?.preventDefault?.();
+      const newVal = !notificaciones[field];
+      const updated = { ...notificaciones, [field]: newVal };
+      setNotificaciones(updated);
+
+      // Also update currentUser in memory and persist to localStorage
       setCurrentUser(prev => {
         const copy = { ...(prev || {}) };
-        copy.notificaciones = copy.notificaciones || {};
-        copy.notificaciones[field] = !copy.notificaciones[field];
+        copy.notificaciones = updated;
+        try {
+          const all = JSON.parse(localStorage.getItem(LS_USUARIOS_KEY) || '[]');
+          const idx = all.findIndex(u => u.email === copy.email);
+          if (idx !== -1) {
+            all[idx] = copy;
+            localStorage.setItem(LS_USUARIOS_KEY, JSON.stringify(all));
+            setUsuarios(all);
+            setIndexUser(idx);
+            console.log('[Cuenta] persisted notificaciones:', all[idx].notificaciones);
+          }
+        } catch (err) {
+          console.error('[Cuenta] error persisting notifs', err);
+        }
         return copy;
       });
     };
@@ -76,7 +106,7 @@ export default function Cuenta() {
           <p><strong>Nombre:</strong> <span id="user-name">{currentUser.nombre}</span></p>
           <p><strong>Email:</strong> <span id="user-email">{currentUser.email}</span></p>
           <p className="muted" id="user-location">{currentUser.permisoUbicacion ? 'Ubicación: Permiso activo' : 'Ubicación: (no especificada)'}</p>
-          <button className="btn btn--ghost btn--full-width" id="btn-editar">Editar</button>
+          <button type="button" className="btn btn--ghost btn--full-width" id="btn-editar" onClick={() => navigate('/permiso-ubicacion')}>Editar</button>
         </aside>
 
         <div className="panel-ajustes">
@@ -122,19 +152,19 @@ export default function Cuenta() {
             <h3 className="section-title-sm">Notificaciones</h3>
             <div className="form-row-line">
               <label>Alertas 24 h antes</label>
-              <button className={`btn ${currentUser.notificaciones?.alerta24h ? 'is-on' : ''}`} id="btn-notif-24h" onClick={setupNotifToggle('alerta24h')}>{currentUser.notificaciones?.alerta24h ? 'On' : 'Off'}</button>
+              <button type="button" className={`btn ${notificaciones.alerta24h ? 'is-on' : ''}`} id="btn-notif-24h" onClick={setupNotifToggle('alerta24h')}>{notificaciones.alerta24h ? 'On' : 'Off'}</button>
             </div>
             <div className="form-row-line">
               <label>Alertas 1 h antes</label>
-              <button className={`btn ${currentUser.notificaciones?.alerta1h ? 'is-on' : ''}`} id="btn-notif-1h" onClick={setupNotifToggle('alerta1h')}>{currentUser.notificaciones?.alerta1h ? 'On' : 'Off'}</button>
+              <button type="button" className={`btn ${notificaciones.alerta1h ? 'is-on' : ''}`} id="btn-notif-1h" onClick={setupNotifToggle('alerta1h')}>{notificaciones.alerta1h ? 'On' : 'Off'}</button>
             </div>
             <div className="form-row-line">
               <label>Cambios de evento</label>
-              <button className={`btn ${currentUser.notificaciones?.cambios ? 'is-on' : ''}`} id="btn-notif-cambios" onClick={setupNotifToggle('cambios')}>{currentUser.notificaciones?.cambios ? 'On' : 'Off'}</button>
+              <button type="button" className={`btn ${notificaciones.cambios ? 'is-on' : ''}`} id="btn-notif-cambios" onClick={setupNotifToggle('cambios')}>{notificaciones.cambios ? 'On' : 'Off'}</button>
             </div>
             <div className="form-row-line">
               <label>Nuevos cercanos</label>
-              <button className={`btn ${currentUser.notificaciones?.cercanos ? 'is-on' : ''}`} id="btn-notif-cercanos" onClick={setupNotifToggle('cercanos')}>{currentUser.notificaciones?.cercanos ? 'On' : 'Off'}</button>
+              <button type="button" className={`btn ${notificaciones.cercanos ? 'is-on' : ''}`} id="btn-notif-cercanos" onClick={setupNotifToggle('cercanos')}>{notificaciones.cercanos ? 'On' : 'Off'}</button>
             </div>
           </section>
 
@@ -145,6 +175,11 @@ export default function Cuenta() {
 
         </div>
       </div>
+        {/* Debug: mostrar usuario actual (temporal) */}
+        <div style={{ marginTop: 18, padding: 12, background: 'rgba(0,0,0,0.03)', borderRadius: 8, fontSize: 12 }}>
+          <strong>Debug user:</strong>
+          <pre style={{ whiteSpace: 'pre-wrap', maxHeight: 220, overflow: 'auto' }}>{JSON.stringify(currentUser, null, 2)}</pre>
+        </div>
     </main>
   );
 }

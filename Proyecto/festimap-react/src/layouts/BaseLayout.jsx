@@ -24,7 +24,10 @@ function getStoredUser() {
             return { nombre: 'Administrador', email, rol: 'admin' };
         }
 
-        return null;
+        // Si encontramos un email en currentUserEmail pero no está en 'usuarios',
+        // asumimos que es un usuario registrado vía el formulario hardcodeado
+        // o un usuario conocido; devolvemos un objeto básico para mostrar el header.
+        return { nombre: email.split('@')[0] || email, email, rol: 'user' };
     } catch {
         return null;
     }
@@ -34,7 +37,17 @@ export default function BaseLayout() {
     const [user, setUser] = useState(null);
 
     useEffect(() => {
-        setUser(getStoredUser());
+        const update = () => setUser(getStoredUser());
+        // Inicial
+        update();
+        // Escuchar cambios broadcast (login/logout)
+        window.addEventListener('userChanged', update);
+        // También escuchar storage (útil si otra pestaña hace login)
+        window.addEventListener('storage', update);
+        return () => {
+            window.removeEventListener('userChanged', update);
+            window.removeEventListener('storage', update);
+        };
     }, []);
 
     const isAdmin = user?.rol === "admin";
