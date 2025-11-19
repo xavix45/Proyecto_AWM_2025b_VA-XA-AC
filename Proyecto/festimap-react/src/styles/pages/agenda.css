@@ -1,81 +1,247 @@
 /* src/styles/pages/agenda.css */
 
+/* Layout principal de la página */
 .page-agenda {
-    padding: 24px 16px 40px;
+    padding-top: 48px;
+    padding-bottom: 48px;
 }
 
-.page-agenda__header {
+/* Reutilizamos .section como en otras páginas */
+.section {
+    padding-top: 48px;
+    padding-bottom: 48px;
+}
+
+/* 2. Título */
+.page-title {
+    color: var(--ink);
+    font-weight: 800;
     margin-bottom: 24px;
 }
 
-.page-agenda__header h1 {
-    font-size: 1.8rem;
-    font-weight: 700;
-    margin-bottom: 4px;
+/* 3. Controles superiores */
+.agenda-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border-light);
+    margin-bottom: 24px;
 }
 
-.page-agenda__subtitle {
-    font-size: 0.95rem;
-    color: #6b7280;
-    margin: 0;
+.tabs-group {
+    display: flex;
+    align-items: center;
+    gap: 24px;
 }
 
+/* Tabs */
+.tabs {
+    border-bottom: none;
+}
+
+.tab {
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 10px 14px;
+    color: var(--muted);
+    border-bottom: 2px solid transparent;
+    transition: color .2s, border-color .2s;
+}
+
+.tab:hover {
+    color: var(--ink);
+}
+
+.tab.is-active {
+    color: var(--ink);
+    border-bottom-color: var(--accent);
+}
+
+/* Opciones de alertas */
+.alert-options {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    font-size: 0.9rem;
+    color: var(--muted);
+}
+
+.alert-options span {
+    font-weight: 600;
+}
+
+.alert-options .checkbox {
+    color: var(--ink);
+}
+
+/* 4. Grid principal (lista + alertas) */
+.grid-2 {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 24px;
+    align-items: start;
+}
+
+.grid-agenda {
+    grid-template-columns: 1.75fr 1fr;
+    align-items: start;
+}
+
+/* 5. Lista de agenda */
 .agenda-list {
     display: flex;
     flex-direction: column;
-    gap: 16px;
-    margin-bottom: 24px;
+    gap: 1px;
+    background: var(--border-light);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+    overflow: hidden;
 }
 
+/* 6. Item de Agenda (3 columnas visuales) */
 .agenda-item {
     display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
+    align-items: start;
+    gap: 16px;
+    padding: 20px;
+    background: var(--surface-card);
+}
+
+/* Columna 1: info + imagen */
+.agenda-item__info {
+    flex: 1.2;
+    min-width: 180px;
+    display: flex;
+    flex-direction: column;
     gap: 12px;
-    padding: 16px 18px;
-    border-radius: 14px;
-    background: #ffffff;
-    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
-    border: 1px solid #e5e7eb;
 }
 
-.agenda-item__main {
-    flex: 1 1 220px;
-}
-
-.agenda-item__title {
+.item-text h4 {
     margin: 0 0 4px;
-    font-size: 1.05rem;
-    font-weight: 600;
-    color: #111827;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.2;
 }
 
-.agenda-item__meta {
-    margin: 0 0 6px;
-    font-size: 0.85rem;
-    color: #6b7280;
+.item-text .muted {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--muted);
 }
 
-.agenda-item__tags {
-    margin-bottom: 6px;
+.item-image {
+    width: 100%;
+    height: 80px;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+}
+
+.item-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Columna 2: feedback / nota */
+.agenda-item__feedback {
+    flex: 2.5;
+    min-width: 300px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
 
 .agenda-item__note {
     margin: 0;
     font-size: 0.9rem;
-    color: #4b5563;
+    color: var(--ink);
 }
 
+/* Columna 3: acciones */
 .agenda-item__actions {
+    flex: 0.8;
+    min-width: 110px;
     display: flex;
     flex-direction: column;
     gap: 8px;
-    align-items: flex-end;
-    justify-content: center;
-    min-width: 160px;
+    align-items: stretch;
 }
 
-/* Botón "peligro" simple reutilizando estilo base de .btn */
+.agenda-item__actions .btn {
+    width: 100%;
+    text-align: center;
+    padding: 8px;
+    font-size: 0.85rem;
+}
+
+/* 7. Panel de Alertas */
+.alert-center {
+    position: sticky;
+    top: 24px;
+}
+
+.alert-center h3 {
+    font-size: 1.25rem;
+    margin: 0 0 10px;
+    color: var(--ink);
+}
+
+.alert-list {
+    list-style: none;
+    padding: 0;
+    margin: 16px 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    background: var(--border-light);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+    overflow: hidden;
+}
+
+.alert-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: var(--surface-card);
+    text-decoration: none;
+    color: var(--ink);
+    font-size: 0.9rem;
+    transition: background .2s;
+}
+
+.alert-link:hover {
+    background: var(--surface);
+}
+
+.alert-link span {
+    font-size: 1.1rem;
+}
+
+/* 8. Estado vacío */
+.page-agenda__empty {
+    font-size: 0.95rem;
+    color: var(--muted);
+    margin-bottom: 16px;
+}
+
+.page-agenda__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+/* 9. Botón “peligro” */
 .btn.btn--danger {
     background: #b91c1c;
     color: #ffffff;
@@ -85,7 +251,60 @@
     background: #991b1b;
 }
 
-.page-agenda__actions {
-    display: flex;
-    justify-content: flex-end;
+/* 10. Responsive */
+@media (max-width: 1100px) {
+
+    .grid-2,
+    .grid-agenda {
+        grid-template-columns: 1fr;
+    }
+
+    .alert-center {
+        position: static;
+        margin-top: 24px;
+    }
+}
+
+@media (max-width: 768px) {
+    .agenda-item {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 16px;
+    }
+
+    .agenda-item__feedback {
+        order: 1;
+    }
+
+    .agenda-item__actions {
+        order: 0;
+        flex-direction: row;
+        min-width: auto;
+    }
+
+    .agenda-item__actions .btn {
+        flex: 1;
+    }
+}
+
+@media (max-width: 600px) {
+    .agenda-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .tabs-group {
+        justify-content: space-between;
+    }
+
+    .alert-options {
+        justify-content: flex-start;
+        padding: 10px;
+        background: var(--surface);
+        border-radius: 8px;
+    }
+
+    .item-image {
+        height: 120px;
+    }
 }

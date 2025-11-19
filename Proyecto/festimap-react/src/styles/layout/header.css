@@ -1,0 +1,164 @@
+.fm-header {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    background: rgba(2, 6, 23, 0.96);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(15, 23, 42, 0.7);
+}
+
+.fm-header__inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 10px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+}
+
+/* Marca */
+
+.fm-header__brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+}
+
+.fm-header__logo {
+    width: 32px;
+    height: 32px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #facc15, #fb923c);
+    display: grid;
+    place-items: center;
+    font-size: 0.9rem;
+    font-weight: 800;
+    color: #111827;
+}
+
+.fm-header__title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #f9fafb;
+}
+
+/* Navegación */
+
+.fm-header__nav {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex: 1;
+    justify-content: center;
+}
+
+.fm-header__link {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #e5e7eb;
+    text-decoration: none;
+    padding: 6px 10px;
+    border-radius: 999px;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.fm-header__link:hover {
+    background: rgba(15, 23, 42, 0.85);
+}
+
+.fm-header__link--active {
+    background: #facc15;
+    color: #111827;
+}
+
+/* Para diferenciar visualmente los enlaces admin */
+.fm-header__link--admin {
+    border: 1px solid rgba(248, 250, 252, 0.2);
+}
+
+/* Zona usuario */
+
+.fm-header__user {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.fm-header__avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 999px;
+    background: #0f172a;
+    border: 1px solid #facc15;
+    display: grid;
+    place-items: center;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #facc15;
+}
+
+.fm-header__user-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.fm-header__user-name {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #f9fafb;
+}
+
+.fm-header__user-role {
+    font-size: 0.72rem;
+    color: #9ca3af;
+}
+
+/* Botón pequeño reutilizando sistema de botones global */
+.btn--xs {
+    padding: 4px 8px;
+    font-size: 0.78rem;
+}
+
+/* Main y footer para que respeten el ancho */
+.fm-main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px 16px 32px;
+}
+
+.fm-footer {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 12px 16px 24px;
+    font-size: 0.8rem;
+    color: #6b7280;
+}
+
+/* Responsive */
+
+@media (max-width: 900px) {
+    .fm-header__inner {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .fm-header__nav {
+        order: 3;
+        flex-wrap: wrap;
+        justify-content: flex-start;
+    }
+
+    .fm-header__user {
+        margin-left: auto;
+    }
+}
+
+@media (max-width: 650px) {
+    .fm-header__nav {
+        display: none;
+        /* más adelante se puede cambiar por menú hamburguesa */
+    }
+}

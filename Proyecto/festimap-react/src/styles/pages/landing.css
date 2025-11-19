@@ -459,7 +459,6 @@ body.modo-oscuro-bienvenida {
 .btn-login {
     background: var(--accent);
     color: #111;
-    /* texto normal oscuro sobre acento */
     padding: 10px 16px;
     border-radius: 6px;
     margin-left: 10px;
@@ -471,7 +470,6 @@ body.modo-oscuro-bienvenida {
 .btn-login:hover {
     background: var(--violet-600);
     color: #fff;
-    /* mantener texto BLANCO al hover */
     filter: none;
 }
 

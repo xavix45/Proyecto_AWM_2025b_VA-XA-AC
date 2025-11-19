@@ -1,16 +1,46 @@
 // src/pages/DetalleEvento.jsx
+import { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { getById } from "../services/eventos.service";
+
+import { getById, list as listEventos } from "../services/eventos.service";
 import { add as addAgenda } from "../services/agenda.service";
+
 import "../styles/pages/detalle-evento.css";
 
 const DEMO_USER_ID = "demo-user"; // luego Xavi lo reemplaza por el user real
+
+function formateaFechas(ev) {
+  if (!ev?.fecha) return "";
+  if (ev.fecha_fin && ev.fecha_fin !== ev.fecha) {
+    return `${ev.fecha} – ${ev.fecha_fin}`;
+  }
+  return ev.fecha;
+}
+
+function lugarTexto(ev) {
+  if (!ev) return "";
+  const partes = [];
+  if (ev.ciudad) partes.push(ev.ciudad);
+  if (ev.provincia) partes.push(ev.provincia);
+  if (ev.region) partes.push(ev.region);
+  return partes.join(" • ");
+}
+
+function buildImagenSrc(ev) {
+  if (!ev?.imagen) return "";
+  return ev.imagen.startsWith("http") ? ev.imagen : `/images/${ev.imagen}`;
+}
 
 export default function DetalleEvento() {
   const { id } = useParams();
   const navigate = useNavigate();
 
   const evento = getById(id);
+  const TODOS_EVENTOS = listEventos();
+
+  const [isFav, setIsFav] = useState(false);
+  const [rating, setRating] = useState(0);
+  const [comentario, setComentario] = useState("");
 
   if (!evento) {
     return (
@@ -27,22 +57,33 @@ export default function DetalleEvento() {
     titulo,
     nombre,
     ciudad,
-    fecha,
     descripcion,
+    descripcion_larga,
     tema,
     categoria,
     region,
-    imagen,
     lugar,
+    url,
   } = evento;
 
-  const displayTitle = titulo || nombre || ciudad || "Detalle del evento";
-  const metaText = `${ciudad ? ciudad + " · " : ""}${fecha || ""}`;
-  const displayTema = tema || categoria;
+  const tituloMostrar =
+    titulo || nombre || evento.name || ciudad || "Detalle del evento";
+
+  const fechas = formateaFechas(evento);
+  const donde = lugarTexto(evento);
+  const imagenSrc = buildImagenSrc(evento);
+  const temaMostrar = tema || categoria;
+
+  const metaDetalle = [fechas, donde].filter(Boolean).join(" • ");
+
+  // relacionados por misma región (máx. 3)
+  const relacionados = TODOS_EVENTOS.filter(
+    (ev) => ev.id !== evento.id && ev.region && ev.region === region
+  ).slice(0, 3);
 
   function handleAgregarAgenda() {
-    // Fecha por defecto:
-    const fechaItem = fecha || new Date().toISOString().slice(0, 10);
+    const fechaItem =
+      evento.fecha || new Date().toISOString().slice(0, 10);
 
     addAgenda(DEMO_USER_ID, {
       idEvento: evento.id,
@@ -51,73 +92,247 @@ export default function DetalleEvento() {
     });
 
     alert("Evento agregado a tu agenda (modo demo).");
-
-    // Más adelante podríamos redirigir:
-    // navigate("/agenda");
   }
 
+  function handleToggleFavorito() {
+    const next = !isFav;
+    setIsFav(next);
+
+    // demo: si lo marcamos como favorito, también lo agregamos a agenda
+    if (next) {
+      handleAgregarAgenda();
+    }
+  }
+
+  function handleVerMapa() {
+    // De momento solo navegamos a /region (luego se puede pasar estado o query ?id=)
+    navigate("/region");
+  }
+
+  function handleSubmitOpinion(e) {
+    e.preventDefault();
+    if (comentario.trim()) {
+      alert("Comentario registrado en modo demo.");
+      setComentario("");
+    } else {
+      alert("Escribe un comentario antes de enviar (modo demo).");
+    }
+  }
+
+  const estrellas = [1, 2, 3, 4, 5].map((n) => (
+    <span
+      key={n}
+      className={`star ${n <= rating ? "is-active" : ""}`}
+      onClick={() => setRating(n)}
+    >
+      ★
+    </span>
+  ));
+
   return (
-    <main className="container page-detalle">
-      <div className="detalle-evento">
-        {/* Imagen principal si existe */}
-        {imagen && (
-          <div className="detalle-evento__media">
-            <img
-              src={imagen.startsWith("http") ? imagen : `/images/${imagen}`}
-              alt={displayTitle}
-            />
-          </div>
+    <main className="container section page-detalle">
+      {/* Banner */}
+      <div className="banner">
+        {imagenSrc && (
+          <img
+            src={imagenSrc}
+            alt={tituloMostrar}
+            className="banner-img"
+          />
         )}
+      </div>
 
-        <div className="detalle-evento__body">
-          <h1 className="detalle-evento__title">{displayTitle}</h1>
+      {/* Cabecera detalle */}
+      <div className="detail-head">
+        <div>
+          <h2 className="page-title">{tituloMostrar}</h2>
+          <p className="muted">
+            {fechas && (
+              <>
+                📅 <span>{fechas}</span>
+              </>
+            )}
+            {fechas && donde && " • "}
+            {donde && (
+              <>
+                📍 <span>{donde}</span>
+              </>
+            )}
+          </p>
 
-          {metaText && (
-            <p className="detalle-evento__meta">
-              {metaText}
-            </p>
-          )}
-
-          <div className="detalle-evento__tags">
-            {displayTema && (
-              <span className="tag tag--tema">
-                {displayTema}
-              </span>
+          {/* Tags debajo del título (tema / región) */}
+          <div className="detalle-tags">
+            {temaMostrar && (
+              <span className="tag tag--tema">{temaMostrar}</span>
             )}
             {region && (
-              <span className="tag tag--region">
-                {region}
-              </span>
+              <span className="tag tag--region">{region}</span>
+            )}
+          </div>
+        </div>
+
+        <div className="detail-actions">
+          <button
+            type="button"
+            className="btn btn--ghost"
+            onClick={handleToggleFavorito}
+          >
+            {isFav ? "Quitar de favoritos" : "Agregar a favoritos"}
+          </button>
+          <button
+            type="button"
+            className="btn btn--primary"
+            onClick={handleVerMapa}
+          >
+            Ver en mapa
+          </button>
+          <button
+            type="button"
+            className="btn btn--ghost"
+            onClick={handleAgregarAgenda}
+          >
+            Marcar como visitado
+          </button>
+        </div>
+      </div>
+
+      {/* Barra de descripción corta */}
+      {descripcion && (
+        <div className="detail-description-bar">
+          {descripcion}
+        </div>
+      )}
+
+      {/* Botón a sitio oficial si existe URL */}
+      {url && (
+        <a
+          href={url}
+          target="_blank"
+          rel="noreferrer"
+          className="btn btn--primary btn--full-width"
+        >
+          Ir al sitio oficial
+        </a>
+      )}
+
+      {/* Layout 2 columnas: descripción + experiencia */}
+      <section className="detalle-layout">
+        <article>
+          <h3>Descripción</h3>
+          <p className="muted">
+            {descripcion_larga ||
+              descripcion ||
+              "Sin información detallada disponible."}
+          </p>
+
+          {/* Lugar explícito */}
+          {lugar && (
+            <>
+              <h3>Lugar</h3>
+              <p className="muted">{lugar}</p>
+            </>
+          )}
+
+          {/* Galería (simple, con la misma imagen de momento) */}
+          <h3>Galería</h3>
+          <div className="grid-3 thumbs">
+            {imagenSrc && (
+              <div className="thumb">
+                <img
+                  src={imagenSrc}
+                  alt={tituloMostrar}
+                  className="thumb-img"
+                />
+              </div>
             )}
           </div>
 
-          {lugar && (
-            <p className="detalle-evento__lugar">
-              <strong>Lugar:</strong> {lugar}
-            </p>
-          )}
+          <Link
+            className="btn btn--ghost btn--full-width"
+            to="/home"
+          >
+            Volver al mapa cultural
+          </Link>
+        </article>
 
-          {descripcion && (
-            <p className="detalle-evento__description">
-              {descripcion}
-            </p>
-          )}
+        <aside className="panel">
+          <h3>Tu experiencia</h3>
 
-          <div className="detalle-evento__actions">
+          <button
+            className="btn btn--primary btn--full-width"
+            type="button"
+            onClick={handleAgregarAgenda}
+          >
+            Agregar a mi agenda
+          </button>
+
+          <hr />
+
+          <label className="form__label">Valorar</label>
+          <div className="stars">{estrellas}</div>
+
+          <label className="form__label">Comentario (≤150)</label>
+          <form onSubmit={handleSubmitOpinion}>
+            <textarea
+              className="input"
+              rows={3}
+              maxLength={150}
+              placeholder="Breve opinión…"
+              value={comentario}
+              onChange={(e) => setComentario(e.target.value)}
+            />
             <button
-              type="button"
-              className="btn btn--primary"
-              onClick={handleAgregarAgenda}
+              className="btn btn--primary btn--full-width"
+              type="submit"
             >
-              Agregar a mi agenda
+              Enviar
             </button>
+          </form>
+        </aside>
+      </section>
 
-            <Link className="btn btn--ghost" to="/home">
-              Volver a Home
-            </Link>
-          </div>
-        </div>
-      </div>
+      {/* También cerca */}
+      <h3>También cerca</h3>
+      <section className="relacionados-grid">
+        {relacionados.length === 0 ? (
+          <p className="muted">
+            No hay otros eventos cercanos registrados.
+          </p>
+        ) : (
+          relacionados.map((ev) => {
+            const t =
+              ev.name || ev.titulo || ev.nombre || ev.ciudad || "Evento";
+            const f = formateaFechas(ev);
+            const l = lugarTexto(ev);
+            const img = buildImagenSrc(ev);
+            const meta = [f, l].filter(Boolean).join(" • ");
+
+            return (
+              <article key={ev.id} className="card rel-card">
+                {img && (
+                  <img
+                    src={img}
+                    alt={t}
+                    className="card__media"
+                  />
+                )}
+                <div className="card__body">
+                  <h4 className="card__title">{t}</h4>
+                  {meta && (
+                    <p className="card__meta">{meta}</p>
+                  )}
+                  <Link
+                    className="btn btn--ghost"
+                    to={`/evento/${ev.id}`}
+                  >
+                    Ver detalle
+                  </Link>
+                </div>
+              </article>
+            );
+          })
+        )}
+      </section>
     </main>
   );
 }

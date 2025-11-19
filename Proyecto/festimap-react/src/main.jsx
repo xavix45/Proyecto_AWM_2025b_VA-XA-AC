@@ -11,9 +11,9 @@ import Login from "./pages/Login.jsx";
 import DetalleEvento from "./pages/DetalleEvento.jsx";
 import Agenda from "./pages/Agenda.jsx";
 import AdminEstadisticas from "./pages/admin/AdminEstadisticas.jsx";
-import Region from "./pages/Region.jsx";   // <- nuevo
-import Tema from "./pages/Tema.jsx";   // <- nuevo
-import Ubicacion from "./pages/Ubicacion.jsx";   // <- nuevo
+import Region from "./pages/Region.jsx";
+import Tema from "./pages/Tema.jsx";
+import Ubicacion from "./pages/Ubicacion.jsx";
 import PlanViaje from "./pages/PlanViaje.jsx";
 import AdminEventosListado from "./pages/admin/EventosListado.jsx";
 import EventForm from "./pages/admin/EventForm.jsx";
@@ -26,22 +26,28 @@ import "./styles/reset.css";
 import "./styles/tokens.css";
 import "./styles/main.css";
 
-
 const router = createBrowserRouter([
+  // 1) Landing SIN BaseLayout
+  { path: "/", element: <Landing /> },
+
+  // 2) Login también sin BaseLayout (pantalla independiente)
+  { path: "/login", element: <Login /> },
+  // más adelante aquí puedes añadir /registro cuando tengas Registro.jsx
+
+  // 3) Resto de la app con BaseLayout (barra superior, etc.)
   {
     element: <BaseLayout />,
     children: [
-      { path: "/", element: <Landing /> },
       { path: "/home", element: <Home /> },
       { path: "/login", element: <Login /> },
-      { path: "/registro", element: <Register /> },
+            { path: "/registro", element: <Register /> },
       { path: "/permiso-ubicacion", element: <PermisoUbicacion /> },
       { path: "/intereses", element: <Intereses /> },
       { path: "/cuenta", element: <Cuenta /> },
       { path: "/agenda", element: <Agenda /> },
-      { path: "/region", element: <Region /> },          // <- nueva ruta
-      { path: "/tema", element: <Tema /> },            // <- nuevo
-      { path: "/ubicacion", element: <Ubicacion /> },   // <- nuevo
+      { path: "/region", element: <Region /> },
+      { path: "/tema", element: <Tema /> },
+      { path: "/ubicacion", element: <Ubicacion /> },
       { path: "/plan", element: <PlanViaje /> },
       { path: "/admin", element: <AdminEventosListado /> },
       { path: "/admin/evento", element: <EventForm /> },

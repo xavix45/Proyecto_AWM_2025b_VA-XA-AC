@@ -1,10 +1,44 @@
 // src/layouts/BaseLayout.jsx
-import { Outlet, NavLink } from "react-router-dom";
+import { Outlet, NavLink, Link } from "react-router-dom";
+import { useEffect, useState } from "react";
 import "../styles/reset.css";
 import "../styles/tokens.css";
 import "../styles/main.css";
 
+function getStoredUser() {
+    try {
+        // Compatibilidad con implementaciones anteriores
+        const raw = localStorage.getItem("festi_usuario");
+        if (raw) return JSON.parse(raw);
+
+        // Flujo actual: login guarda 'currentUserEmail' y usuarios en 'usuarios'
+        const email = localStorage.getItem('currentUserEmail');
+        if (!email) return null;
+
+        const usuarios = JSON.parse(localStorage.getItem('usuarios') || '[]');
+        const usuario = usuarios.find(u => u.email === email);
+        if (usuario) return usuario;
+
+        // Usuarios hardcode (por ejemplo el admin del proyecto)
+        if (email === 'admin@epn.edu.ec') {
+            return { nombre: 'Administrador', email, rol: 'admin' };
+        }
+
+        return null;
+    } catch {
+        return null;
+    }
+}
+
 export default function BaseLayout() {
+    const [user, setUser] = useState(null);
+
+    useEffect(() => {
+        setUser(getStoredUser());
+    }, []);
+
+    const isAdmin = user?.rol === "admin";
+
     return (
         <>
             <header className="site-header">
@@ -17,9 +51,33 @@ export default function BaseLayout() {
                         <li><NavLink to="/tema">Tema</NavLink></li>
                         <li><NavLink to="/ubicacion">Ubicación</NavLink></li>
                         <li><NavLink to="/plan">PlanViaje</NavLink></li>
-                        <li><NavLink to="/admin">AdminEventosListado</NavLink></li>
-                        <li><NavLink to="/cuenta">Mi cuenta</NavLink></li>
-                        <li><NavLink to="/login">Ingresar</NavLink></li>
+                        {isAdmin && (
+                            <li><NavLink to="/admin">AdminEventosListado</NavLink></li>
+                        )}
+
+                        {/* Zona usuario */}
+                        {user ? (
+                            <>
+                                <li>
+                                    <Link to="/cuenta">Mi cuenta</Link>
+                                </li>
+                                <li>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            localStorage.removeItem("festi_usuario");
+                                            localStorage.removeItem('currentUserEmail');
+                                            // Forzar recarga para actualizar el header
+                                            window.location.href = "/login";
+                                        }}
+                                    >
+                                        Salir
+                                    </button>
+                                </li>
+                            </>
+                        ) : (
+                            <li><NavLink to="/login">Ingresar</NavLink></li>
+                        )}
                     </ul>
                 </nav>
             </header>

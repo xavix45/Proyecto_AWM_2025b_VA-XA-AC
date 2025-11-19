@@ -1,16 +1,230 @@
-/* Detalle de evento */
-.detalle {
-    max-width: 960px;
-    margin: 24px auto;
-    padding: 16px;
+/* src/styles/pages/detalle-evento.css */
+
+/* Página detalle */
+.page-detalle {
+    padding-top: 48px;
+    padding-bottom: 48px;
 }
 
-.detalle h1 {
-    margin: 0 0 12px;
+/* Texto secundario genérico */
+.muted {
+    color: var(--muted, #6b7280);
+    font-size: 0.95rem;
 }
 
-.detalle img {
+/* 1. Banner con imagen */
+.banner {
+    height: 300px;
+    border-radius: var(--radius);
+    margin-bottom: 24px;
+    overflow: hidden;
+    border: 1px solid var(--border-light);
+    background: #f1f5f9;
+}
+
+.banner-img {
     width: 100%;
-    border-radius: 12px;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* 2. Cabecera del detalle */
+.detail-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.detail-head .page-title {
+    margin: 0 0 8px;
+}
+
+.detail-head .muted {
+    font-size: 1.05rem;
+    font-weight: 500;
+}
+
+/* Tags bajo el título */
+.detalle-tags {
+    margin-top: 6px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+/* Acciones de la cabecera */
+.detail-actions {
+    display: flex;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+/* 3. Barra de descripción corta */
+.detail-description-bar {
+    background: var(--surface-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 32px;
+    font-size: 1.1rem;
+    font-weight: 500;
+    line-height: 1.6;
+    color: var(--ink);
+}
+
+/* Botón de ancho completo */
+.btn--full-width {
+    width: 100%;
+    text-align: center;
+    box-sizing: border-box;
+    display: block;
     margin-top: 12px;
+    margin-bottom: 12px;
+}
+
+/* 4. Layout de descripción + panel */
+.detalle-layout {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 24px;
+    margin-bottom: 32px;
+}
+
+/* Títulos dentro del artículo */
+.detalle-layout article h3 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin: 0 0 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.detalle-layout article p {
+    margin: 0 0 24px;
+    line-height: 1.6;
+}
+
+/* 5. Galería */
+.grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+}
+
+.thumb {
+    height: 120px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--border-light);
+    background: #f1f5f9;
+}
+
+.thumb-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* 6. Panel de experiencia */
+.panel {
+    background: var(--surface-card, #fff);
+    border: 1px solid var(--border-light, #e5e7eb);
+    border-radius: var(--radius, 12px);
+    padding: 16px 20px;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+}
+
+.panel hr {
+    border: 0;
+    border-top: 1px solid var(--border-light);
+    margin: 20px 0;
+}
+
+.panel .form__label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--ink);
+}
+
+.panel .input {
+    width: 100%;
+    box-sizing: border-box;
+    border-radius: 8px;
+    border: 1px solid var(--border-light, #d1d5db);
+    padding: 8px 10px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    margin-bottom: 12px;
+}
+
+/* Estrellas de valoración */
+.stars {
+    font-size: 1.75rem;
+    margin-bottom: 16px;
+}
+
+.star {
+    cursor: pointer;
+    color: var(--muted, #d1d5db);
+    margin-right: 4px;
+}
+
+.star.is-active {
+    color: var(--accent, #ffb800);
+}
+
+/* 7. Relacionados */
+.relacionados-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+}
+
+/* Ajuste opcional para las tarjetas de relacionados */
+.rel-card .card__media {
+    height: 150px;
+    object-fit: cover;
+}
+
+/* 8. Responsive */
+@media (max-width: 900px) {
+    .detalle-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .grid-3 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .thumb {
+        height: 150px;
+    }
+}
+
+@media (max-width: 600px) {
+    .detail-head {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .detail-actions {
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr;
+    }
+
+    .detail-actions .btn {
+        text-align: center;
+    }
+
+    .grid-3 {
+        grid-template-columns: 1fr;
+    }
 }

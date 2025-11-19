@@ -1,69 +1,326 @@
 /* src/styles/pages/admin/eventos-listado.css */
 
-.admin-eventos {
-    padding: 24px 16px;
-}
-
-.admin-eventos__header h1 {
-    margin-bottom: 4px;
-}
-
-.admin-eventos__header p {
-    margin: 0 0 16px;
-    color: #4b5563;
-    font-size: 0.95rem;
-}
-
-.admin-eventos__toolbar {
+/* 1. Header Admin */
+.nav--space-between {
     display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-bottom: 16px;
+    justify-content: space-between;
+    align-items: center;
 }
 
-.admin-eventos__toolbar input[type="text"],
-.admin-eventos__toolbar select {
-    padding: 6px 10px;
-    border-radius: 8px;
-    border: 1px solid #d1d5db;
-}
-
-.admin-eventos__table-wrapper {
-    overflow-x: auto;
-}
-
-.admin-eventos__table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.9rem;
-}
-
-.admin-eventos__table th,
-.admin-eventos__table td {
-    padding: 8px 10px;
-    border-bottom: 1px solid #e5e7eb;
-    text-align: left;
-}
-
-.admin-eventos__table th {
-    background: #f9fafb;
+.header.admin .brand span {
     font-weight: 600;
 }
 
-.admin-eventos__actions {
-    display: flex;
-    gap: 6px;
+.logout-link {
+    color: var(--muted);
+    font-weight: 600;
+    text-decoration: none;
+    font-size: 0.9rem;
 }
 
-.admin-eventos__empty {
-    text-align: center;
-    padding: 16px 0;
-    color: #6b7280;
+.logout-link:hover {
+    color: var(--brand);
+    text-decoration: underline;
 }
 
-.admin-eventos__footer {
-    margin-top: 20px;
+/* 2. Layout Sección Admin */
+.section-admin {
+    padding-top: 32px;
+}
+
+.section-admin .page-title {
+    text-align: left;
+    margin-bottom: 16px;
+}
+
+/* 3. Toolbar Wrapper */
+.toolbar-wrapper {
     display: flex;
-    gap: 10px;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 16px;
     flex-wrap: wrap;
+}
+
+.toolbar--filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    background: var(--surface-card);
+    padding: 16px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border-light);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, .05);
+    flex-grow: 1;
+}
+
+.toolbar--filters .input {
+    min-width: 150px;
+}
+
+.toolbar--filters .input-search-main {
+    min-width: 250px;
+    flex-grow: 1;
+}
+
+.toolbar--filters .btn {
+    margin-left: auto;
+}
+
+.toolbar--filters .btn--ghost {
+    margin-left: 0;
+}
+
+/* Botón Crear Evento */
+.btn-create-event {
+    padding: 12px 24px;
+    align-self: center;
+}
+
+/* 4. Barra de Acciones Masivas */
+.bulk-actions-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0;
+    background: var(--surface);
+    border-radius: var(--radius);
+    margin-bottom: 24px;
+    overflow: hidden;
+    border: 1px solid var(--border-light);
+}
+
+.bulk-actions-bar .btn {
+    padding: 10px 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border-radius: 0;
+    flex: 1;
+    text-align: center;
+    border: none;
+    border-right: 1px solid var(--border-light);
+}
+
+.bulk-actions-bar .btn:last-child {
+    border-right: none;
+}
+
+.bulk-actions-bar .btn--ghost {
+    background: var(--surface-card);
+    color: var(--ink);
+    flex: 0 1 auto;
+    display: flex;
+    align-items: center;
+}
+
+/* Colores específicos */
+.btn-action-approve {
+    background: #4caf50;
+    color: #fff;
+}
+
+.btn-action-schedule {
+    background: #2196f3;
+    color: #fff;
+}
+
+.btn-action-unpublish {
+    background: #f44336;
+    color: #fff;
+}
+
+.btn-action-delete {
+    background: #9e9e9e;
+    color: #fff;
+}
+
+/* Hovers */
+.btn-action-approve:hover {
+    background: #388e3c;
+    filter: none;
+}
+
+.btn-action-schedule:hover {
+    background: #1976d2;
+    filter: none;
+}
+
+.btn-action-unpublish:hover {
+    background: #d32f2f;
+    filter: none;
+}
+
+.btn-action-delete:hover {
+    background: #757575;
+    filter: none;
+}
+
+.bulk-actions-bar .btn--ghost:hover {
+    background: #f8fafc;
+    filter: none;
+}
+
+/* 5. Wrapper de Tabla */
+.table-responsive-wrapper {
+    overflow-x: auto;
+    background: var(--surface-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, .05);
+}
+
+/* 6. Tabla */
+.table-admin-events {
+    width: 100%;
+    border-collapse: collapse;
+    white-space: nowrap;
+    box-shadow: none;
+    border: none;
+    border-radius: 0;
+}
+
+.table-admin-events th,
+.table-admin-events td {
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-light);
+    vertical-align: middle;
+}
+
+.table-admin-events thead th {
+    background: var(--surface);
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--ink);
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.table-admin-events tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.table-admin-events tbody td {
+    font-size: 0.9rem;
+    color: var(--ink);
+}
+
+/* Checkbox */
+.table-admin-events th:first-child,
+.table-admin-events td:first-child {
+    width: 1%;
+    text-align: center;
+    padding-left: 16px;
+    padding-right: 16px;
+}
+
+/* Estado (Badge) */
+.status-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    border-radius: 4px;
+    color: #fff;
+    text-transform: uppercase;
+}
+
+.status-approved {
+    background: #4caf50;
+}
+
+.status-draft {
+    background: #9e9e9e;
+}
+
+.status-pending {
+    background: #ff9800;
+}
+
+.status-rejected {
+    background: #f44336;
+}
+
+/* Acciones (iconos) */
+.actions-cell {
+    display: flex;
+    gap: 12px;
+}
+
+.actions-cell a,
+.actions-cell button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.1rem;
+    color: var(--muted);
+    padding: 0;
+    text-decoration: none;
+}
+
+.actions-cell a:hover,
+.actions-cell button:hover {
+    color: var(--brand);
+}
+
+.actions-cell button[title="Eliminar"]:hover {
+    color: #f44336;
+}
+
+/* 7. Footer Admin */
+.footer-row {
+    font-size: 0.9rem;
+    color: var(--muted);
+    padding: 32px 0;
+}
+
+/* 8. Responsive */
+@media (max-width: 900px) {
+    .toolbar-wrapper {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .btn-create-event {
+        align-self: flex-end;
+    }
+}
+
+@media (max-width: 600px) {
+    .toolbar--filters .btn {
+        margin-left: 0;
+        width: 100%;
+    }
+
+    .toolbar--filters .btn--ghost {
+        width: 100%;
+    }
+
+    .btn-create-event {
+        width: 100%;
+    }
+
+    .bulk-actions-bar {
+        flex-direction: column;
+        gap: 1px;
+        background: transparent;
+        border: none;
+        border-radius: 0;
+    }
+
+    .bulk-actions-bar .btn {
+        border-radius: var(--radius);
+        border: 1px solid var(--border-light);
+        flex: 1 1 100%;
+    }
+
+    .bulk-actions-bar .btn:last-child {
+        border-right: 1px solid var(--border-light);
+    }
+
+    .bulk-actions-bar .btn--ghost {
+        border-right: 1px solid var(--border-light);
+    }
 }

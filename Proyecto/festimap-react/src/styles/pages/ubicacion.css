@@ -1,37 +1,71 @@
 /* src/styles/pages/ubicacion.css */
 
 .page-ubicacion {
-    padding: 24px 16px;
+    padding: 48px 16px 56px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Título centrado tipo "section-narrow center" */
+.page-ubicacion__header {
+    text-align: center;
+    max-width: 520px;
+    margin-bottom: 24px;
 }
 
 .page-ubicacion__header h1 {
-    margin-bottom: 4px;
+    font-size: 1.8rem;
+    margin: 0 0 8px;
+    font-weight: 700;
 }
 
 .page-ubicacion__header p {
-    margin: 0 0 16px;
+    margin: 0;
     color: #4b5563;
-    font-size: 0.95rem;
-    max-width: 640px;
+    font-size: 0.96rem;
+    line-height: 1.6;
 }
 
+/* Tarjeta central */
 .page-ubicacion__card {
-    border-radius: 16px;
+    max-width: 480px;
+    width: 100%;
+    margin: 0 auto;
+    border-radius: 18px;
     border: 1px solid #e5e7eb;
-    padding: 20px 18px;
-    max-width: 520px;
+    padding: 22px 20px;
     background: #ffffff;
-    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+    box-shadow: 0 14px 36px rgba(15, 23, 42, 0.08);
+    text-align: center;
 }
 
+.page-ubicacion__card h2 {
+    margin: 0 0 14px;
+    font-size: 1.3rem;
+    font-weight: 600;
+}
+
+/* Botones centrados como form__row--center */
 .page-ubicacion__actions {
     display: flex;
-    gap: 12px;
-    margin: 12px 0 16px;
+    justify-content: center;
+    gap: 14px;
+    margin: 10px 0 18px;
+}
+
+/* Bloque de estado */
+.page-ubicacion__estado {
+    margin-top: 10px;
+    padding-top: 12px;
+    border-top: 1px dashed #e5e7eb;
+    text-align: left;
 }
 
 .page-ubicacion__estado h3 {
-    margin-bottom: 6px;
+    margin: 0 0 6px;
+    font-size: 0.98rem;
+    font-weight: 600;
 }
 
 .page-ubicacion__estado p {
@@ -40,6 +74,30 @@
     font-size: 0.9rem;
 }
 
+/* Footer con botón alineado a la derecha en desktop */
 .page-ubicacion__footer {
     margin-top: 24px;
+    width: 100%;
+    max-width: 480px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .page-ubicacion {
+        padding-top: 32px;
+    }
+
+    .page-ubicacion__card {
+        padding-inline: 16px;
+    }
+
+    .page-ubicacion__actions {
+        flex-direction: column;
+    }
+
+    .page-ubicacion__footer {
+        justify-content: center;
+    }
 }
