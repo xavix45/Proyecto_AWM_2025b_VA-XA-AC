@@ -2,6 +2,7 @@
 import { useLocation, Link } from "react-router-dom";
 import { useMemo, useState, useEffect } from "react";
 import { list as listEventos } from "../services/eventos.service";
+import PROVINCIAS_BY_REGION from "../data/provincias";
 
 import "../styles/pages/region.css";
 
@@ -85,25 +86,43 @@ export default function Region() {
     }
   }, [regionActual, selectedEvent]);
 
+  // Cuando cambia la provincia manualmente, limpiar el cantón seleccionado
+  useEffect(() => {
+    setCanton("");
+  }, [provincia]);
+
   const eventosRegion = useMemo(
     () => EVENTOS_TODOS.filter((ev) => ev.region === regionActual),
     [regionActual]
   );
 
-  const PROVINCIAS = useMemo(
-    () =>
-      Array.from(
-        new Set(eventosRegion.map((e) => e.provincia).filter(Boolean))
-      ).sort(),
-    [eventosRegion]
-  );
+  // Provincias: usar lista completa por región (si existe),
+  // si no hay mapeo disponible revertir a las provincias presentes en los eventos
+  const PROVINCIAS = useMemo(() => {
+    const listaMap = PROVINCIAS_BY_REGION[regionActual];
+    if (Array.isArray(listaMap) && listaMap.length > 0) return listaMap.slice();
+    return Array.from(new Set(eventosRegion.map((e) => e.provincia).filter(Boolean))).sort();
+  }, [regionActual, eventosRegion]);
 
   const CANTONES = useMemo(
-    () =>
-      Array.from(
+    () => {
+      // Si hay provincia seleccionada, devolver solo cantones de esa provincia
+      if (provincia) {
+        return Array.from(
+          new Set(
+            eventosRegion
+              .filter((e) => e.provincia === provincia)
+              .map((e) => e.ciudad)
+              .filter(Boolean)
+          )
+        ).sort();
+      }
+
+      return Array.from(
         new Set(eventosRegion.map((e) => e.ciudad).filter(Boolean))
-      ).sort(),
-    [eventosRegion]
+      ).sort();
+    },
+    [eventosRegion, provincia]
   );
 
   const eventosFiltrados = useMemo(() => {

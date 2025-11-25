@@ -244,7 +244,7 @@
 /* 9. Botón “peligro” */
 .btn.btn--danger {
     background: #b91c1c;
-    color: #ffffff;
+    color: var(--text-light);
 }
 
 .btn.btn--danger:hover {

@@ -1,99 +1,92 @@
 // src/layouts/BaseLayout.jsx
-import { Outlet, NavLink, Link } from "react-router-dom";
+import { Outlet, NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import "../styles/reset.css";
 import "../styles/tokens.css";
 import "../styles/main.css";
+import "../styles/components/_header.css";
 
 function getStoredUser() {
     try {
-        // Compatibilidad con implementaciones anteriores
-        const raw = localStorage.getItem("festi_usuario");
-        if (raw) return JSON.parse(raw);
-
-        // Flujo actual: login guarda 'currentUserEmail' y usuarios en 'usuarios'
-        const email = localStorage.getItem('currentUserEmail');
-        if (!email) return null;
-
-        const usuarios = JSON.parse(localStorage.getItem('usuarios') || '[]');
-        const usuario = usuarios.find(u => u.email === email);
-        if (usuario) return usuario;
-
-        // Usuarios hardcode (por ejemplo el admin del proyecto)
-        if (email === 'admin@epn.edu.ec') {
-            return { nombre: 'Administrador', email, rol: 'admin' };
-        }
-
-        // Si encontramos un email en currentUserEmail pero no está en 'usuarios',
-        // asumimos que es un usuario registrado vía el formulario hardcodeado
-        // o un usuario conocido; devolvemos un objeto básico para mostrar el header.
-        return { nombre: email.split('@')[0] || email, email, rol: 'user' };
-    } catch {
-        return null;
-    }
+        const u = localStorage.getItem('festi_usuario');
+        if (u) return JSON.parse(u);
+    } catch (e) {}
+    // fallback to currentUserEmail (legacy)
+    const email = localStorage.getItem('currentUserEmail');
+    if (email) return { email };
+    return null;
 }
 
 export default function BaseLayout() {
-    const [user, setUser] = useState(null);
+    const navigate = useNavigate();
+    const [user, setUser] = useState(getStoredUser());
+    const location = useLocation();
 
     useEffect(() => {
-        const update = () => setUser(getStoredUser());
-        // Inicial
-        update();
-        // Escuchar cambios broadcast (login/logout)
-        window.addEventListener('userChanged', update);
-        // También escuchar storage (útil si otra pestaña hace login)
-        window.addEventListener('storage', update);
-        return () => {
-            window.removeEventListener('userChanged', update);
-            window.removeEventListener('storage', update);
-        };
+        function onUserChanged() { setUser(getStoredUser()); }
+        window.addEventListener('userChanged', onUserChanged);
+        return () => window.removeEventListener('userChanged', onUserChanged);
     }, []);
 
-    const isAdmin = user?.rol === "admin";
+  
+
+    const isAdmin = user && (user.rol === 'admin' || (user.email && user.email === 'admin@epn.edu.ec'));
+
+    function handleLogout() {
+        localStorage.removeItem('festi_usuario');
+        localStorage.removeItem('currentUserEmail');
+        try { window.dispatchEvent(new Event('userChanged')); } catch (e) {}
+        setUser(null);
+        // Redirect to landing (root) when logging out
+        navigate('/');
+    }
+
+  
 
     return (
         <>
-            <header className="site-header">
-                <nav className="container">
-                    <ul className="nav" style={{ display: "flex", gap: 16, listStyle: "none", padding: 0 }}>
-                        <li><NavLink to="/" end>Mapa de festivales</NavLink></li>
-                        <li><NavLink to="/home">Inicio</NavLink></li>
-                        <li><NavLink to="/region">Región</NavLink></li>
-                        <li><NavLink to="/agenda">Agenda</NavLink></li>
-                        <li><NavLink to="/tema">Tema</NavLink></li>
-                        <li><NavLink to="/ubicacion">Ubicación</NavLink></li>
-                        <li><NavLink to="/plan">PlanViaje</NavLink></li>
-                        {isAdmin && (
-                            <li><NavLink to="/admin">AdminEventosListado</NavLink></li>
-                        )}
+            {/* Hide header on registration page */}
+            {location && location.pathname !== '/registro' && (
+                <header className="site-header">
+                    <div className="container header-inner">
+                        <div className="site-logo" aria-hidden="true">FestiMap</div>
 
-                        {/* Zona usuario */}
-                        {user ? (
-                            <>
-                                <li>
-                                    <Link to="/cuenta">Mi cuenta</Link>
-                                </li>
-                                <li>
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            localStorage.removeItem("festi_usuario");
-                                            localStorage.removeItem('currentUserEmail');
-                                            // Forzar recarga para actualizar el header
-                                            window.location.href = "/login";
-                                        }}
-                                    >
-                                        Salir
-                                    </button>
-                                </li>
-                            </>
-                        ) : (
-                            <li><NavLink to="/login">Ingresar</NavLink></li>
-                        )}
-                    </ul>
-                </nav>
-            </header>
+                        <nav className="main-nav" aria-label="Main navigation">
+                            <ul className="nav-list">
+                                <li><NavLink to="/home">Inicio</NavLink></li>
+                                <li><NavLink to="/region">Región</NavLink></li>
+                                <li><NavLink to="/agenda">Agenda</NavLink></li>
+                                <li><NavLink to="/tema">Tema</NavLink></li>
+                                <li><NavLink to="/plan">Plan de viaje</NavLink></li>
+                            </ul>
+                        </nav>
+
+                        <div className="user-area">
+                            {isAdmin && (
+                                <div className="nav-admin">
+                                    <button className="btn btn--ghost">Admin</button>
+                                    <ul className="admin-submenu" aria-label="Admin menu">
+                                        <li><NavLink to="/admin">Eventos (Listado)</NavLink></li>
+                                        <li><NavLink to="/admin/evento/nuevo">Crear evento</NavLink></li>
+                                        <li><NavLink to="/admin/estadisticas">Estadísticas</NavLink></li>
+                                    </ul>
+                                </div>
+                            )}
+
+                            {user ? (
+                                <>
+                                    <NavLink className="user-link" to="/cuenta">Mi cuenta</NavLink>
+                                    <button className="btn-logout" onClick={handleLogout}>Salir</button>
+                                </>
+                            ) : (
+                                <NavLink className="login-link" to="/login">Ingresar</NavLink>
+                            )}
+
+                            {/* Tema toggle removed per user request */}
+                        </div>
+                    </div>
+                </header>
+            )}
 
             <Outlet />
 

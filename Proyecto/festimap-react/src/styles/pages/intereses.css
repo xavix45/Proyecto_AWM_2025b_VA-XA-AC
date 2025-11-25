@@ -68,7 +68,7 @@
 }
 
 .chip summary:hover {
-  background: #f5f7fa;
+  background: var(--surface-card);
 }
 
 /* Iconos */
@@ -81,7 +81,7 @@
   display: grid;
   gap: 10px;
   padding: 16px;
-  background: #fff;
+  background: var(--surface-card);
   border-top: 1px solid var(--border-light);
 }
 
@@ -114,7 +114,7 @@
   padding: 12px 24px;
   font-weight: 600;
   background: var(--accent);
-  color: #111;
+  color: var(--ink);
   border: none;
   border-radius: 6px;
   box-shadow: 0 6px 16px rgba(255, 184, 0, 0.3);
@@ -137,7 +137,7 @@
 }
 
 .btn--ghost:hover {
-  background: #f1f5f9;
+  background: var(--surface-card);
   transform: translateY(-1px);
 }
 

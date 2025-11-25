@@ -48,7 +48,7 @@
 }
 
 .nav a:hover {
-    color: #fff;
+    color: var(--text-light);
     background-color: var(--violet-600);
 }
 
@@ -111,18 +111,18 @@ main {
 
 .btn--primary {
     background: var(--accent);
-    color: #111827;
+    color: var(--ink);
 }
 
 .btn--primary:hover {
     background: var(--violet-600);
-    color: #ffffff;
+    color: var(--text-light);
 }
 
 /* Botón ghost: borde violeta */
 
 .btn--ghost {
-    background: #ffffff;
+    background: var(--surface-card);
     color: var(--violet-600);
     border: 1px solid var(--violet-600);
     box-shadow: none;
@@ -130,7 +130,7 @@ main {
 
 .btn--ghost:hover {
     background: var(--violet-600);
-    color: #ffffff;
+    color: var(--text-light);
 }
 
 /* Para cuando queremos botón a todo el ancho */

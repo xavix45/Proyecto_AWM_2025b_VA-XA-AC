@@ -34,7 +34,7 @@
     flex-direction: column;
     justify-content: flex-end;
     padding: 24px;
-    color: #fff;
+    color: var(--text-light);
     background: linear-gradient(180deg, rgba(0, 0, 0, .05) 10%, rgba(0, 0, 0, .65) 75%);
 }
 
@@ -45,8 +45,8 @@
 }
 
 .card .btn {
-    border: 1px solid #fff;
-    color: #fff;
+    border: 1px solid var(--text-light);
+    color: var(--text-light);
     padding: 8px 16px;
     border-radius: 8px
 }

@@ -29,8 +29,14 @@ export default function Login() {
     const usuarioEncontrado = todosLosUsuarios.find(u => u.email === email && u.contra === password);
 
     if (usuarioEncontrado) {
-      // Guardar email del usuario actual
-      localStorage.setItem('currentUserEmail', usuarioEncontrado.email);
+      // Guardar información del usuario en localStorage para compatibilidad
+      const storedUser = {
+        ...usuarioEncontrado,
+        rol: usuarioEncontrado.email === 'admin@epn.edu.ec' ? 'admin' : 'user',
+      };
+      localStorage.setItem('festi_usuario', JSON.stringify(storedUser));
+      // Guardar email del usuario actual (flujo existente)
+      localStorage.setItem('currentUserEmail', storedUser.email);
       // Notificar al resto de la app que el usuario cambió (para que headers se actualicen)
       try { window.dispatchEvent(new Event('userChanged')); } catch (e) {}
       // Si el usuario ya existe (no es nueva cuenta), ir directo a home

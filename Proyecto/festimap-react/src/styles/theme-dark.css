@@ -1,0 +1,121 @@
+/* Dark theme overrides applied when body has class .modo-oscuro-bienvenida */
+:root {}
+
+.modo-oscuro-bienvenida {
+  /* Core tokens for dark mode. Components should reference these tokens. */
+  --bg: linear-gradient(180deg, #0b0620 0%, #130822 60%, #1b1230 100%);
+  --ink: #e9e7ff; /* primary text */
+  --text-light: #ffffff;
+  --muted: rgba(255,255,255,0.75);
+  --surface: rgba(10,6,18,0.85);
+  --surface-card: rgba(255,255,255,0.03); /* slightly-lighter card */
+  --bg-card-dark: rgba(26,14,38,0.6);
+  --border-light: rgba(255,255,255,0.06);
+  --accent: #ffb800; /* yellow accent */
+  --violet-600: #7b3ff2;
+}
+
+/* Page-level defaults */
+.modo-oscuro-bienvenida body {
+  background: var(--bg);
+  color: var(--ink);
+}
+
+/* Normalize common UI surfaces */
+.modo-oscuro-bienvenida .card,
+.modo-oscuro-bienvenida .event-card,
+.modo-oscuro-bienvenida .panel,
+.modo-oscuro-bienvenida .search-panel,
+.modo-oscuro-bienvenida .filters-panel,
+.modo-oscuro-bienvenida .popup,
+.modo-oscuro-bienvenida .map-legend {
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  background-color: var(--surface-card);
+  color: var(--ink);
+  border-color: var(--border-light);
+}
+
+/* Inputs and selects */
+.modo-oscuro-bienvenida input,
+.modo-oscuro-bienvenida textarea,
+.modo-oscuro-bienvenida select {
+  background: rgba(255,255,255,0.03);
+  color: var(--ink);
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+/* Buttons: ensure contrast when some were previously white */
+.modo-oscuro-bienvenida .btn,
+.modo-oscuro-bienvenida button {
+  background: var(--accent);
+  color: #111; /* dark text on yellow */
+  box-shadow: 0 6px 12px rgba(0,0,0,0.45);
+}
+
+.modo-oscuro-bienvenida .btn.btn-ghost,
+.modo-oscuro-bienvenida .btn.ghost {
+  background: rgba(255,255,255,0.03);
+  color: var(--ink);
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+/* Header / nav links */
+.modo-oscuro-bienvenida .site-header,
+.modo-oscuro-bienvenida header {
+  background: rgba(0,0,0,0.35);
+}
+.modo-oscuro-bienvenida .site-nav a {
+  color: rgba(255,255,255,0.8);
+}
+
+/* Admin submenu and dropdowns that were disappearing/white */
+.modo-oscuro-bienvenida .admin-submenu,
+.modo-oscuro-bienvenida .dropdown-menu {
+  background: var(--surface-card);
+  color: var(--ink);
+  border: 1px solid var(--border-light);
+  box-shadow: 0 6px 24px rgba(0,0,0,0.55);
+}
+
+/* Hero titles */
+.modo-oscuro-bienvenida .page-hero h1,
+.modo-oscuro-bienvenida .hero-title {
+  color: var(--text-light);
+}
+
+/* Ensure small text and badges are legible */
+.modo-oscuro-bienvenida .badge,
+.modo-oscuro-bienvenida .meta,
+.modo-oscuro-bienvenida .event-meta {
+  color: var(--muted);
+}
+
+/* Cards with image overlays: reduce white flashes by forcing overlay color */
+.modo-oscuro-bienvenida .card .overlay,
+.modo-oscuro-bienvenida .event-card .overlay {
+  background: linear-gradient(180deg, rgba(0,0,0,0.45), rgba(0,0,0,0.2));
+}
+
+/* Scrollbars (Windows) make them subtler */
+.modo-oscuro-bienvenida ::-webkit-scrollbar {
+  width: 10px;
+}
+.modo-oscuro-bienvenida ::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.06);
+  border-radius: 8px;
+}
+
+/* Small utility: force text on white backgrounds to switch to light */
+.modo-oscuro-bienvenida .text-on-white,
+.modo-oscuro-bienvenida .invert-text {
+  color: var(--ink) !important;
+}
+
+/* If there are still elements with hard-coded white background use this as last-resort catch-all */
+.modo-oscuro-bienvenida [style*="background:#fff"],
+.modo-oscuro-bienvenida [style*="background:#ffffff"],
+.modo-oscuro-bienvenida [style*="background: white"] {
+  background-color: var(--surface-card) !important;
+  color: var(--ink) !important;
+  border-color: var(--border-light) !important;
+}

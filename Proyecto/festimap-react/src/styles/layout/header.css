@@ -30,18 +30,18 @@
     width: 32px;
     height: 32px;
     border-radius: 999px;
-    background: linear-gradient(135deg, #facc15, #fb923c);
+    background: linear-gradient(135deg, var(--accent), #fb923c);
     display: grid;
     place-items: center;
     font-size: 0.9rem;
     font-weight: 800;
-    color: #111827;
+    color: var(--ink);
 }
 
 .fm-header__title {
     font-size: 1rem;
     font-weight: 700;
-    color: #f9fafb;
+    color: var(--text-light);
 }
 
 /* Navegación */
@@ -57,7 +57,7 @@
 .fm-header__link {
     font-size: 0.85rem;
     font-weight: 500;
-    color: #e5e7eb;
+    color: var(--text-light);
     text-decoration: none;
     padding: 6px 10px;
     border-radius: 999px;
@@ -69,8 +69,8 @@
 }
 
 .fm-header__link--active {
-    background: #facc15;
-    color: #111827;
+    background: var(--accent);
+    color: var(--ink);
 }
 
 /* Para diferenciar visualmente los enlaces admin */
@@ -90,13 +90,13 @@
     width: 30px;
     height: 30px;
     border-radius: 999px;
-    background: #0f172a;
-    border: 1px solid #facc15;
+    background: var(--bg-card-dark);
+    border: 1px solid var(--accent);
     display: grid;
     place-items: center;
     font-size: 0.8rem;
     font-weight: 700;
-    color: #facc15;
+    color: var(--accent);
 }
 
 .fm-header__user-info {
@@ -108,12 +108,12 @@
 .fm-header__user-name {
     font-size: 0.82rem;
     font-weight: 600;
-    color: #f9fafb;
+    color: var(--text-light);
 }
 
 .fm-header__user-role {
     font-size: 0.72rem;
-    color: #9ca3af;
+    color: var(--text-muted-dark);
 }
 
 /* Botón pequeño reutilizando sistema de botones global */

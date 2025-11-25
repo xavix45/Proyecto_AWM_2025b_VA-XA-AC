@@ -28,7 +28,7 @@
     border-radius: 8px;
     border: 1px solid var(--border-light);
     /* Borde claro */
-    background: #ffffff;
+    background: var(--surface-card);
     /* Fondo blanco */
     color: var(--ink);
     /* Texto oscuro */
@@ -47,7 +47,7 @@
     border-color: var(--accent);
     box-shadow: 0 0 0 3px rgba(255, 184, 0, .25);
     /* Mantenemos el foco amarillo */
-    background: #ffffff;
+    background: var(--surface-card);
 }
 
 .form__row {
