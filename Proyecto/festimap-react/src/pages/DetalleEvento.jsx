@@ -2,8 +2,9 @@
 import { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 
-import { getById, list as listEventos } from "../services/eventos.service";
+import { getById, list as listEventos, addAttendance, addReview } from "../services/eventos.service";
 import { add as addAgenda } from "../services/agenda.service";
+import ConfirmModal from "../components/ConfirmModal";
 
 import "../styles/pages/detalle-evento.css";
 
@@ -41,6 +42,7 @@ export default function DetalleEvento() {
   const [isFav, setIsFav] = useState(false);
   const [rating, setRating] = useState(0);
   const [comentario, setComentario] = useState("");
+  const [modal, setModal] = useState({ show: false, title: '', message: '', type: 'info', onConfirm: null });
 
   if (!evento) {
     return (
@@ -91,7 +93,22 @@ export default function DetalleEvento() {
       nota: "",
     });
 
-    alert("Evento agregado a tu agenda (modo demo).");
+    // Registrar asistencia/visita en el dataset de eventos (persistente)
+    try {
+      addAttendance(evento.id, DEMO_USER_ID);
+      // Notificar a la app que los eventos cambiaron (para refresh en admin/listados)
+      try { window.dispatchEvent(new Event('fm:eventos:changed')); } catch (e) {}
+    } catch (err) {
+      console.warn('[DetalleEvento] addAttendance error', err);
+    }
+
+    setModal({
+      show: true,
+      title: '✅ Evento Agregado',
+      message: 'Evento agregado a tu agenda y marcado como visitado (modo demo).',
+      type: 'success',
+      onConfirm: () => setModal({ show: false, title: '', message: '', type: 'info', onConfirm: null })
+    });
   }
 
   function handleToggleFavorito() {
@@ -111,11 +128,41 @@ export default function DetalleEvento() {
 
   function handleSubmitOpinion(e) {
     e.preventDefault();
-    if (comentario.trim()) {
-      alert("Comentario registrado en modo demo.");
-      setComentario("");
-    } else {
-      alert("Escribe un comentario antes de enviar (modo demo).");
+    // Guardar rating y comentario en dataset de eventos para estadísticas
+    if (!comentario.trim() && !rating) {
+      setModal({
+        show: true,
+        title: '⚠️ Campo Requerido',
+        message: 'Escribe un comentario o selecciona una valoración antes de enviar.',
+        type: 'warning',
+        onConfirm: () => setModal({ show: false, title: '', message: '', type: 'info', onConfirm: null })
+      });
+      return;
+    }
+
+    try {
+      addReview(evento.id, { userId: DEMO_USER_ID, rating, comment: comentario });
+      try { window.dispatchEvent(new Event('fm:eventos:changed')); } catch (e) {}
+      setModal({
+        show: true,
+        title: '👍 Opinión Enviada',
+        message: 'Gracias por tu opinión (modo demo).',
+        type: 'success',
+        onConfirm: () => {
+          setModal({ show: false, title: '', message: '', type: 'info', onConfirm: null });
+          setComentario("");
+          setRating(0);
+        }
+      });
+    } catch (err) {
+      console.error('[DetalleEvento] addReview error', err);
+      setModal({
+        show: true,
+        title: '❌ Error',
+        message: 'No se pudo guardar la opinión en modo demo.',
+        type: 'danger',
+        onConfirm: () => setModal({ show: false, title: '', message: '', type: 'info', onConfirm: null })
+      });
     }
   }
 
@@ -333,6 +380,17 @@ export default function DetalleEvento() {
           })
         )}
       </section>
+
+      {modal.show && (
+        <ConfirmModal
+          show={modal.show}
+          title={modal.title}
+          message={modal.message}
+          type={modal.type}
+          onConfirm={modal.onConfirm}
+          onCancel={() => setModal({ show: false, title: '', message: '', type: 'info', onConfirm: null })}
+        />
+      )}
     </main>
   );
 }

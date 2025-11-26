@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { getJSON, setJSON } from "../lib/storage";
+import ConfirmModal from "../components/ConfirmModal";
 import "../styles/pages/ubicacion.css";
 
 const DEMO_USER_ID = "demo-user";
@@ -16,6 +17,7 @@ export default function Ubicacion() {
         lat: null,
         lng: null,
     });
+    const [modal, setModal] = useState({ show: false, title: '', message: '', type: 'info', onConfirm: null });
 
     // Cargamos preferencia guardada (si existe)
     useEffect(() => {
@@ -33,14 +35,22 @@ export default function Ubicacion() {
 
     function manejarPermitir() {
         if (!("geolocation" in navigator)) {
-            alert("Tu navegador no soporta la geolocalización.");
-            guardar({
-                permiso: false,
-                ciudad: "",
-                lat: null,
-                lng: null,
+            setModal({
+                show: true,
+                title: '❌ Geolocalización No Disponible',
+                message: 'Tu navegador no soporta la geolocalización.',
+                type: 'danger',
+                onConfirm: () => {
+                    setModal({ show: false, title: '', message: '', type: 'info', onConfirm: null });
+                    guardar({
+                        permiso: false,
+                        ciudad: "",
+                        lat: null,
+                        lng: null,
+                    });
+                    navigate("/home");
+                }
             });
-            navigate("/home");
             return;
         }
 
@@ -135,6 +145,17 @@ export default function Ubicacion() {
                     Volver al mapa
                 </Link>
             </footer>
+
+            {modal.show && (
+                <ConfirmModal
+                    show={modal.show}
+                    title={modal.title}
+                    message={modal.message}
+                    type={modal.type}
+                    onConfirm={modal.onConfirm}
+                    onCancel={() => setModal({ show: false, title: '', message: '', type: 'info', onConfirm: null })}
+                />
+            )}
         </main>
     );
 }

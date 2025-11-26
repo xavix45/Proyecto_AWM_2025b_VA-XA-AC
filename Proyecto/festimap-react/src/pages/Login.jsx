@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import ConfirmModal from "../components/ConfirmModal";
 import "../styles/pages/login.css";
 
 export default function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [modal, setModal] = useState({ show: false, title: '', message: '', type: 'info', onConfirm: null });
 
   function handleSubmit(e) {
     e.preventDefault();
@@ -42,7 +44,13 @@ export default function Login() {
       // Si el usuario ya existe (no es nueva cuenta), ir directo a home
       navigate('/home');
     } else {
-      alert('Correo electrónico o contraseña incorrectos.');
+      setModal({
+        show: true,
+        title: '❌ Credenciales Inválidas',
+        message: 'Correo electrónico o contraseña incorrectos.',
+        type: 'danger',
+        onConfirm: () => setModal({ show: false, title: '', message: '', type: 'info', onConfirm: null })
+      });
     }
   }
 
@@ -90,6 +98,17 @@ export default function Login() {
           ¿No tienes cuenta? <Link className="link" to="/registro">Regístrate</Link>
         </p>
       </form>
+
+      {modal.show && (
+        <ConfirmModal
+          show={modal.show}
+          title={modal.title}
+          message={modal.message}
+          type={modal.type}
+          onConfirm={modal.onConfirm}
+          onCancel={() => setModal({ show: false, title: '', message: '', type: 'info', onConfirm: null })}
+        />
+      )}
     </main>
   );
 }

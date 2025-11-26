@@ -1,21 +1,23 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams, useParams } from "react-router-dom";
+import { getJSON, setJSON } from "../../lib/storage";
+import { getByIdFull } from "../../services/eventos.service";
+import ConfirmModal from "../../components/ConfirmModal";
 import "../../styles/pages/admin/admin-evento-formulario.css";
 
-const LS_KEY = "EVENTOS_ADMIN";
+const LS_KEY = "fm:eventos:admin";
 
 const CATEGORIAS = [
   "Cultural",
   "Gastronomía",
   "Religiosa",
-  "Tradición",
   "Naturaleza",
-  "Feria / Artesanías",
-  "Recreativa",
-  "Turística",
+  "Artesanía",
+  "Deportes",
+  "Turismo",
 ];
 
-const TIPOS = ["tradición", "cívica", "religiosa", "ancestral"];
+const TIPOS = ["tradición", "cívica", "ancestral", "comunitaria", "festiva", "peregrinación"];
 
 const REGIONES = ["Costa", "Sierra", "Amazonía", "Galápagos"];
 
@@ -27,15 +29,11 @@ const PROVINCIAS_POR_REGION = {
 };
 
 function cargarEventos() {
-  try {
-    return JSON.parse(localStorage.getItem(LS_KEY) || "[]");
-  } catch {
-    return [];
-  }
+  return getJSON(LS_KEY, []);
 }
 
 function guardarEventos(arr) {
-  localStorage.setItem(LS_KEY, JSON.stringify(arr));
+  setJSON(LS_KEY, arr);
 }
 
 export default function EventForm() {
@@ -46,6 +44,7 @@ export default function EventForm() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const params = useParams();
+  const [modal, setModal] = useState({ show: false, title: '', message: '', type: 'info', onConfirm: null });
 
   const routeId = params?.id;
   const editId = routeId || searchParams.get("id");
@@ -88,11 +87,12 @@ export default function EventForm() {
       setProvincias(provs);
     });
 
-    // si estamos editando, cargar datos
+    // si estamos editando, cargar datos (buscamos en override y en el dataset base)
     if (editId) {
-      const eventos = cargarEventos();
-      const ev = eventos.find((e) => String(e.id) === String(editId));
+      const ev = getByIdFull(editId) || cargarEventos().find((e) => String(e.id) === String(editId));
       if (ev) {
+        console.log('[EventForm] Cargando evento para editar:', ev);
+        
         form.dataset.editId = editId;
         form.eventName.value = ev.name || "";
         form.shortDescription.value = ev.descripcion || "";
@@ -111,7 +111,6 @@ export default function EventForm() {
         form.startDate.value = ev.fecha || "";
         form.endDate.value = ev.fecha_fin || "";
         form.schedule.value = ev.horario || "";
-        form.repetition.value = ev.repeticion || "No se repite";
         form.organizer.value = ev.organizador || "";
         form.phone.value = ev.telefono || "";
         form.website.value = ev.url || "";
@@ -121,14 +120,38 @@ export default function EventForm() {
           form.querySelector('input[name="allowComments"]').checked = !!ev.allowComments;
         if (form.querySelector('input[name="requireApproval"]'))
           form.querySelector('input[name="requireApproval"]').checked = !!ev.requireApproval;
-        if (form.querySelector('select[name="status"]'))
-          form.querySelector('select[name="status"]').value = ev.status || 'draft';
-        if (form.querySelector('textarea[name="rejectReason"]'))
-          form.querySelector('textarea[name="rejectReason"]').value = ev.rejectReason || '';
-        if (form.querySelector('input[name="imageUrl"]') && ev.imagen) {
-          form.querySelector('input[name="imageUrl"]').value = ev.imagen;
-          setImagePreview(ev.imagen);
-        }
+        
+        // Cargar imagen - el campo imageUrl está fuera del form, en el aside
+        setTimeout(() => {
+          const imageVal = ev.imagen || ev.image || ev.imageUrl || ev.imagenUrl || ev.imagenPrincipal || '';
+          console.log('[EventForm] Intentando cargar imagen:', imageVal);
+          
+          // Buscar el campo directamente en el documento ya que está fuera del form
+          const imageUrlField = document.querySelector('input[name="imageUrl"]');
+          console.log('[EventForm] Campo imageUrl existe?:', !!imageUrlField);
+          
+          if (imageUrlField) {
+            imageUrlField.value = imageVal || '';
+            console.log('[EventForm] Valor asignado al campo:', imageUrlField.value);
+            
+            if (imageVal) {
+              // Construir URL completa si es una ruta relativa
+              let fullImageUrl = imageVal;
+              if (!imageVal.startsWith('http')) {
+                fullImageUrl = `/images/${imageVal}`;
+                console.log('[EventForm] URL completa:', fullImageUrl);
+              }
+              setImagePreview(fullImageUrl);
+            } else {
+              console.warn('[EventForm] No se encontró URL de imagen en evento');
+              setImagePreview('');
+            }
+          } else {
+            console.error('[EventForm] Campo imageUrl no encontrado en el documento');
+          }
+        }, 150);
+      } else {
+        console.warn('[EventForm] No se encontró evento con id:', editId);
       }
     }
   }, [editId]);
@@ -153,18 +176,25 @@ export default function EventForm() {
     img.style.maxHeight = '180px';
     img.style.objectFit = 'cover';
     img.style.borderRadius = '12px';
+    img.onerror = () => {
+      console.error('[EventForm] Error cargando imagen:', imagePreview);
+      img.style.display = 'none';
+      const errorP = document.createElement('p');
+      errorP.textContent = '⚠️ No se pudo cargar la imagen';
+      errorP.style.fontSize = '0.85rem';
+      errorP.style.color = '#d9534f';
+      box.appendChild(errorP);
+    };
     box.appendChild(img);
   }, [imagePreview]);
 
   function construirEvento(statusForzado) {
     const form = formRef.current;
     const data = Object.fromEntries(new FormData(form));
-    let status = statusForzado || (form.querySelector('select[name="status"]')?.value) || 'draft';
-    if (form.querySelector('select[name="status"]')) form.querySelector('select[name="status"]').value = status;
+    let status = statusForzado || 'pending';
     const imagenUrl = form.querySelector('input[name="imageUrl"]')?.value.trim() || '';
     const allowComm = form.querySelector('input[name="allowComments"]')?.checked || false;
     const requireAppr = form.querySelector('input[name="requireApproval"]')?.checked || false;
-    const rejectText = form.querySelector('textarea[name="rejectReason"]')?.value.trim() || '';
     const idFinal = form.dataset.editId ? Number(form.dataset.editId) : Date.now();
 
     return {
@@ -183,7 +213,7 @@ export default function EventForm() {
       fecha: data.startDate,
       fecha_fin: data.endDate || '',
       horario: data.schedule,
-      repeticion: data.repetition,
+      repeticion: data.repetition || 'No se repite',
       durMin: 120,
       organizador: data.organizer || '',
       telefono: data.phone || '',
@@ -194,7 +224,7 @@ export default function EventForm() {
       allowComments: allowComm,
       requireApproval: requireAppr,
       status,
-      rejectReason: rejectText,
+      rejectReason: '',
       asistencias: form.dataset.editId ? (Number(data.asistencias) || 0) : Math.floor(Math.random() * 300) + 50,
       rating: form.dataset.editId ? (Number(data.rating) || 0) : Number((Math.random() * 1.5 + 3.0).toFixed(1)),
       comentariosAprobados: form.dataset.editId ? (Number(data.comentariosAprobados) || 0) : Math.floor(Math.random() * 150),
@@ -202,22 +232,34 @@ export default function EventForm() {
   }
 
   function guardar(statusForzado) {
-    const eventos = cargarEventos();
+    const eventos = cargarEventos() || [];
     const evento = construirEvento(statusForzado);
     let nuevos = eventos;
     if (formRef.current.dataset.editId) {
-      nuevos = eventos.map(e => e.id === evento.id ? evento : e);
+      nuevos = eventos.map((e) => (e.id === evento.id ? evento : e));
     } else {
       nuevos = [...eventos, evento];
     }
     guardarEventos(nuevos);
-    alert(`Evento guardado como "${evento.status === 'draft' ? 'Borrador' : 'Publicado'}" ✅`);
-    navigate('/admin');
+    try { window.dispatchEvent(new Event('fm:eventos:changed')); } catch (e) {}
+    
+    const statusLabel = evento.status === 'draft' ? 'Borrador' : evento.status === 'pending' ? 'En Revisión' : 'Publicado';
+    setModal({
+      show: true,
+      title: '✅ Evento Guardado',
+      message: `El evento se guardó exitosamente como "${statusLabel}".`,
+      type: 'success',
+      onConfirm: () => {
+        setModal({ show: false, title: '', message: '', type: 'info', onConfirm: null });
+        navigate('/admin');
+      }
+    });
   }
 
   function onPublicar(e) {
     e.preventDefault();
-    guardar('approved');
+    // Al crear/editar desde el formulario, por defecto enviamos a revisión (pending).
+    guardar('pending');
   }
 
   function onBorrador(e) {
@@ -226,12 +268,15 @@ export default function EventForm() {
   }
 
   function onImageUrlChange(e) {
-    setImagePreview(e.target.value.trim());
+    const val = e.target.value.trim();
+    // Si no comienza con http, asumimos que es ruta relativa y agregamos /images/
+    const fullUrl = (val && !val.startsWith('http')) ? `/images/${val}` : val;
+    setImagePreview(fullUrl);
   }
 
   return (
     <main className="container section section-admin">
-      <h2 className="page-title">Evento — Crear / Editar</h2>
+      <h2 className="page-title">{editId ? 'Evento — Editar' : 'Evento — Crear'}</h2>
 
       <div className="grid-2 grid-form-page">
         <form className="form form-stacked" ref={formRef}>
@@ -298,14 +343,8 @@ export default function EventForm() {
               </label>
             </div>
             <div className="form__row">
-              <label className="form__label half">Horario*
+              <label className="form__label">Horario*
                 <input className="input" name="schedule" placeholder="09:00–14:00 o Varios" required />
-              </label>
-              <label className="form__label half">Repetición
-                <select className="input" name="repetition">
-                  <option>No se repite</option>
-                  <option>Semanal (Jueves)</option>
-                </select>
               </label>
             </div>
           </section>
@@ -324,8 +363,8 @@ export default function EventForm() {
               <label className="form__label half">Website / enlace
                 <input className="input" name="website" type="url" />
               </label>
-              <label className="form__label half">Precio (opcional)
-                <input className="input" name="price" placeholder="Ej: $5.00 o Gratuito" />
+              <label className="form__label half">Detallar precios
+                <input className="input" name="price" placeholder="Ej: Entrada $5, Niños gratis, Gratuito" />
               </label>
             </div>
             <label className="form__label">Etiquetas
@@ -365,39 +404,19 @@ export default function EventForm() {
               Requiere aprobación de admin
             </label>
           </section>
-
-          <section className="panel__section">
-            <h3>Estado del evento</h3>
-            <label className="form__label">Estado
-              <select className="input" name="status">
-                <option value="draft">Borrador</option>
-                <option value="pending">Pendiente</option>
-                <option value="approved">Aprobado</option>
-                <option value="rejected">Rechazado</option>
-              </select>
-            </label>
-            <textarea className="input" name="rejectReason" rows="3" placeholder="Motivo de rechazo (si aplica)"></textarea>
-          </section>
-
-          <section className="panel__section">
-            <h3>Estadísticas rápidas</h3>
-            <ul className="stats-list">
-              <li>Asistencias confirmadas: <strong>420</strong></li>
-              <li>Valoración promedio: <strong>4.6★</strong></li>
-              <li>Comentarios aprobados: <strong>92</strong></li>
-            </ul>
-          </section>
-
-          <section className="panel__section">
-            <h3>Historial de cambios</h3>
-            <div className="history">
-              <p>12 Oct 10:05 • Ana (aprobó)</p>
-              <p>11 Oct 15:20 • Luis (editó horario)</p>
-              <p>10 Oct 09:00 • Luis (creó borrador)</p>
-            </div>
-          </section>
         </aside>
       </div>
+
+      {modal.show && (
+        <ConfirmModal
+          show={modal.show}
+          title={modal.title}
+          message={modal.message}
+          type={modal.type}
+          onConfirm={modal.onConfirm}
+          onCancel={() => setModal({ show: false, title: '', message: '', type: 'info', onConfirm: null })}
+        />
+      )}
     </main>
   );
 }

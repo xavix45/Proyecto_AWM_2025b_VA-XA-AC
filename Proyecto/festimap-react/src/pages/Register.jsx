@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import ConfirmModal from "../components/ConfirmModal";
 import "../styles/pages/registro.css";
 
 // Registro de nuevos usuarios. Al crear la cuenta guardamos tanto en
@@ -12,6 +13,7 @@ export default function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [viajero, setViajero] = useState("turista");
+  const [modal, setModal] = useState({ show: false, title: '', message: '', type: 'info', onConfirm: null });
 
   function handleSubmit(e) {
     e.preventDefault();
@@ -19,7 +21,13 @@ export default function Register() {
     let usuarios = JSON.parse(localStorage.getItem('usuarios') || '[]');
     const existe = usuarios.find(u => u.email === email);
     if (existe) {
-      alert('Error: El correo electrónico ya está registrado.');
+      setModal({
+        show: true,
+        title: '❌ Email Duplicado',
+        message: 'El correo electrónico ya está registrado. Por favor usa otro.',
+        type: 'danger',
+        onConfirm: () => setModal({ show: false, title: '', message: '', type: 'info', onConfirm: null })
+      });
       return;
     }
 
@@ -33,8 +41,16 @@ export default function Register() {
     // Notify app that user changed so header (BaseLayout) updates immediately
     try { window.dispatchEvent(new Event('userChanged')); } catch (e) {}
 
-    alert('¡Cuenta creada con éxito!');
-    navigate('/home');
+    setModal({
+      show: true,
+      title: '✅ Cuenta Creada',
+      message: '¡Cuenta creada con éxito! Bienvenido a FestiMap.',
+      type: 'success',
+      onConfirm: () => {
+        setModal({ show: false, title: '', message: '', type: 'info', onConfirm: null });
+        navigate('/home');
+      }
+    });
   }
 
   return (
@@ -58,11 +74,21 @@ export default function Register() {
         <fieldset className="form__row" role="radiogroup" aria-label="Tipo de viajero">
           <label className="radio"><input type="radio" name="viajero" value="turista" checked={viajero==='turista'} onChange={() => setViajero('turista')} /> Turista</label>
           <label className="radio"><input type="radio" name="viajero" value="residente" checked={viajero==='residente'} onChange={() => setViajero('residente')} /> Residente</label>
-          <label className="radio"><input type="radio" name="viajero" value="estudiante" checked={viajero==='estudiante'} onChange={() => setViajero('estudiante')} /> Estudiante</label>
         </fieldset>
 
         <button className="btn btn--primary form__submit" type="submit">Crear cuenta</button>
       </form>
+
+      {modal.show && (
+        <ConfirmModal
+          show={modal.show}
+          title={modal.title}
+          message={modal.message}
+          type={modal.type}
+          onConfirm={modal.onConfirm}
+          onCancel={() => setModal({ show: false, title: '', message: '', type: 'info', onConfirm: null })}
+        />
+      )}
     </main>
   );
 }

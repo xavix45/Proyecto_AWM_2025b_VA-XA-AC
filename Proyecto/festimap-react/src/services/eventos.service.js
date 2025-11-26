@@ -9,7 +9,7 @@
 // - filter(opts): filtro flexible por región, tema o texto libre
 
 import EVENTOS_BASE from "../data/eventos";
-import { getJSON } from "../lib/storage";
+import { getJSON, setJSON } from "../lib/storage";
 
 const ADMIN_KEY = "fm:eventos:admin";
 
@@ -29,9 +29,103 @@ function getData() {
     return EVENTOS_BASE;
 }
 
+// Guarda el listado (override) en localStorage
+function saveData(arr) {
+    try {
+        setJSON(ADMIN_KEY, arr);
+    } catch (err) {
+        console.error('[eventos.service] saveData error', err);
+    }
+}
+
+/**
+ * Actualiza un evento por id aplicando un patch (merge shallow) y persiste
+ * en la clave `fm:eventos:admin`. Devuelve el evento actualizado o null.
+ */
+export function updateEvent(id, patch = {}) {
+    const all = getData().slice();
+    const idx = all.findIndex((e) => String(e.id) === String(id));
+    if (idx === -1) return null;
+
+    const target = Object.assign({}, all[idx]);
+    const next = Object.assign({}, target, patch);
+
+    // inicializar campos de métricas si no existen
+    next.visitas = Number(next.visitas || 0);
+    next.asistencias = Number(next.asistencias || 0);
+    next.rating = next.rating ?? null;
+    next.ratingCount = Number(next.ratingCount || 0);
+    next.ratingSum = Number(next.ratingSum || 0);
+    next.comments = Array.isArray(next.comments) ? next.comments : (target.comments || []);
+
+    all[idx] = next;
+    saveData(all);
+    return next;
+}
+
+/**
+ * Registra una asistencia/visita para un evento (incrementa visitas y asistencias,
+ * opcionalmente registra userId en visitors) y persiste.
+ */
+export function addAttendance(id, userId = null) {
+    const all = getData().slice();
+    const idx = all.findIndex((e) => String(e.id) === String(id));
+    if (idx === -1) return null;
+
+    const ev = Object.assign({}, all[idx]);
+    ev.visitas = Number(ev.visitas || 0) + 1;
+    ev.asistencias = Number(ev.asistencias || 0) + 1;
+    ev.visitors = Array.isArray(ev.visitors) ? ev.visitors : [];
+    if (userId && !ev.visitors.includes(userId)) ev.visitors.push(userId);
+
+    all[idx] = ev;
+    saveData(all);
+    return ev;
+}
+
+/**
+ * Añade una review (rating + comentario) al evento y recalcula el rating promedio.
+ * { userId, rating, comment }
+ */
+export function addReview(id, { userId = null, rating = 0, comment = "" } = {}) {
+    const all = getData().slice();
+    const idx = all.findIndex((e) => String(e.id) === String(id));
+    if (idx === -1) return null;
+
+    const ev = Object.assign({}, all[idx]);
+    ev.ratingCount = Number(ev.ratingCount || 0) + (rating ? 1 : 0);
+    ev.ratingSum = Number(ev.ratingSum || 0) + (rating || 0);
+    ev.rating = ev.ratingCount ? Math.round((ev.ratingSum / ev.ratingCount) * 10) / 10 : null;
+    ev.comments = Array.isArray(ev.comments) ? ev.comments : [];
+    if (comment && comment.trim()) {
+        ev.comments.push({ userId, rating: rating || null, text: comment.trim(), date: new Date().toISOString() });
+    }
+
+    all[idx] = ev;
+    saveData(all);
+    return ev;
+}
+
+/**
+ * Elimina un evento del dataset persistido (override). Devuelve true si se eliminó.
+ */
+export function removeEvent(id) {
+    const all = getData().slice();
+    const idx = all.findIndex((e) => String(e.id) === String(id));
+    if (idx === -1) return false;
+    all.splice(idx, 1);
+    saveData(all);
+    return true;
+}
+
 // list(): devuelve todos los eventos disponibles.
-export function list() {
-    return getData();
+export function list(opts = {}) {
+    // opts: { admin: boolean }
+    const { admin = false } = opts;
+    const all = getData();
+    if (admin) return all;
+    // por defecto devolvemos solo eventos publicados (approved)
+    return all.filter((e) => String(e.status || "").toLowerCase() === "approved");
 }
 
 // getById(id): busca un evento por su identificador y devuelve null si
@@ -39,6 +133,20 @@ export function list() {
 export function getById(id) {
     const all = getData();
     return all.find((e) => String(e.id) === String(id)) || null;
+}
+
+// getByIdFull: busca primero en el override (si existe) y si no encuentra
+// en el dataset base `EVENTOS_BASE`. Útil para formularios que deben
+// mostrar eventos base aunque exista un override parcial en localStorage.
+export function getByIdFull(id) {
+    // intentar override primero
+    const override = getJSON(ADMIN_KEY, null);
+    if (Array.isArray(override) && override.length > 0) {
+        const found = override.find((e) => String(e.id) === String(id));
+        if (found) return found;
+    }
+    // fallback al dataset base
+    return EVENTOS_BASE.find((e) => String(e.id) === String(id)) || null;
 }
 
 /**
@@ -95,5 +203,5 @@ export function filter(opts = {}) {
 }
 
 // Opcional: export default por comodidad
-const eventosService = { list, getById, filter };
+const eventosService = { list, getById, getByIdFull, filter, updateEvent, addAttendance, addReview, removeEvent };
 export default eventosService;

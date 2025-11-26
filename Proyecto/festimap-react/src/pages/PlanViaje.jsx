@@ -14,6 +14,7 @@ import * as turf from "@turf/turf";
 
 import { list as listEventos } from "../services/eventos.service";
 import { add as addAgenda, list as listAgenda } from "../services/agenda.service";
+import ConfirmModal from "../components/ConfirmModal";
 
 import "leaflet/dist/leaflet.css";
 import "../styles/pages/plan-de-viaje.css";
@@ -247,6 +248,7 @@ export default function PlanViaje() {
   /* ----- Estado de sugerencias e itinerario ----- */
   const [sugerencias, setSugerencias] = useState([]); // eventos cerca de la ruta
   const [itinerario, setItinerario] = useState({}); // {0:[poi,...],1:[...]}
+  const [modal, setModal] = useState({ show: false, title: '', message: '', type: 'info', onConfirm: null });
 
   // Estado de ruta (ref para no rerender en cada trazo de mapa)
   const routeStateRef = useRef({
@@ -481,13 +483,25 @@ export default function PlanViaje() {
     const o = await geocode(form.origen);
     const d = await geocode(form.destino);
     if (!o || !d) {
-      alert("No se pudo geocodificar origen/destino.");
+      setModal({
+        show: true,
+        title: '❌ Error de Geocodificación',
+        message: 'No se pudo geocodificar el origen o destino. Verifica los nombres e inténtalo nuevamente.',
+        type: 'danger',
+        onConfirm: () => setModal({ show: false, title: '', message: '', type: 'info', onConfirm: null })
+      });
       return;
     }
 
     const route = await osrmRoute(o, d);
     if (!route) {
-      alert("No se pudo trazar la ruta.");
+      setModal({
+        show: true,
+        title: '❌ Error de Ruta',
+        message: 'No se pudo trazar la ruta entre origen y destino.',
+        type: 'danger',
+        onConfirm: () => setModal({ show: false, title: '', message: '', type: 'info', onConfirm: null })
+      });
       return;
     }
 
@@ -637,7 +651,13 @@ export default function PlanViaje() {
     const diasNumCur = form.dias ? parseInt(form.dias, 10) : 1;
 
     if (computed !== null && computed >= diasNumCur) {
-      alert(`El evento ocurre en el día ${computed + 1}, que está fuera del rango de tu viaje (${diasNumCur} días). Ajusta 'Días' o elige otra parada.`);
+      setModal({
+        show: true,
+        title: '⚠️ Evento Fuera de Rango',
+        message: `El evento ocurre en el día ${computed + 1}, que está fuera del rango de tu viaje (${diasNumCur} días). Ajusta 'Días' o elige otra parada.`,
+        type: 'warning',
+        onConfirm: () => setModal({ show: false, title: '', message: '', type: 'info', onConfirm: null })
+      });
       return;
     }
 
@@ -707,7 +727,13 @@ export default function PlanViaje() {
       });
     });
 
-    alert(`Se han guardado ${added} elementos en tu Agenda.`);
+    setModal({
+      show: true,
+      title: '✅ Guardado en Agenda',
+      message: `Se han guardado ${added} elementos en tu Agenda.`,
+      type: 'success',
+      onConfirm: () => setModal({ show: false, title: '', message: '', type: 'info', onConfirm: null })
+    });
   }
 
   /* =========================
@@ -747,7 +773,13 @@ export default function PlanViaje() {
   async function handleExportPDF() {
     const hasAnyStop = Object.values(itinerario).some((arr) => arr && arr.length);
     if (!hasAnyStop) {
-      alert("Agrega al menos una parada antes de exportar.");
+      setModal({
+        show: true,
+        title: '⚠️ Sin Paradas',
+        message: 'Agrega al menos una parada antes de exportar el plan.',
+        type: 'warning',
+        onConfirm: () => setModal({ show: false, title: '', message: '', type: 'info', onConfirm: null })
+      });
       return;
     }
 
@@ -1196,6 +1228,17 @@ export default function PlanViaje() {
           </div>
         </aside>
       </section>
+
+      {modal.show && (
+        <ConfirmModal
+          show={modal.show}
+          title={modal.title}
+          message={modal.message}
+          type={modal.type}
+          onConfirm={modal.onConfirm}
+          onCancel={() => setModal({ show: false, title: '', message: '', type: 'info', onConfirm: null })}
+        />
+      )}
     </main>
   );
 }

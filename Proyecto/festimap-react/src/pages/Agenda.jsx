@@ -11,6 +11,7 @@ import {
 } from "../services/agenda.service";
 import { jsPDF } from "jspdf";
 import { getById } from "../services/eventos.service";
+import ConfirmModal from "../components/ConfirmModal";
 
 import "../styles/pages/agenda.css";
 
@@ -55,6 +56,7 @@ export default function Agenda() {
     const [items, setItems] = useState([]);
 
     const [tab, setTab] = useState("proximos"); // "proximos" | "pasados"
+    const [modal, setModal] = useState({ show: false, title: '', message: '', type: 'info', onConfirm: null });
 
     // Alert checkboxes removed: alert behavior is automatic based on dates
 
@@ -140,7 +142,13 @@ export default function Agenda() {
     function handleExportCurrentList() {
         const lista = (tab === 'proximos') ? proximos : (tab === 'pasados' ? pasados : plans);
         if (!lista || lista.length === 0) {
-            alert('No hay eventos en la vista seleccionada para exportar.');
+            setModal({
+                show: true,
+                title: '⚠️ Sin Eventos',
+                message: 'No hay eventos en la vista seleccionada para exportar.',
+                type: 'warning',
+                onConfirm: () => setModal({ show: false, title: '', message: '', type: 'info', onConfirm: null })
+            });
             return;
         }
 
@@ -488,6 +496,17 @@ export default function Agenda() {
                     )}
                 </aside>
             </div>
+
+            {modal.show && (
+                <ConfirmModal
+                    show={modal.show}
+                    title={modal.title}
+                    message={modal.message}
+                    type={modal.type}
+                    onConfirm={modal.onConfirm}
+                    onCancel={() => setModal({ show: false, title: '', message: '', type: 'info', onConfirm: null })}
+                />
+            )}
         </main>
     );
 }

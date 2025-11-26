@@ -1,0 +1,227 @@
+/* Modal de confirmación personalizado para EventosListado */
+
+.confirm-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    animation: fadeIn 0.25s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        backdrop-filter: blur(0px);
+    }
+    to {
+        opacity: 1;
+        backdrop-filter: blur(4px);
+    }
+}
+
+.confirm-modal {
+    background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+    border-radius: 20px;
+    width: 90%;
+    max-width: 480px;
+    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.4);
+    animation: slideUp 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(30px) scale(0.95);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+}
+
+.confirm-modal__header {
+    padding: 28px 28px 20px;
+    border-bottom: 3px solid #e5e7eb;
+    background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);
+}
+
+.confirm-modal__title {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1f2937;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.confirm-modal--success .confirm-modal__header {
+    border-bottom-color: #10b981;
+    background: linear-gradient(135deg, #d1fae5 0%, #ffffff 100%);
+}
+
+.confirm-modal--success .confirm-modal__title {
+    color: #065f46;
+}
+
+.confirm-modal--warning .confirm-modal__header {
+    border-bottom-color: #f59e0b;
+    background: linear-gradient(135deg, #fef3c7 0%, #ffffff 100%);
+}
+
+.confirm-modal--warning .confirm-modal__title {
+    color: #92400e;
+}
+
+.confirm-modal--danger .confirm-modal__header {
+    border-bottom-color: #ef4444;
+    background: linear-gradient(135deg, #fee2e2 0%, #ffffff 100%);
+}
+
+.confirm-modal--danger .confirm-modal__title {
+    color: #991b1b;
+}
+
+.confirm-modal--info .confirm-modal__header {
+    border-bottom-color: #3b82f6;
+    background: linear-gradient(135deg, #dbeafe 0%, #ffffff 100%);
+}
+
+.confirm-modal--info .confirm-modal__title {
+    color: #1e40af;
+}
+
+.confirm-modal__body {
+    padding: 28px;
+    background: #ffffff;
+}
+
+.confirm-modal__message {
+    margin: 0;
+    font-size: 1.05rem;
+    line-height: 1.7;
+    color: #374151;
+    text-align: center;
+}
+
+.confirm-modal__footer {
+    padding: 20px 28px 28px;
+    background: #f9fafb;
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+}
+
+.confirm-modal__footer .btn {
+    min-width: 120px;
+    font-weight: 600;
+    font-size: 1rem;
+    padding: 12px 24px;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.btn--ghost {
+    background: #ffffff;
+    color: #6b7280;
+    border: 2px solid #d1d5db;
+}
+
+.btn--ghost:hover {
+    background: #f3f4f6;
+    border-color: #9ca3af;
+    transform: translateY(-1px);
+}
+
+.btn--success {
+    background: #4caf50;
+    color: #ffffff;
+    border: none;
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+}
+
+.btn--success:hover {
+    background: #45a049;
+    box-shadow: 0 6px 16px rgba(76, 175, 80, 0.4);
+    transform: translateY(-2px);
+}
+
+.btn--danger {
+    background: #e53935;
+    color: #ffffff;
+    border: none;
+    box-shadow: 0 4px 12px rgba(229, 57, 53, 0.3);
+}
+
+.btn--danger:hover {
+    background: #d32f2f;
+    box-shadow: 0 6px 16px rgba(229, 57, 53, 0.4);
+    transform: translateY(-2px);
+}
+
+.btn--primary {
+    background: #0ea5e9;
+    color: #ffffff;
+    border: none;
+    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+}
+
+.btn--primary:hover {
+    background: #0369a1;
+    box-shadow: 0 6px 16px rgba(14, 165, 233, 0.4);
+    transform: translateY(-2px);
+}
+
+/* Animación del backdrop al cerrar */
+.confirm-modal-backdrop.closing {
+    animation: fadeOut 0.2s ease;
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .confirm-modal {
+        max-width: 95%;
+        border-radius: 16px;
+    }
+    
+    .confirm-modal__header {
+        padding: 20px 20px 16px;
+    }
+    
+    .confirm-modal__title {
+        font-size: 1.3rem;
+    }
+    
+    .confirm-modal__body {
+        padding: 20px;
+    }
+    
+    .confirm-modal__message {
+        font-size: 0.95rem;
+    }
+    
+    .confirm-modal__footer {
+        padding: 16px 20px 20px;
+        flex-direction: column-reverse;
+    }
+    
+    .confirm-modal__footer .btn {
+        width: 100%;
+    }
+}

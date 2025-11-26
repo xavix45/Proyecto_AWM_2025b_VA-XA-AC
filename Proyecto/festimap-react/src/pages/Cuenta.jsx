@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import ConfirmModal from "../components/ConfirmModal";
 import "../styles/pages/cuenta.css";
 
 // Página de perfil del usuario. Lee `usuarios` y `currentUserEmail` de
@@ -20,12 +21,21 @@ export default function Cuenta() {
   const [usuarios, setUsuarios] = useState([]);
   const DEFAULT_NOTIFS = { alerta24h: false, alerta1h: false, cambios: false, cercanos: false };
   const [notificaciones, setNotificaciones] = useState(DEFAULT_NOTIFS);
+  const [modal, setModal] = useState({ show: false, title: '', message: '', type: 'info', onConfirm: null });
 
   useEffect(() => {
     const email = localStorage.getItem(LS_CURRENT_USER_KEY);
     if (!email) {
-      alert('Debes iniciar sesión para ver tu cuenta.');
-      navigate('/login');
+      setModal({
+        show: true,
+        title: '🔒 Acceso Requerido',
+        message: 'Debes iniciar sesión para ver tu cuenta.',
+        type: 'warning',
+        onConfirm: () => {
+          setModal({ show: false, title: '', message: '', type: 'info', onConfirm: null });
+          navigate('/login');
+        }
+      });
       return;
     }
 
@@ -89,17 +99,36 @@ export default function Cuenta() {
     copyUsuarios[indexUser] = currentUser;
     localStorage.setItem(LS_USUARIOS_KEY, JSON.stringify(copyUsuarios));
     setUsuarios(copyUsuarios);
-    alert('¡Cambios guardados con éxito!');
-    navigate('/home');
+    setModal({
+      show: true,
+      title: '✅ Guardado Exitoso',
+      message: '¡Cambios guardados con éxito!',
+      type: 'success',
+      onConfirm: () => {
+        setModal({ show: false, title: '', message: '', type: 'info', onConfirm: null });
+        navigate('/home');
+      }
+    });
   }
 
   function handleLogout() {
-    if (confirm('¿Deseas guardar los cambios antes de salir?')) {
-      handleGuardar();
-      // handleGuardar redirects to /home, but we want to logout
-    }
-    localStorage.removeItem(LS_CURRENT_USER_KEY);
-    window.location.href = '/';
+    setModal({
+      show: true,
+      title: '💾 Guardar Cambios',
+      message: '¿Deseas guardar los cambios antes de cerrar sesión?',
+      type: 'warning',
+      onConfirm: () => {
+        handleGuardar();
+        localStorage.removeItem(LS_CURRENT_USER_KEY);
+        setModal({ show: false, title: '', message: '', type: 'info', onConfirm: null });
+        window.location.href = '/';
+      },
+      onCancel: () => {
+        localStorage.removeItem(LS_CURRENT_USER_KEY);
+        setModal({ show: false, title: '', message: '', type: 'info', onConfirm: null });
+        window.location.href = '/';
+      }
+    });
   }
 
   if (!currentUser) return null;
@@ -178,6 +207,17 @@ export default function Cuenta() {
           <strong>Debug user:</strong>
           <pre style={{ whiteSpace: 'pre-wrap', maxHeight: 220, overflow: 'auto' }}>{JSON.stringify(currentUser, null, 2)}</pre>
         </div>
+
+      {modal.show && (
+        <ConfirmModal
+          show={modal.show}
+          title={modal.title}
+          message={modal.message}
+          type={modal.type}
+          onConfirm={modal.onConfirm}
+          onCancel={modal.onCancel || (() => setModal({ show: false, title: '', message: '', type: 'info', onConfirm: null }))}
+        />
+      )}
     </main>
   );
 }
