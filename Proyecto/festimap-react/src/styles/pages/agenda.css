@@ -195,6 +195,37 @@
     color: var(--ink);
 }
 
+/* Distinción visual para el panel Centro de alertas */
+.alert-center {
+    background: #fff7f6; /* sutil rosado */
+    border: 1px solid rgba(255, 107, 107, 0.12);
+    padding: 16px;
+    border-radius: 10px;
+}
+
+.section-group {
+    margin-bottom: 18px;
+}
+
+.section-group__title {
+    margin: 10px 12px;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--ink);
+    border-bottom: 1px solid var(--border-light);
+    padding-bottom: 8px;
+}
+
+.badge--today {
+    background: #ff8a00;
+    color: #fff;
+    padding: 4px 8px;
+    font-weight: 700;
+    border-radius: 999px;
+    margin-right: 8px;
+    font-size: 0.75rem;
+}
+
 .alert-list {
     list-style: none;
     padding: 0;
@@ -226,6 +257,32 @@
 
 .alert-link span {
     font-size: 1.1rem;
+}
+
+/* Indicador visual para eventos próximos en la agenda */
+.agenda-item.is-soon {
+    border-left: 6px solid #ff6b6b;
+    box-shadow: 0 6px 14px rgba(255, 107, 107, 0.06);
+}
+
+.badge {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: 999px;
+    margin-right: 8px;
+}
+
+.badge--soon {
+    background: #ff6b6b;
+    color: #fff;
+}
+
+/* Estilo para alertas próximas en el panel */
+.alert-link.is-soon {
+    border-left: 4px solid #ff6b6b;
+    background: linear-gradient(90deg, rgba(255,235,235,0.6), transparent);
 }
 
 /* 8. Estado vacío */

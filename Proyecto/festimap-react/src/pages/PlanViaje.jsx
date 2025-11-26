@@ -8,6 +8,7 @@ import { jsPDF } from "jspdf";
 import * as turf from "@turf/turf";
 
 import { list as listEventos } from "../services/eventos.service";
+import { add as addAgenda } from "../services/agenda.service";
 
 import "leaflet/dist/leaflet.css";
 import "../styles/pages/plan-de-viaje.css";
@@ -158,6 +159,7 @@ function nearestNeighbor(items) {
    ===================================================== */
 
 const STORAGE_KEY = "festi_plan_ruta_avanzado_v2";
+const DEMO_USER_ID = "demo-user";
 
 export default function PlanViaje() {
   /* ----- Dataset de eventos para sugerencias ----- */
@@ -191,11 +193,10 @@ export default function PlanViaje() {
 
   /* ----- Estado de formulario ----- */
   const [form, setForm] = useState({
-    origen: "Quito Centro",
-    destino: "Otavalo Plaza",
+    origen: "",
+    destino: "",
     fechaIni: "",
     dias: "3",
-    ritmo: "normal",
     radio: "3 km",
     tags: [],
   });
@@ -282,15 +283,12 @@ export default function PlanViaje() {
       }
 
       const ordered = nearestNeighbor(stops);
-      const ritmo = form.ritmo;
       let acc = 0;
       const entries = [];
 
       for (let i = 0; i < ordered.length; i++) {
         const stop = ordered[i];
         let dur = stop.durMin || 60;
-        if (ritmo === "relajado") dur = Math.round(dur * 1.2);
-        if (ritmo === "intenso") dur = Math.round(dur * 0.8);
 
         let travel = 0;
         if (i > 0) {
@@ -312,7 +310,7 @@ export default function PlanViaje() {
       map[dayIndex] = entries;
     });
     return map;
-  }, [itinerario, form.ritmo]);
+  }, [itinerario]);
 
   // Resumen (km, min, paradas) por día
   const resumenDias = useMemo(() => {
@@ -325,14 +323,11 @@ export default function PlanViaje() {
       }
 
       const ordered = nearestNeighbor(stops);
-      const ritmo = form.ritmo;
       let totalMin = 0;
       let km = 0;
 
       for (let i = 0; i < ordered.length; i++) {
         let dur = ordered[i].durMin || 60;
-        if (ritmo === "relajado") dur = Math.round(dur * 1.2);
-        if (ritmo === "intenso") dur = Math.round(dur * 0.8);
         totalMin += dur;
 
         if (i > 0) {
@@ -354,7 +349,7 @@ export default function PlanViaje() {
       };
     });
     return result;
-  }, [itinerario, form.ritmo]);
+  }, [itinerario]);
 
   /* =========================
      Utilidades de UI
@@ -386,6 +381,20 @@ export default function PlanViaje() {
 
   function getDayStops(dayIndex) {
     return (itinerario[dayIndex] || []).slice();
+  }
+
+  // Devuelve el índice de día objetivo para un evento según form.fechaIni
+  function computeTargetDayForEvent(ev) {
+    const fi = parseDateFlexible(form.fechaIni);
+    if (ev && ev.fecha && fi) {
+      const f = parseDateFlexible(ev.fecha);
+      if (f) {
+        const msPerDay = 1000 * 60 * 60 * 24;
+        const diff = Math.floor((f.getTime() - fi.getTime()) / msPerDay);
+        if (!Number.isNaN(diff) && diff >= 0) return diff;
+      }
+    }
+    return null;
   }
 
   /* =========================
@@ -534,6 +543,17 @@ export default function PlanViaje() {
       });
     }
 
+    // Si el usuario definió fecha inicio y días, excluir eventos cuya fecha cae fuera del rango
+    const diasNumCur = form.dias ? parseInt(form.dias, 10) : null;
+    if (fi && Number.isInteger(diasNumCur) && diasNumCur > 0) {
+      filtered = filtered.filter((ev) => {
+        const c = computeTargetDayForEvent(ev);
+        // mantener eventos sin fecha (c === null), pero excluir eventos con día >= diasNumCur
+        if (c === null) return true;
+        return c < diasNumCur;
+      });
+    }
+
     if (!filtered.length) {
       setSugerencias([]);
       return;
@@ -556,10 +576,20 @@ export default function PlanViaje() {
 
   // Añadir parada al día activo
   function handleAddStop(ev, dayIndex = activeDay) {
+    const computed = computeTargetDayForEvent(ev);
+    const diasNumCur = form.dias ? parseInt(form.dias, 10) : 1;
+
+    if (computed !== null && computed >= diasNumCur) {
+      alert(`El evento ocurre en el día ${computed + 1}, que está fuera del rango de tu viaje (${diasNumCur} días). Ajusta 'Días' o elige otra parada.`);
+      return;
+    }
+
+    const targetDay = computed !== null ? computed : dayIndex;
+
     setItinerario((prev) => {
-      const day = dayIndex;
+      const day = targetDay;
       const current = prev[day] || [];
-      if (current.some((x) => x.id === ev.id)) return prev; // evita duplicados
+      if (current.some((x) => String(x.id) === String(ev.id))) return prev; // evita duplicados
       return {
         ...prev,
         [day]: [...current, ev],
@@ -592,25 +622,32 @@ export default function PlanViaje() {
     });
   }
 
-  // Generar automáticamente con primeras sugerencias
-  function handleGenerarAuto() {
-    if (!routeStateRef.current.hasRoute) {
-      alert("Primero genera la ruta sugerida.");
-      return;
-    }
-    if (!sugerencias.length) {
-      alert("No hay sugerencias disponibles para esa ruta.");
-      return;
-    }
-    const n = Math.min(5, sugerencias.length);
-    for (let i = 0; i < n; i++) {
-      handleAddStop(sugerencias[i], activeDay);
-    }
-  }
-
-  // Guardar plan explícitamente (aunque ya se guarda auto)
+  // Guardar plan explícitamente (y opcionalmente exportar a Agenda)
   function handleGuardarPlan() {
-    alert("Tu plan de viaje se ha guardado en este navegador.");
+    // Guardar en localStorage ya ocurre automáticamente. Aquí además guardamos en la Agenda demo.
+    const fi = parseDateFlexible(form.fechaIni);
+    let added = 0;
+    Object.entries(itinerario).forEach(([key, stops]) => {
+      const dayIndex = Number(key);
+      (stops || []).forEach((s) => {
+        // calcular fecha del evento: si tiene fecha propia la usamos, sino la derivamos de fechaIni + día
+        let fecha = s.fecha || null;
+        if (!fecha && fi) {
+          const d = new Date(fi);
+          d.setUTCDate(d.getUTCDate() + dayIndex);
+          fecha = d.toISOString().slice(0, 10);
+        }
+        try {
+          const planTitle = `${form.origen || "Origen"} → ${form.destino || "Destino"}`;
+          addAgenda(DEMO_USER_ID, { idEvento: s.id, fecha, isPlan: true, planTitle });
+          added += 1;
+        } catch (e) {
+          // ignore individual failures
+        }
+      });
+    });
+
+    alert(`Se han guardado ${added} elementos en tu Agenda (usuario demo).`);
   }
 
   /* =========================
@@ -641,75 +678,87 @@ export default function PlanViaje() {
     (acc, arr) => acc + (arr?.length || 0),
     0
   );
-  const diasNum = parseInt(form.dias || "1", 10);
+  const diasNum = form.dias ? parseInt(form.dias, 10) : 1;
 
   /* =========================
      Exportar a PDF tipo folleto
      ========================= */
 
-  function handleExportPDF() {
-    const hasAnyStop = Object.values(itinerario).some(
-      (arr) => arr && arr.length
-    );
+  async function handleExportPDF() {
+    const hasAnyStop = Object.values(itinerario).some((arr) => arr && arr.length);
     if (!hasAnyStop) {
       alert("Agrega al menos una parada antes de exportar.");
       return;
     }
 
-    const doc = new jsPDF({
-      orientation: "portrait",
-      unit: "mm",
-      format: "a4",
-    });
+    async function fetchImageDataUrl(url) {
+      if (!url) return null;
+      try {
+        const res = await fetch(url, { mode: "cors" });
+        if (!res.ok) return null;
+        const blob = await res.blob();
+        return await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = () => resolve(null);
+          reader.readAsDataURL(blob);
+        });
+      } catch (e) {
+        return null;
+      }
+    }
+
+    const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
 
     const colorAccent = { r: 250, g: 204, b: 21 }; // amarillo
     const colorInk = { r: 15, g: 23, b: 42 }; // azul oscuro
     const colorSoft = { r: 249, g: 250, b: 251 };
 
-    /* Portada */
-    doc.setFillColor(colorInk.r, colorInk.g, colorInk.b);
-    doc.rect(0, 0, 210, 60, "F");
+    // Portada más visual: usar la primera imagen disponible como hero
+    const firstImageUrl = Object.values(itinerario)
+      .flat()
+      .find((s) => s && (s.imagen || s.image || s.img || s.imageUrl))?.imagen;
+
+    let heroData = null;
+    if (firstImageUrl) heroData = await fetchImageDataUrl(firstImageUrl);
+
+    // Draw header
+    if (heroData) {
+      try {
+        doc.addImage(heroData, "JPEG", 0, 0, 210, 60);
+      } catch (e) {
+        doc.setFillColor(colorInk.r, colorInk.g, colorInk.b);
+        doc.rect(0, 0, 210, 60, "F");
+      }
+    } else {
+      doc.setFillColor(colorInk.r, colorInk.g, colorInk.b);
+      doc.rect(0, 0, 210, 60, "F");
+    }
 
     doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(22);
     doc.text("FestiMap Ecuador", 14, 22);
-
     doc.setFontSize(16);
     doc.text("Plan de viaje cultural", 14, 38);
 
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(11);
-    doc.text(
-      "Itinerario personalizado a partir de tu ruta y preferencias.",
-      14,
-      48
-    );
-
-    // Resumen
+    // Resumen tarjeta
     doc.setFillColor(colorSoft.r, colorSoft.g, colorSoft.b);
-    doc.roundedRect(12, 66, 186, 28, 3, 3, "F");
-
+    doc.roundedRect(12, 66, 186, 32, 3, 3, "F");
     doc.setTextColor(colorInk.r, colorInk.g, colorInk.b);
     doc.setFontSize(10);
     doc.text(`Origen: ${form.origen || "—"}`, 18, 74);
     doc.text(`Destino: ${form.destino || "—"}`, 18, 80);
-    doc.text(`Días: ${form.dias || "—"}`, 90, 74);
-    doc.text(`Ritmo: ${form.ritmo}`, 90, 80);
-    doc.text(`Paradas totales: ${totalParadas}`, 150, 74);
+    doc.text(`Días: ${form.dias || "—"}`, 18, 86);
+    doc.text(`Paradas totales: ${totalParadas}`, 120, 80);
 
-    /* Itinerario por día */
+    // Itinerario por día con miniaturas
     let y = 110;
-
     for (let day = 0; day < diasNum; day++) {
       const stops = getDayStops(day);
-      const resumen = resumenDias[day] || {
-        km: 0,
-        min: 0,
-        paradas: 0,
-      };
+      const resumen = resumenDias[day] || { km: 0, min: 0, paradas: 0 };
 
-      if (y > 260) {
+      if (y > 250) {
         doc.addPage();
         y = 20;
       }
@@ -724,53 +773,76 @@ export default function PlanViaje() {
 
       doc.setTextColor(colorInk.r, colorInk.g, colorInk.b);
       doc.setFont("helvetica", "normal");
-      doc.text(
-        `${resumen.km.toFixed(1)} km • ${resumen.min} min • ${resumen.paradas
-        } paradas`,
-        56,
-        y
-      );
-
-      y += 6;
+      doc.setFontSize(10);
+      doc.text(`${resumen.km.toFixed(1)} km • ${resumen.min} min • ${resumen.paradas} paradas`, 56, y);
+      y += 8;
 
       if (!stops.length) {
         doc.setFontSize(9);
         doc.setTextColor(148, 163, 184);
         doc.text("— sin paradas para este día —", 18, y + 2);
-        y += 10;
+        y += 14;
         continue;
       }
 
-      stops.forEach((s, i) => {
-        if (y > 260) {
+      for (let i = 0; i < stops.length; i++) {
+        const s = stops[i];
+        if (y > 250) {
           doc.addPage();
           y = 20;
         }
 
-        const line = renderStopLine(s, i, day);
+        // Try fetch image (one per stop)
+        let imgData = null;
+        const url = s.imagen || s.image || s.img || s.imageUrl || s.imagenUrl;
+        if (url) imgData = await fetchImageDataUrl(url).catch(() => null);
 
-        doc.setFillColor(colorSoft.r, colorSoft.g, colorSoft.b);
-        doc.setDrawColor(229, 231, 235);
-        doc.roundedRect(14, y, 182, 10, 2, 2, "FD");
+        // Draw thumbnail or placeholder
+        if (imgData) {
+          try {
+            doc.addImage(imgData, "JPEG", 14, y, 30, 22);
+          } catch (e) {
+            doc.setFillColor(colorSoft.r, colorSoft.g, colorSoft.b);
+            doc.rect(14, y, 30, 22, "F");
+          }
+        } else {
+          doc.setFillColor(colorSoft.r, colorSoft.g, colorSoft.b);
+          doc.roundedRect(14, y, 30, 22, 2, 2, "F");
+        }
 
+        // Texto a la derecha de la imagen
+        doc.setFontSize(10);
         doc.setTextColor(colorInk.r, colorInk.g, colorInk.b);
-        doc.setFontSize(9);
-        doc.text(`${i + 1}. ${line}`, 18, y + 6);
+        const title = s.titulo || s.name || s.nombre || `Parada ${i + 1}`;
+        doc.text(`${i + 1}. ${title}`, 48, y + 6);
 
-        y += 12;
-      });
+        // Meta: fecha, lugar
+        const metaParts = [];
+        if (s.fecha) metaParts.push(s.fecha);
+        const lugar = [s.lugar, s.ciudad, s.provincia].filter(Boolean).join(", ");
+        if (lugar) metaParts.push(lugar);
+        if (metaParts.length) {
+          doc.setFontSize(9);
+          doc.setTextColor(102, 112, 133);
+          doc.text(metaParts.join(" • "), 48, y + 12);
+        }
 
-      y += 4;
+        // How to get: provide Google Maps link text (user can copy)
+        if (s.lat && s.lng) {
+          const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${s.lat},${s.lng}`;
+          doc.setFontSize(8);
+          doc.setTextColor(59, 130, 246);
+          doc.textWithLink("Cómo llegar", 48, y + 18, { url: mapsUrl });
+        }
+
+        y += 28;
+      }
+      y += 6;
     }
 
     doc.setFontSize(8);
     doc.setTextColor(148, 163, 184);
-    doc.text(
-      "Generado automáticamente con FestiMap Ecuador — Guía de festividades y rutas culturales.",
-      14,
-      292
-    );
-
+    doc.text("Generado con FestiMap Ecuador — Guía de festividades y rutas culturales.", 14, 292);
     doc.save("FestiMap_Plan_de_viaje.pdf");
   }
 
@@ -793,7 +865,7 @@ export default function PlanViaje() {
         <div className="planner-hero__summary">
           <div className="hero-summary__card">
             <span className="hero-summary__label">Días de viaje</span>
-            <span className="hero-summary__value">{diasNum}</span>
+            <span className="hero-summary__value">{form.dias || "—"}</span>
           </div>
           <div className="hero-summary__card">
             <span className="hero-summary__label">Paradas totales</span>
@@ -803,16 +875,7 @@ export default function PlanViaje() {
             <span className="hero-summary__label">Radio de búsqueda</span>
             <span className="hero-summary__value">{form.radio}</span>
           </div>
-          <div className="hero-summary__card">
-            <span className="hero-summary__label">Ritmo</span>
-            <span className="hero-summary__value">
-              {form.ritmo === "relajado"
-                ? "Relajado"
-                : form.ritmo === "intenso"
-                  ? "Intenso"
-                  : "Normal"}
-            </span>
-          </div>
+          {/* Ritmo option removed */}
         </div>
       </header>
 
@@ -833,7 +896,7 @@ export default function PlanViaje() {
               className="input"
               value={form.origen}
               onChange={(e) => handleFormChange("origen", e.target.value)}
-              placeholder="Quito Centro o -0.22,-78.51"
+              placeholder="Ej: Quito Centro o -0.22,-78.51"
               required
             />
           </label>
@@ -845,7 +908,7 @@ export default function PlanViaje() {
               className="input"
               value={form.destino}
               onChange={(e) => handleFormChange("destino", e.target.value)}
-              placeholder="Otavalo Plaza o 0.23,-78.26"
+              placeholder="Ej: Otavalo Plaza o 0.23,-78.26"
               required
             />
           </label>
@@ -863,31 +926,16 @@ export default function PlanViaje() {
 
           <label className="planner-form__field">
             <span>Días</span>
-            <select
+            <input
+              type="number"
               className="input"
+              min="1"
+              placeholder="3"
               value={form.dias}
               onChange={(e) => handleFormChange("dias", e.target.value)}
-            >
-              <option value="1">1</option>
-              <option value="2">2</option>
-              <option value="3">3</option>
-              <option value="5">5</option>
-              <option value="7">7</option>
-            </select>
+            />
           </label>
 
-          <label className="planner-form__field">
-            <span>Ritmo</span>
-            <select
-              className="input"
-              value={form.ritmo}
-              onChange={(e) => handleFormChange("ritmo", e.target.value)}
-            >
-              <option value="relajado">Relajado</option>
-              <option value="normal">Normal</option>
-              <option value="intenso">Intenso</option>
-            </select>
-          </label>
 
           <label className="planner-form__field">
             <span>Radio</span>
@@ -935,14 +983,6 @@ export default function PlanViaje() {
             <button
               type="button"
               className="btn btn--ghost"
-              onClick={handleGenerarAuto}
-              disabled={!routeStateRef.current.hasRoute || !sugerencias.length}
-            >
-              Generar automática
-            </button>
-            <button
-              type="button"
-              className="btn btn--ghost"
               onClick={handleGuardarPlan}
             >
               Guardar plan
@@ -985,13 +1025,23 @@ export default function PlanViaje() {
                         {ev.fecha ? `• ${ev.fecha}` : ""}
                       </span>
                     </div>
-                    <button
-                      type="button"
-                      className="btn btn--ghost btn--sm"
-                      onClick={() => handleAddStop(ev)}
-                    >
-                      + Añadir al día {activeDay + 1}
-                    </button>
+                    {(() => {
+                      const computed = computeTargetDayForEvent(ev);
+                      const diasNumCur = form.dias ? parseInt(form.dias, 10) : 1;
+                      const outOfRange = computed !== null && computed >= diasNumCur;
+                      const displayDay = computed !== null ? computed + 1 : activeDay + 1;
+                      return (
+                        <button
+                          type="button"
+                          className="btn btn--ghost btn--sm"
+                          onClick={() => handleAddStop(ev, computed !== null ? computed : activeDay)}
+                          disabled={outOfRange}
+                          title={outOfRange ? `Evento fuera del rango (${displayDay})` : ``}
+                        >
+                          {outOfRange ? `Fuera de rango (día ${displayDay})` : `+ Añadir al día ${displayDay}`}
+                        </button>
+                      );
+                    })()}
                   </li>
                 ))}
               </ul>

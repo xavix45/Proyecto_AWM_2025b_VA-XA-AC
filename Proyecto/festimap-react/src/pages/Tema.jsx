@@ -1,5 +1,5 @@
 // src/pages/Tema.jsx
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { list as listEventos } from "../services/eventos.service";
 
@@ -38,26 +38,43 @@ function buildImagenSrc(ev) {
 }
 
 export default function Tema() {
-  const [texto, setTexto] = useState("");
+  // `textoInput` sigue el input del usuario; `textoBusqueda` es el término comprometido
+  // que realmente dispara la búsqueda (se actualiza al hacer click en "Buscar" o enviar el formulario)
+  const [textoInput, setTextoInput] = useState("");
+  const [textoBusqueda, setTextoBusqueda] = useState("");
   const [tipo, setTipo] = useState("");
+  const [region, setRegion] = useState("");
   const [provincia, setProvincia] = useState("");
   const [fecha, setFecha] = useState("");
   const [orden, setOrden] = useState("");
-  const [dentroViaje, setDentroViaje] = useState(false);
 
-  // Provincias únicas para el combo
-  const PROVINCIAS = useMemo(
-    () =>
-      Array.from(
-        new Set(EVENTOS_TODOS.map((e) => e.provincia).filter(Boolean))
-      ).sort(),
-    []
-  );
+  const REGIONES = ["Sierra", "Costa", "Amazonía", "Galápagos"];
+
+  // Provincias únicas para el combo (respetando la región si está seleccionada)
+  const PROVINCIAS = useMemo(() => {
+    const eventosRegion = region
+      ? EVENTOS_TODOS.filter((e) => e.region === region)
+      : EVENTOS_TODOS;
+
+    return Array.from(
+      new Set(eventosRegion.map((e) => e.provincia).filter(Boolean))
+    ).sort();
+  }, [region]);
+
+  // Si se selecciona Galápagos como región, fijar la provincia a 'Galápagos'
+  useEffect(() => {
+    if (region === "Galápagos") {
+      setProvincia("Galápagos");
+    } else {
+      // si se quita la región, limpiar provincia
+      setProvincia("");
+    }
+  }, [region]);
 
   // Lista con score de relevancia según texto
   const listaConScore = useMemo(() => {
     const hoy = hoyISO();
-    const txt = texto.toLowerCase().trim();
+    const txt = textoBusqueda.toLowerCase().trim();
 
     return EVENTOS_TODOS.map((ev) => {
       let score = 0;
@@ -80,15 +97,16 @@ export default function Tema() {
 
       return { ev, score, hoy };
     });
-  }, [texto]);
+  }, [textoBusqueda]);
 
   const eventosFiltrados = useMemo(() => {
     let filtrados = listaConScore.filter(({ ev, hoy, score }) => {
-      // Dentro de tu viaje: demo = solo eventos hoy o futuros
-      if (dentroViaje && ev.fecha && ev.fecha < hoy) return false;
+      // (removed "dentro de tu viaje" filter: always include events regardless of agenda/demo flag)
 
       const coincideTipo =
         !tipo || ev.categoria === tipo || ev.tipo === tipo;
+
+      const coincideRegion = !region || ev.region === region;
 
       const coincideProvincia =
         !provincia || ev.provincia === provincia;
@@ -104,9 +122,9 @@ export default function Tema() {
         }
       }
 
-      const coincideTexto = !texto || score > 0;
+      const coincideTexto = !textoBusqueda || score > 0;
 
-      return coincideTipo && coincideProvincia && coincideFecha && coincideTexto;
+      return coincideRegion && coincideTipo && coincideProvincia && coincideFecha && coincideTexto;
     });
 
     // Orden
@@ -127,27 +145,34 @@ export default function Tema() {
     }
 
     return filtrados.map((obj) => obj.ev);
-  }, [listaConScore, tipo, provincia, fecha, orden, dentroViaje, texto]);
+  }, [listaConScore, tipo, provincia, fecha, orden, textoBusqueda]);
 
   return (
     <main className="page-tema container section">
-      <h2 className="page-title">Explora por tema o palabra clave</h2>
+      <h2 className="page-title">Explorar por intereses y temas</h2>
 
       {/* Barra de búsqueda principal */}
       <form
         className="main-search-bar"
         role="search"
-        onSubmit={(e) => e.preventDefault()}
+        onSubmit={(e) => {
+          e.preventDefault();
+          setTextoBusqueda(textoInput);
+        }}
       >
         <input
           id="buscador"
           type="search"
           className="input-search"
           placeholder="Buscar colada morada, kpop, feria artesanal…"
-          value={texto}
-          onChange={(e) => setTexto(e.target.value)}
+          value={textoInput}
+          onChange={(e) => setTextoInput(e.target.value)}
         />
-        <button className="btn btn--primary" type="submit">
+        <button
+          className="btn btn--primary"
+          type="submit"
+          onClick={() => setTextoBusqueda(textoInput)}
+        >
           Buscar
         </button>
       </form>
@@ -161,12 +186,33 @@ export default function Tema() {
           onChange={(e) => setTipo(e.target.value)}
         >
           <option value="">Categoría</option>
+          <option value="música">Música</option>
+          <option value="arte">Arte</option>
+          <option value="teatro">Teatro</option>
+          <option value="danza">Danza</option>
           <option value="cívica">Cívica</option>
           <option value="tradición">Tradición</option>
           <option value="religiosa">Religiosa</option>
           <option value="ancestral">Ancestral</option>
           <option value="cultural">Cultural</option>
           <option value="gastronomía">Gastronomía</option>
+          <option value="feria">Feria / Mercado</option>
+          <option value="taller">Taller / Curso</option>
+          <option value="exposición">Exposición</option>
+        </select>
+
+        <select
+          id="filtro-region"
+          className="input"
+          value={region}
+          onChange={(e) => setRegion(e.target.value)}
+        >
+          <option value="">Región</option>
+          {REGIONES.map((r) => (
+            <option key={r} value={r}>
+              {r}
+            </option>
+          ))}
         </select>
 
         <select
@@ -174,13 +220,20 @@ export default function Tema() {
           className="input"
           value={provincia}
           onChange={(e) => setProvincia(e.target.value)}
+          disabled={region === "Galápagos"}
         >
-          <option value="">Provincia</option>
-          {PROVINCIAS.map((p) => (
-            <option key={p} value={p}>
-              {p}
-            </option>
-          ))}
+          {region === "Galápagos" ? (
+            <option value="Galápagos">Galápagos</option>
+          ) : (
+            <>
+              <option value="">Provincia</option>
+              {PROVINCIAS.map((p) => (
+                <option key={p} value={p}>
+                  {p}
+                </option>
+              ))}
+            </>
+          )}
         </select>
 
         <input
@@ -202,15 +255,7 @@ export default function Tema() {
           <option value="relevancia">Por relevancia (coincidencia texto)</option>
         </select>
 
-        <label className="checkbox">
-          <input
-            id="chk-viaje"
-            type="checkbox"
-            checked={dentroViaje}
-            onChange={(e) => setDentroViaje(e.target.checked)}
-          />{" "}
-          Dentro de tu viaje
-        </label>
+        
       </div>
 
       {/* Lista de resultados */}

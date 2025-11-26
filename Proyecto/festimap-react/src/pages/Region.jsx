@@ -81,7 +81,12 @@ export default function Region() {
       setProvincia(selectedEvent.provincia || "");
       setCanton(selectedEvent.ciudad || "");
     } else {
-      setProvincia("");
+      // Si la región es Galápagos, fijar la provincia a 'Galápagos' (no tiene subdivisión en provincias)
+      if (regionActual === "Galápagos") {
+        setProvincia("Galápagos");
+      } else {
+        setProvincia("");
+      }
       setCanton("");
     }
   }, [regionActual, selectedEvent]);
@@ -192,13 +197,20 @@ export default function Region() {
             className="input"
             value={provincia}
             onChange={(e) => setProvincia(e.target.value)}
+            disabled={regionActual === "Galápagos"}
           >
-            <option value="">Provincia (todas)</option>
-            {PROVINCIAS.map((p) => (
-              <option key={p} value={p}>
-                {p}
-              </option>
-            ))}
+            {regionActual === "Galápagos" ? (
+              <option value="Galápagos">Galápagos</option>
+            ) : (
+              <>
+                <option value="">Provincia (todas)</option>
+                {PROVINCIAS.map((p) => (
+                  <option key={p} value={p}>
+                    {p}
+                  </option>
+                ))}
+              </>
+            )}
           </select>
 
           <select
@@ -221,17 +233,6 @@ export default function Region() {
             value={texto}
             onChange={(e) => setTexto(e.target.value)}
           />
-
-          <button
-            type="button"
-            className="btn btn--primary"
-            onClick={() => {
-              // Los filtros ya se aplican en tiempo real; este botón
-              // solo evita que se envíe un formulario.
-            }}
-          >
-            Aplicar
-          </button>
         </div>
       </div>
 

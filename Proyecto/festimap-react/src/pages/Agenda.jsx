@@ -38,12 +38,8 @@ export default function Agenda() {
     const [items, setItems] = useState([]);
 
     const [tab, setTab] = useState("proximos"); // "proximos" | "pasados"
-    const [dentroViaje, setDentroViaje] = useState(true);
 
-    const [alert24h, setAlert24h] = useState(true);
-    const [alert1h, setAlert1h] = useState(true);
-    const [alertCambios, setAlertCambios] = useState(true);
-    const [alertNuevos, setAlertNuevos] = useState(true);
+    // Alert checkboxes removed: alert behavior is automatic based on dates
 
     useEffect(() => {
         const data = listAgenda(DEMO_USER_ID);
@@ -54,7 +50,6 @@ export default function Agenda() {
         const next = removeAgenda(DEMO_USER_ID, idEvento);
         setItems(next);
     }
-
     // Combinamos item de agenda con la info del evento
     const eventosEnAgenda = useMemo(() => {
         return items
@@ -62,7 +57,6 @@ export default function Agenda() {
                 const ev = getById(item.idEvento);
                 if (!ev) return null;
 
-                // fecha efectiva para filtros (evento o agenda)
                 const fechaEfectiva = ev.fecha || item.fecha || null;
 
                 return {
@@ -76,19 +70,47 @@ export default function Agenda() {
 
     const hoy = hoyISO();
 
-    const proximos = eventosEnAgenda.filter(
-        (e) => !e._fecha || e._fecha >= hoy
-    );
-    const pasados = eventosEnAgenda.filter(
-        (e) => e._fecha && e._fecha < hoy
-    );
+    const proximos = eventosEnAgenda.filter((e) => !e._fecha || e._fecha >= hoy);
+    const pasados = eventosEnAgenda.filter((e) => e._fecha && e._fecha < hoy);
+
+    // Contadores para las pestañas
+    const countProximos = proximos.length;
+    const countPasados = pasados.length;
+    // Planes guardados (marcados por PlanViaje con `isPlan`)
+    const plans = eventosEnAgenda.filter((e) => e.isPlan);
+    const countPlans = plans.length;
 
     let listaMostrar = tab === "proximos" ? proximos : pasados;
-
-    // “Dentro de tu viaje”: en este demo lo usamos como filtro extra sobre próximos
-    if (dentroViaje && tab === "proximos") {
-        listaMostrar = proximos;
+    if (tab === "planes") {
+        listaMostrar = plans;
     }
+
+    // Para la vista 'proximos' agrupamos en Hoy / Esta semana / Próximos (>7 días)
+    const groupedProximos = (() => {
+        const sections = { hoy: [], semana: [], proximos: [] };
+        const ahora = new Date();
+        const inicioHoy = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate());
+
+        proximos.forEach((item) => {
+            const fechaStr = item._fecha || item.evento?.fecha;
+            if (!fechaStr) {
+                sections.proximos.push(item);
+                return;
+            }
+            const fecha = new Date(fechaStr);
+            if (Number.isNaN(fecha.getTime())) {
+                sections.proximos.push(item);
+                return;
+            }
+            const diffMs = fecha.getTime() - inicioHoy.getTime();
+            const dias = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+            if (dias === 0) sections.hoy.push(item);
+            else if (dias >= 1 && dias <= 7) sections.semana.push(item);
+            else sections.proximos.push(item);
+        });
+
+        return sections;
+    })();
 
     // Alertas demo: tomamos algunos próximos
     const alertas = proximos.slice(0, 5);
@@ -111,7 +133,200 @@ export default function Agenda() {
             </main>
         );
     }
+    // Helper to render the agenda list (keeps JSX balanced)
+    function renderLista() {
+        if (listaMostrar.length === 0) {
+            return (
+                <p className="muted" style={{ padding: 16 }}>
+                    No hay eventos en esta vista. Prueba cambiando de pestaña o los
+                    filtros.
+                </p>
+            );
+        }
 
+        if (tab === 'proximos') {
+            return (
+                <>
+                    {groupedProximos.hoy.length > 0 && (
+                        <div className="section-group">
+                            <h4 className="section-group__title">Hoy ({groupedProximos.hoy.length})</h4>
+                            {groupedProximos.hoy.map(({ idEvento, nota, evento, _fecha }) => {
+                                const titulo = buildTitulo(evento);
+                                const lugar = buildLugar(evento);
+                                const meta = [
+                                    _fecha || "",
+                                    lugar ? `• ${lugar}` : "",
+                                ]
+                                    .join(" ")
+                                    .trim();
+                                const imagenSrc = buildImagenSrc(evento);
+                                return (
+                                    <article key={idEvento} className={`agenda-item is-soon`}>
+                                        <div className="agenda-item__info">
+                                            <div className="item-text">
+                                                <span className="badge badge--today">Hoy</span>
+                                                <h4>{titulo}</h4>
+                                                {meta && <p className="muted">{meta}</p>}
+                                            </div>
+                                            {imagenSrc && (
+                                                <div className="item-image">
+                                                    <img src={imagenSrc} alt={titulo} />
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="agenda-item__feedback">
+                                            {nota ? (
+                                                <p className="agenda-item__note"><strong>Nota:</strong> {nota}</p>
+                                            ) : (
+                                                <p className="agenda-item__note">Puedes agregar notas a este evento desde las próximas versiones de la agenda.</p>
+                                            )}
+                                        </div>
+                                        <div className="agenda-item__actions">
+                                            <Link className="btn btn--ghost" to={`/evento/${idEvento}`}>Ver detalle</Link>
+                                            <button type="button" className="btn btn--danger" onClick={() => handleRemove(idEvento)}>Quitar</button>
+                                        </div>
+                                    </article>
+                                );
+                            })}
+                        </div>
+                    )}
+
+                    {groupedProximos.semana.length > 0 && (
+                        <div className="section-group">
+                            <h4 className="section-group__title">Esta semana ({groupedProximos.semana.length})</h4>
+                            {groupedProximos.semana.map(({ idEvento, nota, evento, _fecha }) => {
+                                const titulo = buildTitulo(evento);
+                                const lugar = buildLugar(evento);
+                                const meta = [
+                                    _fecha || "",
+                                    lugar ? `• ${lugar}` : "",
+                                ]
+                                    .join(" ")
+                                    .trim();
+                                const imagenSrc = buildImagenSrc(evento);
+                                return (
+                                    <article key={idEvento} className={`agenda-item is-soon`}>
+                                        <div className="agenda-item__info">
+                                            <div className="item-text">
+                                                <span className="badge badge--soon">Próximo</span>
+                                                <h4>{titulo}</h4>
+                                                {meta && <p className="muted">{meta}</p>}
+                                            </div>
+                                            {imagenSrc && (
+                                                <div className="item-image">
+                                                    <img src={imagenSrc} alt={titulo} />
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="agenda-item__feedback">
+                                            {nota ? (
+                                                <p className="agenda-item__note"><strong>Nota:</strong> {nota}</p>
+                                            ) : (
+                                                <p className="agenda-item__note">Puedes agregar notas a este evento desde las próximas versiones de la agenda.</p>
+                                            )}
+                                        </div>
+                                        <div className="agenda-item__actions">
+                                            <Link className="btn btn--ghost" to={`/evento/${idEvento}`}>Ver detalle</Link>
+                                            <button type="button" className="btn btn--danger" onClick={() => handleRemove(idEvento)}>Quitar</button>
+                                        </div>
+                                    </article>
+                                );
+                            })}
+                        </div>
+                    )}
+
+                    {groupedProximos.proximos.length > 0 && (
+                        <div className="section-group">
+                            <h4 className="section-group__title">Próximos ({groupedProximos.proximos.length})</h4>
+                            {groupedProximos.proximos.map(({ idEvento, nota, evento, _fecha }) => {
+                                const titulo = buildTitulo(evento);
+                                const lugar = buildLugar(evento);
+                                const meta = [
+                                    _fecha || "",
+                                    lugar ? `• ${lugar}` : "",
+                                ]
+                                    .join(" ")
+                                    .trim();
+                                const imagenSrc = buildImagenSrc(evento);
+                                return (
+                                    <article key={idEvento} className={`agenda-item`}>
+                                        <div className="agenda-item__info">
+                                            <div className="item-text">
+                                                <h4>{titulo}</h4>
+                                                {meta && <p className="muted">{meta}</p>}
+                                            </div>
+                                            {imagenSrc && (
+                                                <div className="item-image">
+                                                    <img src={imagenSrc} alt={titulo} />
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="agenda-item__feedback">
+                                            {nota ? (
+                                                <p className="agenda-item__note"><strong>Nota:</strong> {nota}</p>
+                                            ) : (
+                                                <p className="agenda-item__note">Puedes agregar notas a este evento desde las próximas versiones de la agenda.</p>
+                                            )}
+                                        </div>
+                                        <div className="agenda-item__actions">
+                                            <Link className="btn btn--ghost" to={`/evento/${idEvento}`}>Ver detalle</Link>
+                                            <button type="button" className="btn btn--danger" onClick={() => handleRemove(idEvento)}>Quitar</button>
+                                        </div>
+                                    </article>
+                                );
+                            })}
+                        </div>
+                    )}
+                </>
+            );
+        }
+
+        // Pasados
+        return listaMostrar.map(({ idEvento, nota, evento, _fecha }) => {
+            const titulo = buildTitulo(evento);
+            const lugar = buildLugar(evento);
+            const meta = [
+                _fecha || "",
+                lugar ? `• ${lugar}` : "",
+            ]
+                .join(" ")
+                .trim();
+
+            const imagenSrc = buildImagenSrc(evento);
+
+            return (
+                <article key={idEvento} className="agenda-item">
+                    <div className="agenda-item__info">
+                        <div className="item-text">
+                            <h4>{titulo}</h4>
+                            {meta && <p className="muted">{meta}</p>}
+                        </div>
+
+                        {imagenSrc && (
+                            <div className="item-image">
+                                <img src={imagenSrc} alt={titulo} />
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="agenda-item__feedback">
+                        {nota ? (
+                            <p className="agenda-item__note"><strong>Nota:</strong> {nota}</p>
+                        ) : (
+                            <p className="agenda-item__note">Puedes agregar notas a este evento desde las próximas versiones de la agenda.</p>
+                        )}
+                    </div>
+
+                    <div className="agenda-item__actions">
+                        <Link className="btn btn--ghost" to={`/evento/${idEvento}`}>Ver detalle</Link>
+                        <button type="button" className="btn btn--danger" onClick={() => handleRemove(idEvento)}>Quitar</button>
+                    </div>
+                </article>
+            );
+        });
+    }
+    
+    
     return (
         <main className="container section page-agenda">
             <h2 className="page-title">Mi Agenda Cultural</h2>
@@ -125,142 +340,41 @@ export default function Agenda() {
                             className={`tab ${tab === "proximos" ? "is-active" : ""}`}
                             onClick={() => setTab("proximos")}
                         >
-                            Próximos
+                            Próximos ({countProximos})
                         </button>
                         <button
                             type="button"
                             className={`tab ${tab === "pasados" ? "is-active" : ""}`}
                             onClick={() => setTab("pasados")}
                         >
-                            Pasados
+                            Pasados ({countPasados})
+                        </button>
+
+                        <button
+                            type="button"
+                            className={`tab ${tab === "planes" ? "is-active" : ""}`}
+                            onClick={() => setTab("planes")}
+                        >
+                            Planes guardados ({countPlans})
                         </button>
                     </div>
-
-                    <label className="checkbox">
-                        <input
-                            type="checkbox"
-                            checked={dentroViaje}
-                            onChange={(e) => setDentroViaje(e.target.checked)}
-                        />{" "}
-                        Dentro de tu viaje
-                    </label>
                 </div>
 
                 <div className="alert-options">
-                    <span>Alertas:</span>
-                    <label className="checkbox">
-                        <input
-                            id="alert-24h"
-                            type="checkbox"
-                            checked={alert24h}
-                            onChange={(e) => setAlert24h(e.target.checked)}
-                        />{" "}
-                        24 h
-                    </label>
-                    <label className="checkbox">
-                        <input
-                            id="alert-1h"
-                            type="checkbox"
-                            checked={alert1h}
-                            onChange={(e) => setAlert1h(e.target.checked)}
-                        />{" "}
-                        1 h
-                    </label>
-                    <label className="checkbox">
-                        <input
-                            id="alert-cambios"
-                            type="checkbox"
-                            checked={alertCambios}
-                            onChange={(e) => setAlertCambios(e.target.checked)}
-                        />{" "}
-                        Cambios de evento
-                    </label>
-                    <label className="checkbox">
-                        <input
-                            id="alert-nuevos"
-                            type="checkbox"
-                            checked={alertNuevos}
-                            onChange={(e) => setAlertNuevos(e.target.checked)}
-                        />{" "}
-                        Nuevos cercanos
-                    </label>
+                    {/* Alert options removed: alerts are inferred automatically from dates. */}
                 </div>
             </div>
 
-            {/* Layout 2 columnas: lista + centro de alertas */}
+            {/* Mapa + lista layout: lista + centro de alertas */}
             <div className="grid-2 grid-agenda">
                 {/* Lista de agenda */}
                 <section className="agenda-list" id="agenda-list">
-                    {listaMostrar.length === 0 ? (
-                        <p className="muted" style={{ padding: 16 }}>
-                            No hay eventos en esta vista. Prueba cambiando de pestaña o los
-                            filtros.
-                        </p>
-                    ) : (
-                        listaMostrar.map(({ idEvento, nota, evento, _fecha }) => {
-                            const titulo = buildTitulo(evento);
-                            const lugar = buildLugar(evento);
-                            const meta = [
-                                _fecha || "",
-                                lugar ? `• ${lugar}` : "",
-                            ]
-                                .join(" ")
-                                .trim();
-
-                            const imagenSrc = buildImagenSrc(evento);
-
-                            return (
-                                <article key={idEvento} className="agenda-item">
-                                    {/* Columna 1: info + imagen */}
-                                    <div className="agenda-item__info">
-                                        <div className="item-text">
-                                            <h4>{titulo}</h4>
-                                            {meta && <p className="muted">{meta}</p>}
-                                        </div>
-
-                                        {imagenSrc && (
-                                            <div className="item-image">
-                                                <img src={imagenSrc} alt={titulo} />
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* Columna 2: feedback simple (nota) */}
-                                    <div className="agenda-item__feedback">
-                                        {nota ? (
-                                            <p className="agenda-item__note">
-                                                <strong>Nota:</strong> {nota}
-                                            </p>
-                                        ) : (
-                                            <p className="agenda-item__note">
-                                                Puedes agregar notas a este evento desde las próximas
-                                                versiones de la agenda.
-                                            </p>
-                                        )}
-                                    </div>
-
-                                    {/* Columna 3: acciones */}
-                                    <div className="agenda-item__actions">
-                                        <Link className="btn btn--ghost" to={`/evento/${idEvento}`}>
-                                            Ver detalle
-                                        </Link>
-                                        <button
-                                            type="button"
-                                            className="btn btn--danger"
-                                            onClick={() => handleRemove(idEvento)}
-                                        >
-                                            Quitar
-                                        </button>
-                                    </div>
-                                </article>
-                            );
-                        })
-                    )}
+                    {renderLista()}
                 </section>
 
                 {/* Panel de alertas (derecha) */}
                 <aside className="panel alert-center">
-                    <h3>Centro de alertas</h3>
+                    <h3>Centro de alertas ({alertas.length})</h3>
                     {alertas.length === 0 ? (
                         <p className="muted" style={{ marginTop: 8 }}>
                             No hay eventos próximos para generar alertas.
@@ -277,10 +391,21 @@ export default function Agenda() {
                                     .join(" ")
                                     .trim();
 
+                                const isSoon = (() => {
+                                    if (!_fecha) return false;
+                                    const fecha = new Date(_fecha);
+                                    if (Number.isNaN(fecha.getTime())) return false;
+                                    const ahora = new Date();
+                                    const inicioHoy = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate());
+                                    const diffMs = fecha.getTime() - inicioHoy.getTime();
+                                    const dias = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+                                    return dias >= 0 && dias <= 7;
+                                })();
+
                                 return (
-                                    <li key={idEvento}>
+                                    <li key={idEvento} className={isSoon ? 'is-soon' : ''}>
                                         <Link
-                                            className="alert-link"
+                                            className={`alert-link ${isSoon ? 'is-soon' : ''}`}
                                             to={`/evento/${idEvento}`}
                                         >
                                             <span>⏰</span>

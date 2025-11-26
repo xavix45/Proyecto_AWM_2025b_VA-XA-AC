@@ -240,6 +240,12 @@
     background: #f9fafb;
 }
 
+.planner-suggestion button[disabled] {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: #f3f4f6;
+}
+
 .planner-suggestion__info {
     display: flex;
     flex-direction: column;
@@ -280,11 +286,14 @@
 /* Tabs */
 
 .planner-tabs {
-    display: inline-flex;
+    display: flex;
     gap: 8px;
     padding-bottom: 6px;
     border-bottom: 1px solid var(--border-light, #e5e7eb);
     margin-bottom: 10px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap;
 }
 
 .planner-tab {
@@ -297,6 +306,12 @@
     color: #6b7280;
     cursor: pointer;
     transition: all 0.16s ease;
+}
+
+.planner-tab {
+    flex: 0 0 auto;
+    min-width: 72px;
+    text-align: center;
 }
 
 .planner-tab:hover {

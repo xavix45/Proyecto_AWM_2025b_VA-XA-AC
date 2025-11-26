@@ -169,6 +169,26 @@
     transform: scale(1.02);
 }
 
+/* Indicador visual para eventos próximos (alerta sencilla) */
+.card.is-soon {
+    border-left: 6px solid #ff6b6b; /* color de alerta */
+    box-shadow: 0 6px 14px rgba(255, 107, 107, 0.06);
+}
+
+.badge {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: 999px;
+}
+
+.badge--soon {
+    background: #ff6b6b;
+    color: #fff;
+    margin-bottom: 8px;
+}
+
 /* 10. Paginación (decorativa) */
 .pagination {
     display: flex;

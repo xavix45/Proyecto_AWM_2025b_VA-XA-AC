@@ -40,16 +40,10 @@ export default function Home() {
   const [region, setRegion] = useState("");
   const [tipo, setTipo] = useState("");
   const [fecha, setFecha] = useState("");
-  const [dentroViaje, setDentroViaje] = useState(true); // por ahora solo UI
+  
 
-  // Opciones dinámicas para combos
-  const REGIONES = useMemo(
-    () =>
-      Array.from(
-        new Set(EVENTOS.map((e) => e.region).filter(Boolean))
-      ).sort(),
-    [EVENTOS]
-  );
+  // Regiones fijas para Ecuador
+  const REGIONES = ["Sierra", "Costa", "Galápagos"];
 
   const TIPOS = useMemo(
     () =>
@@ -94,10 +88,28 @@ export default function Home() {
       const fb = b.fecha || "9999-12-31";
       return fa.localeCompare(fb);
     });
-  }, [EVENTOS, texto, region, tipo, fecha, dentroViaje]);
+  }, [EVENTOS, texto, region, tipo, fecha]);
 
-  const destacados = eventosFiltrados.slice(0, 7); // carrusel
-  const listaLateral = eventosFiltrados.slice(0, 10); // lista derecha
+  // Fecha de hoy en ISO (YYYY-MM-DD)
+  const hoy = new Date().toISOString().slice(0, 10);
+
+  // Carrusel: solo eventos próximos (no afectado por buscador)
+  const destacados = useMemo(() => {
+    return EVENTOS.filter((ev) => ev.fecha && ev.fecha >= hoy)
+      .sort((a, b) => {
+        const fa = a.fecha || "9999-12-31";
+        const fb = b.fecha || "9999-12-31";
+        return fa.localeCompare(fb);
+      })
+      .slice(0, 7);
+  }, [EVENTOS, hoy]);
+
+  // notas: el autoplay del slider ahora se realiza por CSS (keyframes)
+
+  // Lista lateral: respuesta al buscador (filtrados)
+  const listaLateral = eventosFiltrados.slice(0, 10);
+
+  // (destacados y listaLateral definidos arriba)
 
   return (
     <main className="page-home container">
@@ -152,14 +164,7 @@ export default function Home() {
           onChange={(e) => setFecha(e.target.value)}
         />
 
-        <label className="checkbox">
-          <input
-            type="checkbox"
-            checked={dentroViaje}
-            onChange={(e) => setDentroViaje(e.target.checked)}
-          />
-          Dentro de tu viaje
-        </label>
+        
       </div>
 
       {/* Carrusel + lista (dos columnas) */}
@@ -167,12 +172,8 @@ export default function Home() {
         {/* COLUMNA IZQUIERDA: CARRUSEL */}
         <div className="slider-container">
           <div className="slider-track">
-            {destacados.map((ev) => (
-              <Link
-                key={ev.id}
-                className="slide"
-                to={`/evento/${ev.id}`}
-              >
+            {destacados.concat(destacados).map((ev, idx) => (
+              <Link key={`${ev.id}-${idx}`} className="slide" to={`/evento/${ev.id}`}>
                 <img
                   src={buildImagenSrc(ev)}
                   alt={buildTitle(ev)}
