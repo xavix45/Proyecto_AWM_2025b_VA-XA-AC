@@ -1,4 +1,8 @@
 // src/layouts/BaseLayout.jsx
+// Layout principal que envuelve las páginas internas de la aplicación.
+// Contiene el header (navegación) y el footer. También detecta el usuario
+// actual en localStorage para mostrar el enlace "Mi cuenta" o el botón
+// de ingreso dependiendo del estado de autenticación.
 import { Outlet, NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import "../styles/reset.css";
@@ -6,6 +10,9 @@ import "../styles/tokens.css";
 import "../styles/main.css";
 import "../styles/components/_header.css";
 
+// Lee el usuario almacenado (compatibilidad con dos keys usadas por la app):
+// - `festi_usuario` (objeto completo) preferido
+// - fallback: `currentUserEmail` (solo email)
 function getStoredUser() {
     try {
         const u = localStorage.getItem('festi_usuario');
@@ -22,6 +29,9 @@ export default function BaseLayout() {
     const [user, setUser] = useState(getStoredUser());
     const location = useLocation();
 
+    // Escucha el evento global 'userChanged' que otras páginas disparan
+    // cuando actualizan localStorage para que el header se actualice
+    // (mostrar 'Mi cuenta' / 'Salir' sin recargar la página).
     useEffect(() => {
         function onUserChanged() { setUser(getStoredUser()); }
         window.addEventListener('userChanged', onUserChanged);
@@ -32,6 +42,7 @@ export default function BaseLayout() {
 
     const isAdmin = user && (user.rol === 'admin' || (user.email && user.email === 'admin@epn.edu.ec'));
 
+    // Cierra sesión: borra el usuario almacenado y notifica al resto de la app
     function handleLogout() {
         localStorage.removeItem('festi_usuario');
         localStorage.removeItem('currentUserEmail');

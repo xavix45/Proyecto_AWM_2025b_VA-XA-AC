@@ -2,6 +2,10 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/pages/registro.css";
 
+// Registro de nuevos usuarios. Al crear la cuenta guardamos tanto en
+// `usuarios` (lista) como en `currentUserEmail` y `festi_usuario` para que
+// el header y la app reconozcan al usuario sin necesidad de login adicional.
+
 export default function Register() {
   const navigate = useNavigate();
   const [name, setName] = useState("");

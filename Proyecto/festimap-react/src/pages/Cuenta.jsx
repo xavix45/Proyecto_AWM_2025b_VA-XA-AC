@@ -2,6 +2,14 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/pages/cuenta.css";
 
+// Página de perfil del usuario. Lee `usuarios` y `currentUserEmail` de
+// localStorage para mostrar y editar preferencias, intereses y notificaciones.
+// Notas:
+// - Si no existe el usuario en la lista `usuarios`, se crea un perfil mínimo
+//   para que la página funcione (nombre derivado del email).
+// - Los toggles de notificaciones actualizan `currentUser.notificaciones`
+//   y persisten en localStorage.
+
 const LS_USUARIOS_KEY = 'usuarios';
 const LS_CURRENT_USER_KEY = 'currentUserEmail';
 

@@ -1,4 +1,7 @@
 // src/pages/Agenda.jsx
+// Página que muestra la "Agenda" del usuario: eventos guardados (por usuario)
+// y permite eliminar items. También agrupa próximos/pasados y ofrece exportar
+// la lista visible a PDF.
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 
@@ -55,12 +58,14 @@ export default function Agenda() {
 
     // Alert checkboxes removed: alert behavior is automatic based on dates
 
+    // Cargar la agenda del usuario al montar el componente.
     useEffect(() => {
         const uid = getCurrentUserId();
         const data = listAgenda(uid);
         setItems(data);
     }, []);
 
+    // Eliminar un evento de la agenda del usuario y actualizar UI.
     function handleRemove(idEvento) {
         const uid = getCurrentUserId();
         const next = removeAgenda(uid, idEvento);

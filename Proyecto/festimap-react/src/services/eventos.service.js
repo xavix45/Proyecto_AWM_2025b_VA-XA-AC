@@ -1,4 +1,13 @@
 // src/services/eventos.service.js
+// Servicio simple para acceder al catálogo de eventos de la app.
+// Funciona sobre un dataset base (`src/data/eventos`) pero permite un
+// override mediante localStorage bajo la clave `fm:eventos:admin` para
+// facilitar pruebas o edición desde el navegador.
+// Exporta funciones públicas:
+// - list(): devuelve todos los eventos (dataset base o override)
+// - getById(id): busca un evento por id
+// - filter(opts): filtro flexible por región, tema o texto libre
+
 import EVENTOS_BASE from "../data/eventos";
 import { getJSON } from "../lib/storage";
 
@@ -9,6 +18,9 @@ const ADMIN_KEY = "fm:eventos:admin";
  * Si existe un override en localStorage (fm:eventos:admin),
  * se usa ese listado; si no, se usa el dataset base.
  */
+// getData(): determina la fuente de verdad para los eventos.
+// Si existe un array en localStorage (clave `fm:eventos:admin`) se usa ese
+// como override — útil para pruebas o edición desde el entorno cliente.
 function getData() {
     const override = getJSON(ADMIN_KEY, null);
     if (Array.isArray(override) && override.length > 0) {
@@ -17,10 +29,13 @@ function getData() {
     return EVENTOS_BASE;
 }
 
+// list(): devuelve todos los eventos disponibles.
 export function list() {
     return getData();
 }
 
+// getById(id): busca un evento por su identificador y devuelve null si
+// no existe.
 export function getById(id) {
     const all = getData();
     return all.find((e) => String(e.id) === String(id)) || null;
@@ -33,6 +48,8 @@ export function getById(id) {
  * @param {string} [opts.tema]
  * @param {string} [opts.query]  texto libre (título/ciudad/descripción)
  */
+// filter(opts): filtro flexible para buscar eventos según criterios.
+// Opciones soportadas: { region, tema, query }.
 export function filter(opts = {}) {
     const { region, tema, query } = opts;
     let items = getData();

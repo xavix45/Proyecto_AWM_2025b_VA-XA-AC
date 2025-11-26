@@ -1,4 +1,9 @@
 // src/pages/PlanViaje.jsx
+// Página principal para crear un plan de viaje: genera ruta entre origen/destino,
+// busca eventos cercanos a la ruta, permite añadir paradas al itinerario por día,
+// optimizar el orden, persistir el plan por usuario y exportar a PDF.
+// Dependencias clave: `leaflet` (mapa), `@turf/turf` (geometría), `jspdf` (export PDF).
+
 // Requiere: npm install leaflet @turf/turf jspdf
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -14,6 +19,9 @@ import "leaflet/dist/leaflet.css";
 import "../styles/pages/plan-de-viaje.css";
 
 /* --------- Utilidades de fecha y hora --------- */
+// Comentarios: estas utilidades permiten parsing flexible de fechas porque los
+// eventos pueden venir con formatos distintos. También hay un helper para
+// formatear tiempos estimados de llegada en la línea de tiempo.
 
 // dd/mm/aaaa, dd-mm-aaaa, yyyy-mm-dd, yyyy/mm/dd
 function parseDateFlexible(str) {
@@ -65,6 +73,10 @@ function formatTime(totalMinutes) {
 }
 
 /* --------- Geocodificación --------- */
+// `geocode` intenta resolver texto a coordenadas. Soporta:
+// - coordenadas explícitas "lat,lng"
+// - un mapa local de nombres conocidos (LOCAL_PLACES)
+// - llamada a Nominatim como fallback
 
 const LOCAL_PLACES = {
   quito: { lat: -0.2201, lng: -78.5126 },
@@ -110,6 +122,8 @@ async function geocode(q) {
 }
 
 /* --------- Ruteo OSRM --------- */
+// Solicita una ruta a OSRM (routing server) entre dos coordenadas. Se usa
+// para trazar la ruta en el mapa y construir un "buffer" donde buscar eventos.
 
 async function osrmRoute(o, d) {
   const url = `https://router.project-osrm.org/route/v1/driving/${o.lng},${o.lat};${d.lng},${d.lat}?overview=full&geometries=geojson`;
@@ -123,6 +137,8 @@ async function osrmRoute(o, d) {
 }
 
 /* --------- Heurística de orden --------- */
+// Algoritmo greedy (nearest neighbor) para ordenar puntos razonablemente bien
+// sin hacer cálculos NP-hard (no es exacto, pero es rápido y suficiente).
 
 function nearestNeighbor(items) {
   if (!items || items.length <= 2) return items ? items.slice() : [];
@@ -155,8 +171,13 @@ function nearestNeighbor(items) {
 }
 
 /* =====================================================
-   COMPONENTE PRINCIPAL
-   ===================================================== */
+  COMPONENTE PRINCIPAL
+  ===================================================== */
+
+// Notas sobre persistencia:
+// - Antes se usaba una clave global `STORAGE_KEY`. Ahora el plan se guarda
+//   por usuario usando `storageKeyForUser()` para evitar que distintos usuarios
+//   sobreescriban el mismo plan.
 
 const STORAGE_KEY_BASE = "festi_plan_ruta_avanzado_v2";
 const DEMO_USER_ID = "demo-user";
@@ -260,9 +281,11 @@ export default function PlanViaje() {
     }
   }, []);
 
-  /* =========================
-     Cargar desde localStorage
-     ========================= */
+    /* =========================
+      Cargar desde localStorage
+      ========================= */
+    // Carga el plan persistido para el usuario actual (si existe). Mantiene
+    // `form`, `itinerario` y `activeDay`.
   useEffect(() => {
     try {
       const raw = localStorage.getItem(storageKeyForUser());
@@ -276,9 +299,10 @@ export default function PlanViaje() {
     }
   }, []);
 
-  /* =========================
-     Guardar en localStorage
-     ========================= */
+    /* =========================
+      Guardar en localStorage
+      ========================= */
+    // Persiste automáticamente el estado del plan para el usuario actual.
   useEffect(() => {
     const payload = {
       form,
@@ -375,9 +399,9 @@ export default function PlanViaje() {
     return result;
   }, [itinerario]);
 
-  /* =========================
-     Utilidades de UI
-     ========================= */
+    /* =========================
+      Utilidades de UI
+      ========================= */
 
   function handleFormChange(field, value) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -421,9 +445,10 @@ export default function PlanViaje() {
     return null;
   }
 
-  /* =========================
-     MAPA: marcar sugerencias
-     ========================= */
+    /* =========================
+      MAPA: marcar sugerencias
+      ========================= */
+    // Dibuja marcadores para las sugerencias en el mapa y los limpia cuando cambian.
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
@@ -442,9 +467,12 @@ export default function PlanViaje() {
     });
   }, [sugerencias]);
 
-  /* =========================
-     ACCIONES PRINCIPALES
-     ========================= */
+    /* =========================
+      ACCIONES PRINCIPALES
+      ========================= */
+
+    // Generar ruta: geocodifica origen/destino, solicita a OSRM, dibuja ruta y
+    // genera un buffer para buscar eventos dentro del área.
 
   // Generar ruta y sugerencias
   async function handleGenerarRuta() {
@@ -509,6 +537,11 @@ export default function PlanViaje() {
   }
 
   // Construir sugerencias según ruta + fecha + intereses
+  // Filtros aplicados:
+  // - dentro del buffer geométrico (turf.pointsWithinPolygon)
+  // - fecha dentro del rango [fechaIni, fechaIni + dias - 1] (si form.fechaIni definido)
+  // - coincidencia con tags/intereses (si el usuario seleccionó tags)
+  // - excluye eventos que ya están en la agenda del usuario (evita duplicados)
   function buildSuggestions() {
     const routeState = routeStateRef.current;
     if (!routeState.hasRoute || !routeState.bufferPoly || !routeState.geometry)
@@ -594,7 +627,11 @@ export default function PlanViaje() {
     setSugerencias(ranked);
   }
 
-  // Añadir parada al día activo
+  // Añadir parada al itinerario
+  // Si el evento tiene fecha y cae dentro del rango, `computeTargetDayForEvent`
+  // devuelve el índice de día correspondiente; en ese caso se colocará
+  // automáticamente en el día correcto. Si no tiene fecha, se añade al
+  // `activeDay` por defecto.
   function handleAddStop(ev, dayIndex = activeDay) {
     const computed = computeTargetDayForEvent(ev);
     const diasNumCur = form.dias ? parseInt(form.dias, 10) : 1;
@@ -643,6 +680,8 @@ export default function PlanViaje() {
   }
 
   // Guardar plan explícitamente (y opcionalmente exportar a Agenda)
+  // Al guardar se añaden los elementos al servicio de agenda por usuario
+  // (addAgenda(userId, { idEvento, fecha, isPlan: true, planTitle })).
   function handleGuardarPlan() {
     // Guardar en localStorage ya ocurre automáticamente. Aquí además guardamos en la Agenda demo.
     const fi = parseDateFlexible(form.fechaIni);

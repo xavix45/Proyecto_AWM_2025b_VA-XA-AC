@@ -1,4 +1,14 @@
 // src/lib/storage.js
+// Pequeña utilidad para encapsular el acceso a `localStorage` de forma
+// segura (evitar errores en SSR o en navegadores con storage deshabilitado)
+// y helpers para almacenar/recuperar JSON de forma consistente.
+
+// Uso típico:
+// - `getJSON(key, fallback)` para leer objetos/arrays desde localStorage
+// - `setJSON(key, value)` para persistir estructuras JSON
+
+// Además exporta `storage` con métodos crudos (`getItem`/`setItem`) si
+// alguna parte del código necesita acceso directo.
 
 // Wrapper seguro sobre localStorage
 function safeGetItem(key) {
@@ -30,6 +40,8 @@ function safeRemoveItem(key) {
 }
 
 // Helpers JSON genéricos
+// getJSON: lee y parsea JSON desde localStorage. Devuelve `fallback`
+// si la clave no existe o si el contenido no es JSON válido.
 export function getJSON(key, fallback = null) {
     const raw = safeGetItem(key);
     if (raw == null) return fallback;
@@ -41,6 +53,7 @@ export function getJSON(key, fallback = null) {
     }
 }
 
+// setJSON: serializa y guarda un valor en localStorage usando safeSetItem.
 export function setJSON(key, value) {
     try {
         const raw = JSON.stringify(value);
