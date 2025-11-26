@@ -23,9 +23,14 @@ export default function Register() {
     usuarios.push(nuevoUsuario);
     localStorage.setItem('usuarios', JSON.stringify(usuarios));
     localStorage.setItem('currentUserEmail', nuevoUsuario.email);
+    // Also store a small user object for the app header (compatibility)
+    const storedUser = { nombre: nuevoUsuario.nombre, email: nuevoUsuario.email, tipoViajero: nuevoUsuario.tipoViajero, rol: 'user' };
+    try { localStorage.setItem('festi_usuario', JSON.stringify(storedUser)); } catch (e) { console.warn('[Register] could not store festi_usuario', e); }
+    // Notify app that user changed so header (BaseLayout) updates immediately
+    try { window.dispatchEvent(new Event('userChanged')); } catch (e) {}
 
-    alert('¡Cuenta creada con éxito! Ahora, configura tus permisos.');
-    navigate('/permiso-ubicacion');
+    alert('¡Cuenta creada con éxito!');
+    navigate('/home');
   }
 
   return (

@@ -96,6 +96,8 @@ export default function Cuenta() {
 
   if (!currentUser) return null;
 
+  const displayName = (currentUser && (currentUser.nombre || currentUser.name)) || (currentUser && currentUser.email ? currentUser.email.split('@')[0] : 'Usuario');
+
   return (
     <main className="container section">
       <h2 className="page-title">Mi cuenta / Perfil</h2>
@@ -103,10 +105,8 @@ export default function Cuenta() {
       <div className="grid-perfil">
         <aside className="panel-usuario">
           <h3>Usuario registrado</h3>
-          <p><strong>Nombre:</strong> <span id="user-name">{currentUser.nombre}</span></p>
+          <p><strong>Nombre:</strong> <span id="user-name">{displayName}</span></p>
           <p><strong>Email:</strong> <span id="user-email">{currentUser.email}</span></p>
-          <p className="muted" id="user-location">{currentUser.permisoUbicacion ? 'Ubicación: Permiso activo' : 'Ubicación: (no especificada)'}</p>
-          <button type="button" className="btn btn--ghost btn--full-width" id="btn-editar" onClick={() => navigate('/permiso-ubicacion')}>Editar</button>
         </aside>
 
         <div className="panel-ajustes">
@@ -135,17 +135,7 @@ export default function Cuenta() {
                 </select>
               </label>
             </div>
-
-            <h4 className="section-subtitle">Mis Intereses</h4>
-            <div className="chips" id="interes-chips-container">
-              {currentUser.intereses && currentUser.intereses.tags && currentUser.intereses.tags.length > 0 ? (
-                currentUser.intereses.tags.map((tag, i) => (
-                  <button key={i} className="chip is-on" disabled>{tag.replace(/_/g, ' ')}</button>
-                ))
-              ) : (
-                <p className="muted">Aún no has seleccionado intereses.</p>
-              )}
-            </div>
+            
           </section>
 
           <section className="form-section">

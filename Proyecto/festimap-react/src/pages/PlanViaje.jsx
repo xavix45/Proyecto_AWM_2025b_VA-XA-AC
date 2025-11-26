@@ -8,7 +8,7 @@ import { jsPDF } from "jspdf";
 import * as turf from "@turf/turf";
 
 import { list as listEventos } from "../services/eventos.service";
-import { add as addAgenda } from "../services/agenda.service";
+import { add as addAgenda, list as listAgenda } from "../services/agenda.service";
 
 import "leaflet/dist/leaflet.css";
 import "../styles/pages/plan-de-viaje.css";
@@ -158,8 +158,28 @@ function nearestNeighbor(items) {
    COMPONENTE PRINCIPAL
    ===================================================== */
 
-const STORAGE_KEY = "festi_plan_ruta_avanzado_v2";
+const STORAGE_KEY_BASE = "festi_plan_ruta_avanzado_v2";
 const DEMO_USER_ID = "demo-user";
+
+function getCurrentUserId() {
+  try {
+    const raw = localStorage.getItem('festi_usuario');
+    if (raw) {
+      const u = JSON.parse(raw);
+      if (u && (u.email || u.id)) return u.email || u.id;
+    }
+  } catch (e) {
+    // ignore
+  }
+  const email = localStorage.getItem('currentUserEmail');
+  if (email) return email;
+  return DEMO_USER_ID;
+}
+
+function storageKeyForUser() {
+  const id = getCurrentUserId();
+  return `${STORAGE_KEY_BASE}:${id}`;
+}
 
 export default function PlanViaje() {
   /* ----- Dataset de eventos para sugerencias ----- */
@@ -245,7 +265,7 @@ export default function PlanViaje() {
      ========================= */
   useEffect(() => {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
+      const raw = localStorage.getItem(storageKeyForUser());
       if (!raw) return;
       const saved = JSON.parse(raw);
       if (saved.form) setForm((prev) => ({ ...prev, ...saved.form }));
@@ -265,7 +285,11 @@ export default function PlanViaje() {
       itinerario,
       activeDay,
     };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+    try {
+      localStorage.setItem(storageKeyForUser(), JSON.stringify(payload));
+    } catch (e) {
+      console.warn('[PlanViaje] could not persist plan for user', e);
+    }
   }, [form, itinerario, activeDay]);
 
   /* =========================
@@ -499,6 +523,16 @@ export default function PlanViaje() {
 
     let filtered = dentro;
 
+    // Excluir eventos que ya estén en la agenda del usuario
+    try {
+      const uid = getCurrentUserId();
+      const agendaItems = listAgenda(uid) || [];
+      const agendaIds = new Set(agendaItems.map(i => String(i.idEvento)));
+      filtered = filtered.filter(e => !agendaIds.has(String(e.id)));
+    } catch (e) {
+      // ignore
+    }
+
     // Fecha
     const fi = parseDateFlexible(form.fechaIni);
     if (fi) {
@@ -506,27 +540,13 @@ export default function PlanViaje() {
       ff.setUTCDate(
         ff.getUTCDate() + (parseInt(form.dias || "1", 10) - 1)
       );
-
+      // Excluir eventos previos a la fecha inicio; mantener eventos sin fecha
       filtered = dentro.filter((ev) => {
-        if (!ev.fecha) return true;
+        if (!ev.fecha) return true; // keep undated events
         const f = parseDateFlexible(ev.fecha);
+        // Only include events that are within [fi, ff]
         return f && f >= fi && f <= ff;
       });
-
-      // Si quedó vacío, intentamos mismo mes
-      if (filtered.length === 0) {
-        filtered = dentro.filter((ev) => {
-          if (!ev.fecha) return true;
-          const f = parseDateFlexible(ev.fecha);
-          return (
-            f &&
-            f.getUTCFullYear() === fi.getUTCFullYear() &&
-            f.getUTCMonth() === fi.getUTCMonth()
-          );
-        });
-      }
-
-      if (filtered.length === 0) filtered = dentro;
     }
 
     // Intereses / tags
@@ -627,6 +647,7 @@ export default function PlanViaje() {
     // Guardar en localStorage ya ocurre automáticamente. Aquí además guardamos en la Agenda demo.
     const fi = parseDateFlexible(form.fechaIni);
     let added = 0;
+    const userId = getCurrentUserId();
     Object.entries(itinerario).forEach(([key, stops]) => {
       const dayIndex = Number(key);
       (stops || []).forEach((s) => {
@@ -639,7 +660,7 @@ export default function PlanViaje() {
         }
         try {
           const planTitle = `${form.origen || "Origen"} → ${form.destino || "Destino"}`;
-          addAgenda(DEMO_USER_ID, { idEvento: s.id, fecha, isPlan: true, planTitle });
+          addAgenda(userId, { idEvento: s.id, fecha, isPlan: true, planTitle });
           added += 1;
         } catch (e) {
           // ignore individual failures
@@ -647,7 +668,7 @@ export default function PlanViaje() {
       });
     });
 
-    alert(`Se han guardado ${added} elementos en tu Agenda (usuario demo).`);
+    alert(`Se han guardado ${added} elementos en tu Agenda.`);
   }
 
   /* =========================
@@ -1029,16 +1050,15 @@ export default function PlanViaje() {
                       const computed = computeTargetDayForEvent(ev);
                       const diasNumCur = form.dias ? parseInt(form.dias, 10) : 1;
                       const outOfRange = computed !== null && computed >= diasNumCur;
-                      const displayDay = computed !== null ? computed + 1 : activeDay + 1;
                       return (
                         <button
                           type="button"
                           className="btn btn--ghost btn--sm"
-                          onClick={() => handleAddStop(ev, computed !== null ? computed : activeDay)}
+                          onClick={() => handleAddStop(ev)}
                           disabled={outOfRange}
-                          title={outOfRange ? `Evento fuera del rango (${displayDay})` : ``}
+                          title={outOfRange ? `Evento fuera del rango (día ${computed + 1})` : ``}
                         >
-                          {outOfRange ? `Fuera de rango (día ${displayDay})` : `+ Añadir al día ${displayDay}`}
+                          Añadir
                         </button>
                       );
                     })()}

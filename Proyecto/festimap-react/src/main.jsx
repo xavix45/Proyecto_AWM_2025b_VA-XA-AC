@@ -17,8 +17,6 @@ import Ubicacion from "./pages/Ubicacion.jsx";
 import PlanViaje from "./pages/PlanViaje.jsx";
 import AdminEventosListado from "./pages/admin/EventosListado.jsx";
 import EventForm from "./pages/admin/EventForm.jsx";
-import PermisoUbicacion from "./pages/PermisoUbicacion.jsx";
-import Intereses from "./pages/Intereses.jsx";
 import Cuenta from "./pages/Cuenta.jsx";
 import Register from "./pages/Register.jsx";
 
@@ -41,8 +39,6 @@ const router = createBrowserRouter([
       { path: "/home", element: <Home /> },
       { path: "/login", element: <Login /> },
             { path: "/registro", element: <Register /> },
-      { path: "/permiso-ubicacion", element: <PermisoUbicacion /> },
-      { path: "/intereses", element: <Intereses /> },
       { path: "/cuenta", element: <Cuenta /> },
       { path: "/agenda", element: <Agenda /> },
       { path: "/region", element: <Region /> },

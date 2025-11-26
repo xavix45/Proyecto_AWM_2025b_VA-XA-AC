@@ -6,11 +6,25 @@ import {
     list as listAgenda,
     remove as removeAgenda,
 } from "../services/agenda.service";
+import { jsPDF } from "jspdf";
 import { getById } from "../services/eventos.service";
 
 import "../styles/pages/agenda.css";
 
-const DEMO_USER_ID = "demo-user"; // luego se integra con auth real
+const DEMO_USER_ID = "demo-user"; // fallback
+
+function getCurrentUserId() {
+    try {
+        const raw = localStorage.getItem('festi_usuario');
+        if (raw) {
+            const u = JSON.parse(raw);
+            if (u && (u.email || u.id)) return u.email || u.id;
+        }
+    } catch (e) {}
+    const email = localStorage.getItem('currentUserEmail');
+    if (email) return email;
+    return DEMO_USER_ID;
+}
 
 function hoyISO() {
     return new Date().toISOString().slice(0, 10);
@@ -42,12 +56,14 @@ export default function Agenda() {
     // Alert checkboxes removed: alert behavior is automatic based on dates
 
     useEffect(() => {
-        const data = listAgenda(DEMO_USER_ID);
+        const uid = getCurrentUserId();
+        const data = listAgenda(uid);
         setItems(data);
     }, []);
 
     function handleRemove(idEvento) {
-        const next = removeAgenda(DEMO_USER_ID, idEvento);
+        const uid = getCurrentUserId();
+        const next = removeAgenda(uid, idEvento);
         setItems(next);
     }
     // Combinamos item de agenda con la info del evento
@@ -114,6 +130,45 @@ export default function Agenda() {
 
     // Alertas demo: tomamos algunos próximos
     const alertas = proximos.slice(0, 5);
+
+    // Exportar la lista mostrada a PDF
+    function handleExportCurrentList() {
+        const lista = (tab === 'proximos') ? proximos : (tab === 'pasados' ? pasados : plans);
+        if (!lista || lista.length === 0) {
+            alert('No hay eventos en la vista seleccionada para exportar.');
+            return;
+        }
+
+        const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+        doc.setFontSize(16);
+        doc.text('Mi Agenda FestiMap', 14, 16);
+        doc.setFontSize(11);
+        doc.text(`Sección: ${tab}`, 14, 24);
+
+        let y = 34;
+        const lineHeight = 7;
+
+        lista.forEach((item, idx) => {
+            if (y > 270) {
+                doc.addPage();
+                y = 20;
+            }
+            const ev = item.evento || {};
+            const titulo = buildTitulo(ev);
+            const fecha = item._fecha || item.fecha || ev.fecha || '';
+            const lugar = buildLugar(ev) || '';
+
+            doc.setFontSize(12);
+            doc.text(`${idx + 1}. ${titulo}`, 14, y);
+            y += lineHeight;
+            doc.setFontSize(10);
+            if (fecha) { doc.text(`Fecha: ${fecha}`, 18, y); y += lineHeight; }
+            if (lugar) { doc.text(`Lugar: ${lugar}`, 18, y); y += lineHeight; }
+            y += 3;
+        });
+
+        doc.save('FestiMap_Agenda.pdf');
+    }
 
     // Estado vacío
     if (eventosEnAgenda.length === 0) {
@@ -360,9 +415,12 @@ export default function Agenda() {
                     </div>
                 </div>
 
-                <div className="alert-options">
-                    {/* Alert options removed: alerts are inferred automatically from dates. */}
-                </div>
+                    <div className="alert-options">
+                        {/* Export current tab to PDF */}
+                        <button type="button" className="btn btn--secondary" onClick={() => handleExportCurrentList()}>
+                            Exportar PDF
+                        </button>
+                    </div>
             </div>
 
             {/* Mapa + lista layout: lista + centro de alertas */}
