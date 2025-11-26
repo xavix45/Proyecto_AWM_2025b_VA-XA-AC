@@ -89,7 +89,7 @@ export default function EventForm() {
 
     // si estamos editando, cargar datos (buscamos en override y en el dataset base)
     if (editId) {
-      const ev = getByIdFull(editId) || cargarEventos().find((e) => String(e.id) === String(editId));
+      const ev = getByIdFull(editId, { admin: true }) || cargarEventos().find((e) => String(e.id) === String(editId));
       if (ev) {
         console.log('[EventForm] Cargando evento para editar:', ev);
         

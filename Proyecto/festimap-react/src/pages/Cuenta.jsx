@@ -1,5 +1,7 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState, useMemo } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { list as listAgenda } from "../services/agenda.service";
+import { getById } from "../services/eventos.service";
 import ConfirmModal from "../components/ConfirmModal";
 import "../styles/pages/cuenta.css";
 
@@ -19,8 +21,7 @@ export default function Cuenta() {
   const [currentUser, setCurrentUser] = useState(null);
   const [indexUser, setIndexUser] = useState(-1);
   const [usuarios, setUsuarios] = useState([]);
-  const DEFAULT_NOTIFS = { alerta24h: false, alerta1h: false, cambios: false, cercanos: false };
-  const [notificaciones, setNotificaciones] = useState(DEFAULT_NOTIFS);
+  const [agendaItems, setAgendaItems] = useState([]);
   const [modal, setModal] = useState({ show: false, title: '', message: '', type: 'info', onConfirm: null });
 
   useEffect(() => {
@@ -51,7 +52,6 @@ export default function Cuenta() {
         email,
         preferencias: {},
         intereses: { tags: [] },
-        notificaciones: { alerta24h: false, alerta1h: false, cambios: false, cercanos: false },
       };
       all.push(nuevo);
       localStorage.setItem(LS_USUARIOS_KEY, JSON.stringify(all));
@@ -61,37 +61,38 @@ export default function Cuenta() {
     setUsuarios(all);
     setIndexUser(idx);
     setCurrentUser(all[idx]);
-    setNotificaciones(all[idx].notificaciones || DEFAULT_NOTIFS);
+    
+    // Cargar agenda del usuario
+    try {
+      const agenda = listAgenda(email);
+      setAgendaItems(agenda || []);
+    } catch (e) {
+      console.warn('[Cuenta] Error cargando agenda:', e);
+      setAgendaItems([]);
+    }
   }, [navigate]);
-  // Toggle handler using a dedicated state slice for notifications
-  function setupNotifToggle(field) {
-    return (e) => {
-      e?.preventDefault?.();
-      const newVal = !notificaciones[field];
-      const updated = { ...notificaciones, [field]: newVal };
-      setNotificaciones(updated);
 
-      // Also update currentUser in memory and persist to localStorage
-      setCurrentUser(prev => {
-        const copy = { ...(prev || {}) };
-        copy.notificaciones = updated;
-        try {
-          const all = JSON.parse(localStorage.getItem(LS_USUARIOS_KEY) || '[]');
-          const idx = all.findIndex(u => u.email === copy.email);
-          if (idx !== -1) {
-            all[idx] = copy;
-            localStorage.setItem(LS_USUARIOS_KEY, JSON.stringify(all));
-            setUsuarios(all);
-            setIndexUser(idx);
-            console.log('[Cuenta] persisted notificaciones:', all[idx].notificaciones);
-          }
-        } catch (err) {
-          console.error('[Cuenta] error persisting notifs', err);
-        }
-        return copy;
-      });
+  // Calcular estadísticas de la agenda del usuario
+  const stats = useMemo(() => {
+    const eventos = agendaItems.map(item => getById(item.idEvento)).filter(Boolean);
+    const categorias = {};
+    const regiones = {};
+    
+    eventos.forEach(ev => {
+      if (ev.categoria) categorias[ev.categoria] = (categorias[ev.categoria] || 0) + 1;
+      if (ev.region) regiones[ev.region] = (regiones[ev.region] || 0) + 1;
+    });
+    
+    const topCategoria = Object.entries(categorias).sort((a, b) => b[1] - a[1])[0];
+    const topRegion = Object.entries(regiones).sort((a, b) => b[1] - a[1])[0];
+    
+    return {
+      totalEventos: eventos.length,
+      categorias: Object.keys(categorias).length,
+      topCategoria: topCategoria ? topCategoria[0] : 'Ninguna',
+      topRegion: topRegion ? topRegion[0] : 'Ninguna',
     };
-  }
+  }, [agendaItems]);
 
   function handleGuardar() {
     if (!currentUser || indexUser === -1) return;
@@ -141,58 +142,112 @@ export default function Cuenta() {
 
       <div className="grid-perfil">
         <aside className="panel-usuario">
-          <h3>Usuario registrado</h3>
-          <p><strong>Nombre:</strong> <span id="user-name">{displayName}</span></p>
-          <p><strong>Email:</strong> <span id="user-email">{currentUser.email}</span></p>
+          <h3>Información Personal</h3>
+          <div className="user-info">
+            <label className="form__label">Nombre completo
+              <input 
+                className="input" 
+                type="text" 
+                value={currentUser.nombre || ''} 
+                onChange={e => setCurrentUser(prev => ({ ...prev, nombre: e.target.value }))}
+                placeholder="Tu nombre completo"
+              />
+            </label>
+            
+            <label className="form__label">Correo electrónico
+              <input 
+                className="input" 
+                type="email" 
+                value={currentUser.email || ''} 
+                disabled
+                style={{ background: '#f5f5f5', cursor: 'not-allowed' }}
+              />
+              <small style={{ fontSize: '0.85rem', color: '#666' }}>El correo no se puede cambiar</small>
+            </label>
+
+            <label className="form__label">Tipo de viajero
+              <select 
+                className="input" 
+                value={currentUser.tipoViajero || 'turista'} 
+                onChange={e => setCurrentUser(prev => ({ ...prev, tipoViajero: e.target.value }))}
+              >
+                <option value="turista">Turista</option>
+                <option value="residente">Residente</option>
+                <option value="estudiante">Estudiante</option>
+                <option value="guia">Guía turístico</option>
+              </select>
+            </label>
+          </div>
         </aside>
 
         <div className="panel-ajustes">
           <section className="form-section">
-            <h3 className="section-title-sm">Preferencias</h3>
-            <div className="form-grid-3">
-              <label className="form__label">Región base
-                <select className="input" id="select-region" value={(currentUser.preferencias && currentUser.preferencias.region) || 'ninguna'} onChange={e => setCurrentUser(prev => ({ ...prev, preferencias: { ...(prev.preferencias || {}), region: e.target.value } }))}>
-                  <option value="ninguna">Selecciona...</option>
-                  <option value="sierra">Sierra</option>
-                  <option value="costa">Costa</option>
-                  <option value="amazonia">Amazonia</option>
-                  <option value="galapagos">Galapagos</option>
-                </select>
-              </label>
-
-              <label className="form__label">Idioma
-                <select className="input" id="select-idioma" value={(currentUser.preferencias && currentUser.preferencias.idioma) || 'es'} onChange={e => setCurrentUser(prev => ({ ...prev, preferencias: { ...(prev.preferencias || {}), idioma: e.target.value } }))}>
-                  <option value="es">Español</option>
-                </select>
-              </label>
-
-              <label className="form__label">Moneda
-                <select className="input" id="select-moneda" value={(currentUser.preferencias && currentUser.preferencias.moneda) || 'usd'} onChange={e => setCurrentUser(prev => ({ ...prev, preferencias: { ...(prev.preferencias || {}), moneda: e.target.value } }))}>
-                  <option value="usd">USD</option>
-                </select>
-              </label>
-            </div>
-            
+            <h3 className="section-title-sm">Preferencias de Viaje</h3>
+            <label className="form__label">Región favorita
+              <select className="input" id="select-region" value={(currentUser.preferencias && currentUser.preferencias.region) || 'ninguna'} onChange={e => setCurrentUser(prev => ({ ...prev, preferencias: { ...(prev.preferencias || {}), region: e.target.value } }))}>
+                <option value="ninguna">Todas las regiones</option>
+                <option value="Sierra">Sierra</option>
+                <option value="Costa">Costa</option>
+                <option value="Amazonía">Amazonía</option>
+                <option value="Galápagos">Galápagos</option>
+              </select>
+              <small style={{ fontSize: '0.85rem', color: '#666', marginTop: '0.25rem', display: 'block' }}>Se priorizarán eventos de esta región en las recomendaciones</small>
+            </label>
           </section>
 
           <section className="form-section">
-            <h3 className="section-title-sm">Notificaciones</h3>
-            <div className="form-row-line">
-              <label>Alertas 24 h antes</label>
-              <button type="button" className={`btn ${notificaciones.alerta24h ? 'is-on' : ''}`} id="btn-notif-24h" onClick={setupNotifToggle('alerta24h')}>{notificaciones.alerta24h ? 'On' : 'Off'}</button>
+            <h3 className="section-title-sm">Categorías de Interés</h3>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+              {['Cultural', 'Gastronomía', 'Religiosa', 'Naturaleza', 'Artesanía', 'Deportes', 'Turismo'].map(cat => {
+                const isSelected = currentUser.intereses?.tags?.includes(cat);
+                return (
+                  <button
+                    key={cat}
+                    type="button"
+                    className={`btn ${isSelected ? 'btn--primary' : 'btn--ghost'}`}
+                    style={{ fontSize: '0.9rem', padding: '0.4rem 0.8rem' }}
+                    onClick={() => {
+                      const current = currentUser.intereses?.tags || [];
+                      const updated = isSelected 
+                        ? current.filter(t => t !== cat)
+                        : [...current, cat];
+                      setCurrentUser(prev => ({
+                        ...prev,
+                        intereses: { ...(prev.intereses || {}), tags: updated }
+                      }));
+                    }}
+                  >
+                    {cat}
+                  </button>
+                );
+              })}
             </div>
-            <div className="form-row-line">
-              <label>Alertas 1 h antes</label>
-              <button type="button" className={`btn ${notificaciones.alerta1h ? 'is-on' : ''}`} id="btn-notif-1h" onClick={setupNotifToggle('alerta1h')}>{notificaciones.alerta1h ? 'On' : 'Off'}</button>
+            <small style={{ fontSize: '0.85rem', color: '#666', marginTop: '0.5rem', display: 'block' }}>
+              Selecciona tus categorías favoritas para recibir recomendaciones personalizadas
+            </small>
+          </section>
+
+          <section className="form-section">
+            <h3 className="section-title-sm">Estadísticas de tu Cuenta</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '1rem' }}>
+              <div style={{ background: '#f8f9fa', padding: '1rem', borderRadius: '8px', textAlign: 'center' }}>
+                <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#0ea5e9' }}>{stats.totalEventos}</div>
+                <div style={{ fontSize: '0.85rem', color: '#666', marginTop: '0.25rem' }}>Eventos en Agenda</div>
+              </div>
+              <div style={{ background: '#f8f9fa', padding: '1rem', borderRadius: '8px', textAlign: 'center' }}>
+                <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#4caf50' }}>{stats.categorias}</div>
+                <div style={{ fontSize: '0.85rem', color: '#666', marginTop: '0.25rem' }}>Categorías Exploradas</div>
+              </div>
             </div>
-            <div className="form-row-line">
-              <label>Cambios de evento</label>
-              <button type="button" className={`btn ${notificaciones.cambios ? 'is-on' : ''}`} id="btn-notif-cambios" onClick={setupNotifToggle('cambios')}>{notificaciones.cambios ? 'On' : 'Off'}</button>
+            <div style={{ marginTop: '1rem', padding: '0.75rem', background: '#f0f9ff', borderLeft: '3px solid #0ea5e9', borderRadius: '4px' }}>
+              <div style={{ fontSize: '0.9rem', color: '#333' }}>
+                <strong>Categoría favorita:</strong> {stats.topCategoria}<br />
+                <strong>Región más visitada:</strong> {stats.topRegion}
+              </div>
             </div>
-            <div className="form-row-line">
-              <label>Nuevos cercanos</label>
-              <button type="button" className={`btn ${notificaciones.cercanos ? 'is-on' : ''}`} id="btn-notif-cercanos" onClick={setupNotifToggle('cercanos')}>{notificaciones.cercanos ? 'On' : 'Off'}</button>
-            </div>
+            <Link to="/agenda" className="btn btn--ghost" style={{ marginTop: '1rem', width: '100%', textAlign: 'center' }}>
+              Ver mi Agenda Completa →
+            </Link>
           </section>
 
           <section className="form-actions">

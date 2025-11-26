@@ -83,7 +83,7 @@ export default function AdminEventosListado() {
     const [seleccionados, setSeleccionados] = useState(() => new Set());
 
     // Opciones para selects (combinamos valores detectados con listas por defecto)
-    const DEFAULT_REGIONS = ["Sierra", "Costa", "Oriente", "Insular"];
+    const DEFAULT_REGIONS = ["Sierra", "Costa", "Oriente", "Galápagos"];
     const DEFAULT_CATEGORIES = [
         "Cultural",
         "Gastronomía",

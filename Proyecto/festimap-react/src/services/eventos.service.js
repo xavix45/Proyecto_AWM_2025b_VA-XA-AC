@@ -128,25 +128,55 @@ export function list(opts = {}) {
     return all.filter((e) => String(e.status || "").toLowerCase() === "approved");
 }
 
-// getById(id): busca un evento por su identificador y devuelve null si
-// no existe.
-export function getById(id) {
+// getById(id, opts): busca un evento por su identificador y devuelve null si
+// no existe o si el usuario no tiene permiso para verlo.
+// opts: { admin: boolean } - Si es admin, puede ver eventos en cualquier estado.
+// Si no es admin, solo puede ver eventos con status "approved".
+export function getById(id, opts = {}) {
+    const { admin = false } = opts;
     const all = getData();
-    return all.find((e) => String(e.id) === String(id)) || null;
+    const evento = all.find((e) => String(e.id) === String(id));
+    
+    if (!evento) return null;
+    
+    // Si no es admin, solo puede ver eventos aprobados
+    if (!admin && String(evento.status || "").toLowerCase() !== "approved") {
+        return null;
+    }
+    
+    return evento;
 }
 
-// getByIdFull: busca primero en el override (si existe) y si no encuentra
+// getByIdFull(id, opts): busca primero en el override (si existe) y si no encuentra
 // en el dataset base `EVENTOS_BASE`. Útil para formularios que deben
 // mostrar eventos base aunque exista un override parcial en localStorage.
-export function getByIdFull(id) {
+// opts: { admin: boolean } - Si es admin, puede ver eventos en cualquier estado.
+export function getByIdFull(id, opts = {}) {
+    const { admin = false } = opts;
+    
     // intentar override primero
     const override = getJSON(ADMIN_KEY, null);
     if (Array.isArray(override) && override.length > 0) {
         const found = override.find((e) => String(e.id) === String(id));
-        if (found) return found;
+        if (found) {
+            // Si no es admin, verificar status
+            if (!admin && String(found.status || "").toLowerCase() !== "approved") {
+                return null;
+            }
+            return found;
+        }
     }
-    // fallback al dataset base
-    return EVENTOS_BASE.find((e) => String(e.id) === String(id)) || null;
+    
+    // luego dataset base
+    const base = EVENTOS_BASE.find((e) => String(e.id) === String(id));
+    if (!base) return null;
+    
+    // Si no es admin, verificar status
+    if (!admin && String(base.status || "").toLowerCase() !== "approved") {
+        return null;
+    }
+    
+    return base;
 }
 
 /**

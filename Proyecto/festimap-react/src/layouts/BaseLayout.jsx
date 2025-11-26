@@ -28,6 +28,7 @@ export default function BaseLayout() {
     const navigate = useNavigate();
     const [user, setUser] = useState(getStoredUser());
     const location = useLocation();
+    const [scrolled, setScrolled] = useState(false);
 
     // Escucha el evento global 'userChanged' que otras páginas disparan
     // cuando actualizan localStorage para que el header se actualice
@@ -36,6 +37,15 @@ export default function BaseLayout() {
         function onUserChanged() { setUser(getStoredUser()); }
         window.addEventListener('userChanged', onUserChanged);
         return () => window.removeEventListener('userChanged', onUserChanged);
+    }, []);
+
+    // Detectar scroll para añadir clase al header
+    useEffect(() => {
+        function handleScroll() {
+            setScrolled(window.scrollY > 10);
+        }
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
   
@@ -58,7 +68,7 @@ export default function BaseLayout() {
         <>
             {/* Hide header on registration page */}
             {location && location.pathname !== '/registro' && (
-                <header className="site-header">
+                <header className={`site-header ${scrolled ? 'header-scrolled' : ''}`}>
                     <div className="container header-inner">
                         <div className="site-logo" aria-hidden="true">FestiMap</div>
 
@@ -77,9 +87,9 @@ export default function BaseLayout() {
                                 <div className="nav-admin">
                                     <button className="btn btn--ghost">Admin</button>
                                     <ul className="admin-submenu" aria-label="Admin menu">
-                                        <li><NavLink to="/admin">Eventos (Listado)</NavLink></li>
-                                        <li><NavLink to="/admin/evento/nuevo">Crear evento</NavLink></li>
-                                        <li><NavLink to="/admin/estadisticas">Estadísticas</NavLink></li>
+                                        <li><NavLink to="/admin">📋 Eventos (Listado)</NavLink></li>
+                                        <li><NavLink to="/admin/evento/nuevo">✨ Crear evento</NavLink></li>
+                                        <li><NavLink to="/admin/estadisticas">📊 Estadísticas</NavLink></li>
                                     </ul>
                                 </div>
                             )}

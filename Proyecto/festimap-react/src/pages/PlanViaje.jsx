@@ -800,142 +800,240 @@ export default function PlanViaje() {
       }
     }
 
-    const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+    // Captura raster del mapa Leaflet (tiles) como imagen base64
+    // Nota: requiere CORS en los servidores de tiles. OSM generalmente lo permite.
+    async function captureMapDataUrl() {
+      const mapEl = mapContainerRef.current;
+      const map = mapRef.current;
+      if (!mapEl || !map) return null;
+      const rect = mapEl.getBoundingClientRect();
+      const w = Math.max(1, Math.floor(rect.width));
+      const h = Math.max(1, Math.floor(rect.height));
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#e5e7eb';
+      ctx.fillRect(0, 0, w, h);
 
-    const colorAccent = { r: 250, g: 204, b: 21 }; // amarillo
+      // 1) Dibujar tiles
+      const tileImgs = Array.from(mapEl.querySelectorAll('.leaflet-tile-pane img.leaflet-tile'));
+      const containerRect = mapEl.getBoundingClientRect();
+      try {
+        for (const img of tileImgs) {
+          const r = img.getBoundingClientRect();
+          const x = Math.round(r.left - containerRect.left);
+          const y = Math.round(r.top - containerRect.top);
+          // Intentar dibujar la misma instancia; si CORS bloquea, abortará más abajo
+          ctx.drawImage(img, x, y);
+        }
+      } catch (e) {
+        // Si se taintó el canvas por CORS, no podremos exportar; devolvemos null
+        return null;
+      }
+
+      // 2) Dibujar la ruta (si existe) encima, usando proyección del mapa
+      try {
+        const route = routeStateRef.current?.geometry;
+        if (route && route.type && (route.type === 'LineString' || route.type === 'MultiLineString')) {
+          const segments = route.type === 'LineString' ? [route.coordinates] : route.coordinates;
+          ctx.lineWidth = 4; ctx.strokeStyle = '#7c3aed'; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+          for (const coords of segments) {
+            ctx.beginPath();
+            for (let i = 0; i < coords.length; i++) {
+              const [lng, lat] = coords[i];
+              const p = map.latLngToContainerPoint([lat, lng]);
+              if (i === 0) ctx.moveTo(p.x, p.y); else ctx.lineTo(p.x, p.y);
+            }
+            ctx.stroke();
+          }
+        }
+      } catch {}
+
+      try {
+        return canvas.toDataURL('image/jpeg', 0.85);
+      } catch (e) {
+        return null;
+      }
+    }
+
+    // --- Crear PDF A4 apaisado (tríptico: 3 paneles por cara) ---
+    const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+    const PAGE_W = 297, PAGE_H = 210;
+    const PANEL_W = PAGE_W / 3; // ~99mm
+    const M = 6; // margen interno para contenidos
+
+    const colorAccent = { r: 255, g: 184, b: 0 }; // amarillo
     const colorInk = { r: 15, g: 23, b: 42 }; // azul oscuro
-    const colorSoft = { r: 249, g: 250, b: 251 };
+    const colorSoft = { r: 248, g: 250, b: 252 }; // gris muy claro
+    const colorViolet = { r: 124, g: 58, b: 237 };
 
-    // Portada más visual: usar la primera imagen disponible como hero
-    const firstImageUrl = Object.values(itinerario)
+    // Utilidad: dibujar título de panel
+    function panelTitle(x, y, w, label) {
+      doc.setFillColor(colorInk.r, colorInk.g, colorInk.b);
+      doc.roundedRect(x + M, y + M, w - 2 * M, 10, 2, 2, "F");
+      doc.setTextColor(255, 255, 255);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(12);
+      doc.text(label, x + M + 4, y + M + 7);
+    }
+
+    // Utilidad: proyectar ruta geojson a un rectángulo (x,y,w,h)
+    function drawRouteSchematic(geometry, x, y, w, h) {
+      try {
+        const coords = geometry.type === 'LineString' ? geometry.coordinates
+          : geometry.type === 'MultiLineString' ? geometry.coordinates.flat()
+          : [];
+        if (!coords.length) return;
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        for (const [lng, lat] of coords) {
+          if (lng < minX) minX = lng; if (lng > maxX) maxX = lng;
+          if (lat < minY) minY = lat; if (lat > maxY) maxY = lat;
+        }
+        const pad = 0.02; // relleno
+        minX -= pad; maxX += pad; minY -= pad; maxY += pad;
+        const sx = (val) => x + 8 + ((val - minX) / (maxX - minX || 1)) * (w - 16);
+        const sy = (val) => {
+          // Invertir Y porque latitudes crecen hacia arriba
+          return y + 8 + (1 - (val - minY) / (maxY - minY || 1)) * (h - 16);
+        };
+
+        // Fondo
+        doc.setFillColor(colorSoft.r, colorSoft.g, colorSoft.b);
+        doc.roundedRect(x + M, y + 16, w - 2 * M, h - (16 + M), 3, 3, "F");
+
+        // Ruta
+        doc.setDrawColor(colorViolet.r, colorViolet.g, colorViolet.b);
+        doc.setLineWidth(1.2);
+        for (let i = 1; i < coords.length; i++) {
+          const [lng1, lat1] = coords[i - 1];
+          const [lng2, lat2] = coords[i];
+          doc.line(sx(lng1), sy(lat1), sx(lng2), sy(lat2));
+        }
+
+        // Origen/destino como círculos
+        const [lngStart, latStart] = coords[0];
+        const [lngEnd, latEnd] = coords[coords.length - 1];
+        doc.setFillColor(colorAccent.r, colorAccent.g, colorAccent.b);
+        doc.circle(sx(lngStart), sy(latStart), 2.2, "F");
+        doc.setFillColor(34, 197, 94);
+        doc.circle(sx(lngEnd), sy(latEnd), 2.2, "F");
+      } catch {}
+    }
+
+    // Imagen destacada de portada (toma el primer campo disponible)
+    const firstWithImage = Object.values(itinerario)
       .flat()
-      .find((s) => s && (s.imagen || s.image || s.img || s.imageUrl))?.imagen;
-
+      .find((s) => s && (s.imagen || s.image || s.img || s.imageUrl || s.imagenUrl));
+    const firstImageUrl = firstWithImage?.imagen || firstWithImage?.image || firstWithImage?.img || firstWithImage?.imageUrl || firstWithImage?.imagenUrl;
     let heroData = null;
     if (firstImageUrl) heroData = await fetchImageDataUrl(firstImageUrl);
 
-    // Draw header
+    // Cara 1 (exterior): [Izq=Contraportada] [Centro=Portada] [Der=Solapa]
+    // Panel Centro (Portada)
+    const P0_X = 0, P1_X = PANEL_W, P2_X = 2 * PANEL_W; // x paneles
     if (heroData) {
-      try {
-        doc.addImage(heroData, "JPEG", 0, 0, 210, 60);
-      } catch (e) {
-        doc.setFillColor(colorInk.r, colorInk.g, colorInk.b);
-        doc.rect(0, 0, 210, 60, "F");
-      }
-    } else {
-      doc.setFillColor(colorInk.r, colorInk.g, colorInk.b);
-      doc.rect(0, 0, 210, 60, "F");
+      try { doc.addImage(heroData, "JPEG", P1_X + M, M + 12, PANEL_W - 2 * M, 80); } catch {}
     }
-
-    doc.setTextColor(255, 255, 255);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(22);
-    doc.text("FestiMap Ecuador", 14, 22);
-    doc.setFontSize(16);
-    doc.text("Plan de viaje cultural", 14, 38);
-
-    // Resumen tarjeta
-    doc.setFillColor(colorSoft.r, colorSoft.g, colorSoft.b);
-    doc.roundedRect(12, 66, 186, 32, 3, 3, "F");
+    panelTitle(P1_X, 0, PANEL_W, "FestiMap — Tríptico de viaje");
     doc.setTextColor(colorInk.r, colorInk.g, colorInk.b);
+    doc.setFont("helvetica", "normal");
     doc.setFontSize(10);
-    doc.text(`Origen: ${form.origen || "—"}`, 18, 74);
-    doc.text(`Destino: ${form.destino || "—"}`, 18, 80);
-    doc.text(`Días: ${form.dias || "—"}`, 18, 86);
-    doc.text(`Paradas totales: ${totalParadas}`, 120, 80);
+    doc.text(`Origen: ${form.origen || '—'}`, P1_X + M, 110);
+    doc.text(`Destino: ${form.destino || '—'}`, P1_X + M, 116);
+    doc.text(`Días: ${diasNum}`, P1_X + M, 122);
+    doc.text(`Paradas: ${totalParadas}`, P1_X + M, 128);
 
-    // Itinerario por día con miniaturas
-    let y = 110;
-    for (let day = 0; day < diasNum; day++) {
-      const stops = getDayStops(day);
-      const resumen = resumenDias[day] || { km: 0, min: 0, paradas: 0 };
-
-      if (y > 250) {
-        doc.addPage();
-        y = 20;
+    // Panel Derecho (Solapa): resumen, captura de mapa
+    panelTitle(P2_X, 0, PANEL_W, "Resumen e instrucciones");
+    doc.setTextColor(71, 85, 105);
+    doc.setFontSize(9);
+    doc.text("• Escanea los QR o usa 'Cómo llegar' en cada parada.", P2_X + M, 26);
+    doc.text("• Revisa fechas y horarios; pueden cambiar.", P2_X + M, 32);
+    doc.text("• Comparte este documento con tu grupo.", P2_X + M, 38);
+    // Captura real del mapa si es posible (fallback: esquema)
+    const mapSnap = await captureMapDataUrl();
+    if (mapSnap) {
+      try { doc.addImage(mapSnap, 'JPEG', P2_X + M, 44, PANEL_W - 2*M, 90); } catch {}
+      doc.setTextColor(100);
+      doc.setFontSize(8);
+      doc.text("Mapa de tu ruta (captura)", P2_X + M, 44 + 90 + 10);
+    } else {
+      const routeState = routeStateRef.current;
+      if (routeState?.geometry) {
+        drawRouteSchematic(routeState.geometry, P2_X, 40, PANEL_W, 80);
+        doc.setTextColor(100);
+        doc.setFontSize(8);
+        doc.text("Esquema de ruta (no a escala)", P2_X + M, 40 + 80 + 10);
       }
-
-      // Cabecera del día
-      doc.setFillColor(colorInk.r, colorInk.g, colorInk.b);
-      doc.roundedRect(12, y - 6, 36, 8, 2, 2, "F");
-      doc.setTextColor(255, 255, 255);
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(10);
-      doc.text(`Día ${day + 1}`, 14, y - 0.5);
-
-      doc.setTextColor(colorInk.r, colorInk.g, colorInk.b);
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(10);
-      doc.text(`${resumen.km.toFixed(1)} km • ${resumen.min} min • ${resumen.paradas} paradas`, 56, y);
-      y += 8;
-
-      if (!stops.length) {
-        doc.setFontSize(9);
-        doc.setTextColor(148, 163, 184);
-        doc.text("— sin paradas para este día —", 18, y + 2);
-        y += 14;
-        continue;
-      }
-
-      for (let i = 0; i < stops.length; i++) {
-        const s = stops[i];
-        if (y > 250) {
-          doc.addPage();
-          y = 20;
-        }
-
-        // Try fetch image (one per stop)
-        let imgData = null;
-        const url = s.imagen || s.image || s.img || s.imageUrl || s.imagenUrl;
-        if (url) imgData = await fetchImageDataUrl(url).catch(() => null);
-
-        // Draw thumbnail or placeholder
-        if (imgData) {
-          try {
-            doc.addImage(imgData, "JPEG", 14, y, 30, 22);
-          } catch (e) {
-            doc.setFillColor(colorSoft.r, colorSoft.g, colorSoft.b);
-            doc.rect(14, y, 30, 22, "F");
-          }
-        } else {
-          doc.setFillColor(colorSoft.r, colorSoft.g, colorSoft.b);
-          doc.roundedRect(14, y, 30, 22, 2, 2, "F");
-        }
-
-        // Texto a la derecha de la imagen
-        doc.setFontSize(10);
-        doc.setTextColor(colorInk.r, colorInk.g, colorInk.b);
-        const title = s.titulo || s.name || s.nombre || `Parada ${i + 1}`;
-        doc.text(`${i + 1}. ${title}`, 48, y + 6);
-
-        // Meta: fecha, lugar
-        const metaParts = [];
-        if (s.fecha) metaParts.push(s.fecha);
-        const lugar = [s.lugar, s.ciudad, s.provincia].filter(Boolean).join(", ");
-        if (lugar) metaParts.push(lugar);
-        if (metaParts.length) {
-          doc.setFontSize(9);
-          doc.setTextColor(102, 112, 133);
-          doc.text(metaParts.join(" • "), 48, y + 12);
-        }
-
-        // How to get: provide Google Maps link text (user can copy)
-        if (s.lat && s.lng) {
-          const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${s.lat},${s.lng}`;
-          doc.setFontSize(8);
-          doc.setTextColor(59, 130, 246);
-          doc.textWithLink("Cómo llegar", 48, y + 18, { url: mapsUrl });
-        }
-
-        y += 28;
-      }
-      y += 6;
     }
 
-    doc.setFontSize(8);
-    doc.setTextColor(148, 163, 184);
-    doc.text("Generado con FestiMap Ecuador — Guía de festividades y rutas culturales.", 14, 292);
-    doc.save("FestiMap_Plan_de_viaje.pdf");
+    // Panel Izquierdo (Contraportada)
+    panelTitle(P0_X, 0, PANEL_W, "FestiMap Ecuador");
+    doc.setTextColor(71, 85, 105);
+    doc.setFontSize(9);
+    doc.text("Guía de festividades y rutas culturales.", P0_X + M, 26);
+    doc.text("festimapes.ec — © 2025", P0_X + M, 32);
+
+    // Cara 2 (interior): detalle de días con tarjetas enriquecidas
+    doc.addPage();
+    // Render de todos los días, 3 paneles por página
+    let dayIndex = 0;
+    while (dayIndex < diasNum) {
+      for (let col = 0; col < 3 && dayIndex < diasNum; col++, dayIndex++) {
+        const x = col * PANEL_W;
+        const stops = getDayStops(dayIndex);
+        const resumen = resumenDias[dayIndex] || { km: 0, min: 0, paradas: 0 };
+        panelTitle(x, 0, PANEL_W, `Día ${dayIndex + 1}`);
+        doc.setTextColor(colorInk.r, colorInk.g, colorInk.b);
+        doc.setFontSize(9);
+        doc.text(`${resumen.km.toFixed(1)} km • ${resumen.min} min • ${resumen.paradas} paradas`, x + M, 24);
+
+        let yy = 30;
+        for (let i = 0; i < stops.length && i < 5; i++) {
+          const s = stops[i];
+          // Imagen más grande 40x28 para más presencia
+          let imgData = null;
+          const url = s.imagen || s.image || s.img || s.imageUrl || s.imagenUrl;
+          if (url) imgData = await fetchImageDataUrl(url).catch(() => null);
+          doc.setDrawColor(230);
+          if (imgData) {
+            try { doc.addImage(imgData, 'JPEG', x + M, yy, 40, 28); } catch { doc.rect(x + M, yy, 40, 28); }
+          } else {
+            doc.rect(x + M, yy, 40, 28);
+          }
+          // Título + descripción + meta
+          const title = s.titulo || s.name || s.nombre || `Parada ${i + 1}`;
+          doc.setTextColor(colorInk.r, colorInk.g, colorInk.b);
+          doc.setFontSize(9);
+          doc.text(title, x + M + 44, yy + 6, { maxWidth: PANEL_W - (2*M + 46) });
+          if (s.descripcion) {
+            doc.setTextColor(90);
+            doc.setFontSize(8);
+            doc.text(String(s.descripcion), x + M + 44, yy + 12, { maxWidth: PANEL_W - (2*M + 46) });
+          }
+          const metaParts = [];
+          if (s.fecha) metaParts.push(s.fecha);
+          const lugar = [s.lugar, s.ciudad, s.provincia].filter(Boolean).join(', ');
+          if (lugar) metaParts.push(lugar);
+          if (metaParts.length) {
+            doc.setTextColor(110);
+            doc.setFontSize(8);
+            doc.text(metaParts.join(' • '), x + M + 44, yy + 20, { maxWidth: PANEL_W - (2*M + 46) });
+          }
+          if (s.lat && s.lng) {
+            const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${s.lat},${s.lng}`;
+            doc.setTextColor(59, 130, 246);
+            doc.setFontSize(8);
+            doc.textWithLink('Cómo llegar', x + M + 44, yy + 26, { url: mapsUrl });
+          }
+          yy += 34;
+          if (yy > PAGE_H - 24) break;
+        }
+      }
+      if (dayIndex < diasNum) doc.addPage();
+    }
+
+    doc.save("FestiMap_Triptico.pdf");
   }
 
   /* =========================
@@ -1121,15 +1219,17 @@ export default function PlanViaje() {
                       const computed = computeTargetDayForEvent(ev);
                       const diasNumCur = form.dias ? parseInt(form.dias, 10) : 1;
                       const outOfRange = computed !== null && computed >= diasNumCur;
+                      const targetDay = computed !== null ? computed : activeDay;
+                      const buttonText = `Añadir al Día ${targetDay + 1}`;
                       return (
                         <button
                           type="button"
                           className="btn btn--ghost btn--sm"
                           onClick={() => handleAddStop(ev)}
                           disabled={outOfRange}
-                          title={outOfRange ? `Evento fuera del rango (día ${computed + 1})` : ``}
+                          title={outOfRange ? `Evento fuera del rango (día ${computed + 1})` : `Se agregará al día ${targetDay + 1}`}
                         >
-                          Añadir
+                          {buttonText}
                         </button>
                       );
                     })()}

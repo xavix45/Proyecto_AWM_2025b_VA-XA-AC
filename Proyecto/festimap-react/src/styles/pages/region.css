@@ -156,6 +156,32 @@
     color: var(--muted);
 }
 
+/* Botón "Ver detalle" */
+.card .btn {
+    margin-top: auto;
+    width: 100%;
+    text-align: center;
+    font-weight: 700;
+    padding: 10px 16px;
+    border-radius: 8px;
+    transition: all 0.25s ease;
+}
+
+.card .btn--ghost {
+    background: transparent;
+    color: var(--violet);
+    border: 2px solid var(--violet);
+    box-shadow: none;
+}
+
+.card .btn--ghost:hover {
+    background: var(--violet);
+    color: white;
+    border-color: var(--violet);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(91, 33, 182, 0.25);
+}
+
 /* 9. Efecto hover y seleccionado */
 .card:hover {
     transform: translateY(-4px);

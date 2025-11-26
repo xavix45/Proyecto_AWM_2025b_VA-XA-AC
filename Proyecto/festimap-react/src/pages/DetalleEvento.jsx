@@ -39,7 +39,6 @@ export default function DetalleEvento() {
   const evento = getById(id);
   const TODOS_EVENTOS = listEventos();
 
-  const [isFav, setIsFav] = useState(false);
   const [rating, setRating] = useState(0);
   const [comentario, setComentario] = useState("");
   const [modal, setModal] = useState({ show: false, title: '', message: '', type: 'info', onConfirm: null });
@@ -109,16 +108,6 @@ export default function DetalleEvento() {
       type: 'success',
       onConfirm: () => setModal({ show: false, title: '', message: '', type: 'info', onConfirm: null })
     });
-  }
-
-  function handleToggleFavorito() {
-    const next = !isFav;
-    setIsFav(next);
-
-    // demo: si lo marcamos como favorito, también lo agregamos a agenda
-    if (next) {
-      handleAgregarAgenda();
-    }
   }
 
   function handleVerMapa() {
@@ -219,13 +208,6 @@ export default function DetalleEvento() {
         </div>
 
         <div className="detail-actions">
-          <button
-            type="button"
-            className="btn btn--ghost"
-            onClick={handleToggleFavorito}
-          >
-            {isFav ? "Quitar de favoritos" : "Agregar a favoritos"}
-          </button>
           <button
             type="button"
             className="btn btn--primary"
