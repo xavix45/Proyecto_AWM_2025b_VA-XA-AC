@@ -1,4 +1,8 @@
 import { useEffect, useRef, useState } from "react";
+// PAGINA: Admin EventForm
+// Token de búsqueda: PAGE:AdminEventForm
+// Formulario de administración para crear/editar eventos. Usa override en
+// localStorage `fm:eventos:admin`. Estados/refs: `formRef`, `thumbsRef`, `imagePreview`, `provincias`, `modal`.
 import { useNavigate, useSearchParams, useParams } from "react-router-dom";
 import { getJSON, setJSON } from "../../lib/storage";
 import { getByIdFull } from "../../services/eventos.service";

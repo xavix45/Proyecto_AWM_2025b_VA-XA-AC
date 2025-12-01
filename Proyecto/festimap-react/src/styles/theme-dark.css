@@ -1,5 +1,9 @@
 /* Dark theme overrides applied when body has class .modo-oscuro-bienvenida */
 :root {}
+/* STYLE: theme-dark.css
+  Token de búsqueda: STYLE:theme-dark
+  Variables y ajustes para tema oscuro. Buscar `STYLE:theme-dark` para localizar.
+*/
 
 .modo-oscuro-bienvenida {
   /* Core tokens for dark mode. Components should reference these tokens. */

@@ -1,4 +1,9 @@
 // src/pages/Tema.jsx
+// PAGINA: Tema
+// Token de búsqueda: PAGE:Tema
+// Página para explorar eventos por tema/interés. Soporta búsqueda por texto,
+// filtros (tipo, región, provincia, fecha) y orden (fecha/relevancia).
+// Estados principales: `textoInput`, `textoBusqueda`, `tipo`, `region`, `provincia`, `fecha`, `orden`.
 import { useState, useMemo, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { list as listEventos } from "../services/eventos.service";

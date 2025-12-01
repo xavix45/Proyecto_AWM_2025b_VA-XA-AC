@@ -1,3 +1,7 @@
+/* STYLE: components/confirm-modal.css
+    Token de búsqueda: STYLE:confirm-modal
+    Estilos del modal de confirmación (clases `.confirm-modal*`).
+    Buscar `STYLE:confirm-modal` para localizar este fichero rápidamente. */
 /* Modal de confirmación personalizado para EventosListado */
 
 .confirm-modal-backdrop {

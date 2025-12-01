@@ -1,4 +1,8 @@
 // src/pages/admin/EventosListado.jsx
+// PAGINA: AdminEventosListado
+// Token de búsqueda: PAGE:AdminEventosListado
+// Panel de administración: listado, filtrado y acciones masivas sobre eventos.
+// Estados principales: `eventos`, `confirmModal`, `q`, `fRegion`, `fCategoria`, `seleccionados`.
 import { useMemo, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { list as listEventos } from "../../services/eventos.service";

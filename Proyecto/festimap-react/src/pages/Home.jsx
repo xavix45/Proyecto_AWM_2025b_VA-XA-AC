@@ -1,4 +1,8 @@
 // src/pages/Home.jsx
+// PAGINA: Home
+// Token de búsqueda: PAGE:Home
+// Página principal con buscador, filtros, carrusel de destacados y lista lateral.
+// Estados principales: `texto`, `region`, `tipo`, `fecha`.
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { list as listEventos } from "../services/eventos.service";

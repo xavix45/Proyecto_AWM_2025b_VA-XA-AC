@@ -1,4 +1,9 @@
 // src/pages/Region.jsx
+// PAGINA: Region
+// Token de búsqueda: PAGE:Region
+// Página para explorar eventos por región. Incluye tabs por región,
+// filtros (provincia, cantón) y vista de mapa embebido. Estados principales:
+// `regionActual`, `provincia`, `canton`, `texto`, `selectedId`.
 import { useLocation, Link } from "react-router-dom";
 import { useMemo, useState, useEffect } from "react";
 import { list as listEventos } from "../services/eventos.service";

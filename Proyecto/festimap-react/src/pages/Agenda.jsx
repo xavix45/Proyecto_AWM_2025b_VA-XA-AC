@@ -1,4 +1,6 @@
 // src/pages/Agenda.jsx
+// PAGINA: Agenda
+// Token de búsqueda: PAGE:Agenda
 // Página que muestra la "Agenda" del usuario: eventos guardados (por usuario)
 // y permite eliminar items. También agrupa próximos/pasados y ofrece exportar
 // la lista visible a PDF.

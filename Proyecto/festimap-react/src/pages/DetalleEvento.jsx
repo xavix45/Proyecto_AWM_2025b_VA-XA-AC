@@ -1,4 +1,9 @@
 // src/pages/DetalleEvento.jsx
+// PAGINA: DetalleEvento
+// Token de búsqueda: PAGE:DetalleEvento
+// Muestra detalles completos de un evento, permite añadir a agenda,
+// registrar asistencia y enviar reseñas (rating + comentario).
+// Estados: `rating`, `comentario`, `modal`.
 import { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 

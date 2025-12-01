@@ -1,4 +1,10 @@
 // src/components/EventCard.jsx
+// COMPONENT: EventCard
+// Search token: COMPONENT:EventCard
+// Tarjeta de evento reutilizable para listados y home.
+// Props:
+//  - `event`: objeto con campos { id, titulo/nombre, ciudad, fecha, descripcion, tema, categoria, region, imagen }
+// Uso: buscar `COMPONENT:EventCard` para localizar rápidamente este componente.
 import { Link } from "react-router-dom";
 import "../styles/pages/home.css";
 

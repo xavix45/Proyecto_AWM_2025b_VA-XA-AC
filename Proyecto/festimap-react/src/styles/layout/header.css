@@ -1,4 +1,9 @@
 .fm-header {
+/* STYLE: layout/header.css
+    Token de búsqueda: STYLE:layout_header
+    Estilos del header/layout principal (barra superior, navegación).
+*/
+.fm-header {
     position: sticky;
     top: 0;
     z-index: 40;

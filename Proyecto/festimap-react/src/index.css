@@ -1,3 +1,7 @@
+/* STYLE: index.css
+  Token de búsqueda: STYLE:index
+  Estilos globales de entrada (font, resets específicos y variables de color).
+*/
 @import './styles/base/_tokens.css';
 
 :root {

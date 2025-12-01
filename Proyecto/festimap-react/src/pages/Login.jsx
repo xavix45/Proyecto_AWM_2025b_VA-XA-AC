@@ -8,6 +8,10 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [modal, setModal] = useState({ show: false, title: '', message: '', type: 'info', onConfirm: null });
+    // PAGINA: Login
+    // Token de búsqueda: PAGE:Login
+    // Formulario de inicio de sesión. Valida credenciales (hardcode + usuarios en localStorage),
+    // persiste `festi_usuario` y `currentUserEmail` en localStorage y notifica con `userChanged`.
 
   function handleSubmit(e) {
     e.preventDefault();
@@ -84,13 +88,6 @@ export default function Login() {
             onChange={(e) => setPassword(e.target.value)}
           />
         </label>
-
-        <div className="form__row">
-          <label className="checkbox">
-            <input type="checkbox" /> Recuérdame
-          </label>
-          <Link className="link" to="/reset-solicitud">¿Olvidaste tu contraseña?</Link>
-        </div>
 
         <input className="btn btn--primary form__submit" type="submit" value="Entrar" />
 

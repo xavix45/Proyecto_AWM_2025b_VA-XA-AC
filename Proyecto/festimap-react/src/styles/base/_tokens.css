@@ -1,3 +1,7 @@
+/* STYLE: base/_tokens.css
+    Token de búsqueda: STYLE:base_tokens
+    Tokens base (variables) compartidos por todo el sistema de estilos.
+*/
 :root {
     /* --- Paleta de Colores --- */
     --ink: #0f172a;

@@ -1,4 +1,7 @@
 // src/pages/Landing.jsx
+// PAGINA: Landing
+// Token de búsqueda: PAGE:Landing
+// Página de bienvenida / landing. Muestra hero con video, destacados y CTA.
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { list as listEventos } from "../services/eventos.service";

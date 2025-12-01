@@ -5,6 +5,8 @@ import { getById } from "../services/eventos.service";
 import ConfirmModal from "../components/ConfirmModal";
 import "../styles/pages/cuenta.css";
 
+// PAGINA: Cuenta
+// Token de búsqueda: PAGE:Cuenta
 // Página de perfil del usuario. Lee `usuarios` y `currentUserEmail` de
 // localStorage para mostrar y editar preferencias, intereses y notificaciones.
 // Notas:

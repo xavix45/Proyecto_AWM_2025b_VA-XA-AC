@@ -1,4 +1,6 @@
 // src/layouts/BaseLayout.jsx
+// LAYOUT: BaseLayout
+// Token de búsqueda: LAYOUT:BaseLayout
 // Layout principal que envuelve las páginas internas de la aplicación.
 // Contiene el header (navegación) y el footer. También detecta el usuario
 // actual en localStorage para mostrar el enlace "Mi cuenta" o el botón

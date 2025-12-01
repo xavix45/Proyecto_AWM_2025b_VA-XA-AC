@@ -1,3 +1,7 @@
+/* STYLE: components/_button.css
+    Token de búsqueda: STYLE:_button
+    Estilos base de botones usados por los componentes (clases `.btn`, `.btn--primary`, etc.).
+    Buscar `STYLE:_button` para localizar rápidamente. */
 /* Estilos base de botones */
 .btn {
     display: inline-block;

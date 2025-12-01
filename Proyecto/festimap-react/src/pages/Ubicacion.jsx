@@ -1,4 +1,10 @@
 // src/pages/Ubicacion.jsx
+// PAGINA: Ubicacion
+// Token de búsqueda: PAGE:Ubicacion
+// Página que solicita permiso de geolocalización al usuario y guarda
+// la preferencia en localStorage (modo demo). Proporciona acciones:
+// - permitir (usa `navigator.geolocation`), - más tarde (guardar false).
+// Estados principales: `estado` (permiso/ciudad/lat/lng), `modal`.
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { getJSON, setJSON } from "../lib/storage";

@@ -1,3 +1,7 @@
+/* STYLE: tokens.css
+    Token de búsqueda: STYLE:tokens
+    Variables CSS (tokens) compartidos: colores, radios, tamaños, etc.
+*/
 :root {
     /* --- Paleta de Colores --- */
     --ink: #0f172a;

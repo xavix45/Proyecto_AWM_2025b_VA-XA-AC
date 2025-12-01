@@ -8,6 +8,10 @@
 }
 
 /* Título centrado tipo "section-narrow center" */
+/* STYLE: pages/ubicacion.css
+    Token de búsqueda: STYLE:ubicacion
+    Estilos para la página `Ubicacion` (botones, estado y layout de la card).
+*/
 .page-ubicacion__header {
     text-align: center;
     max-width: 520px;

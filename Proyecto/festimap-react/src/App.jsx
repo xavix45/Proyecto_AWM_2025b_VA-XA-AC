@@ -1,4 +1,9 @@
 // src/App.jsx
+// APP SHELL: App
+// Token de búsqueda: APP:App
+// Shell de la aplicación: contiene header, main (`<Outlet/>`) y footer.
+// Muestra el usuario actual leído desde `localStorage` (clave `festi_usuario`) y
+// expone la UI de ingreso/cierre de sesión. Usa el token `APP:App` para buscar.
 import { useEffect, useState } from "react";
 import { Outlet, Link, NavLink } from "react-router-dom";
 

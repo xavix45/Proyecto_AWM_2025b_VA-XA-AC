@@ -4,6 +4,10 @@
   padding: 0 20px;
 }
 
+/* STYLE: pages/registro.css
+  Token de búsqueda: STYLE:registro
+  Estilos para la página de registro (formulario, inputs, validaciones).
+*/
 .page-title {
   color: var(--ink);
   font-weight: 800;

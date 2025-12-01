@@ -1,4 +1,10 @@
 // src/main.jsx
+// ENTRY: Enrutador e inicialización
+// Token de búsqueda: ENTRY:main
+// Define las rutas principales de la aplicación y monta React en `#root`.
+// - Rutas públicas: `/` (Landing), `/login`.
+// - Resto de rutas envueltas por `BaseLayout` (header/footer).
+// Usa el token `ENTRY:main` para localizar el router con facilidad.
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";

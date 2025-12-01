@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import ConfirmModal from "../components/ConfirmModal";
 import "../styles/pages/registro.css";
 
+// PAGINA: Register
+// Token de búsqueda: PAGE:Register
 // Registro de nuevos usuarios. Al crear la cuenta guardamos tanto en
 // `usuarios` (lista) como en `currentUserEmail` y `festi_usuario` para que
 // el header y la app reconozcan al usuario sin necesidad de login adicional.

@@ -1,4 +1,6 @@
 // src/pages/admin/AdminEstadisticas.jsx
+// PAGINA: AdminEstadisticas
+// Token de búsqueda: PAGE:AdminEstadisticas
 import "../../styles/pages/admin/admin-estadisticas.css";
 import { list as listEventos } from "../../services/eventos.service";
 import { useState, useEffect } from "react";

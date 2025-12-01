@@ -1,10 +1,9 @@
 // src/pages/PlanViaje.jsx
-// Página principal para crear un plan de viaje: genera ruta entre origen/destino,
-// busca eventos cercanos a la ruta, permite añadir paradas al itinerario por día,
-// optimizar el orden, persistir el plan por usuario y exportar a PDF.
-// Dependencias clave: `leaflet` (mapa), `@turf/turf` (geometría), `jspdf` (export PDF).
-
-// Requiere: npm install leaflet @turf/turf jspdf
+// PAGINA: PlanViaje
+// Token de búsqueda: PAGE:PlanViaje
+// Página para crear y optimizar planes de viaje: calcula rutas A→B, busca eventos
+// cercanos a la ruta, crea un itinerario por día, permite reordenar y exportar a PDF.
+// Dependencias clave: `leaflet`, `@turf/turf`, `jspdf`. Persiste por usuario en localStorage.
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
