@@ -1,71 +1,120 @@
-
 {
-	"usuarios": [
-		{
-			"id": 1,
-			"nombre": "Xavier Anatoa",
-			"email": "xavier.anatoa@epn.edu.ec",
-			"contra": "12345",
-			"preferencias": { "region": "sierra", "idioma": "es", "moneda": "usd" },
-			"intereses": { "tags": ["folklore", "musica"] },
-			"notificaciones": { "alerta24h": false, "alerta1h": false, "cambios": false, "cercanos": false },
-			"permisoUbicacion": true
-		},
-		{
-			"id": 2,
-			"nombre": "Veronica Aguilar",
-			"email": "veronica.aguilar@epn.edu.ec",
-			"contra": "12345",
-			"preferencias": {},
-			"intereses": { "tags": [] },
-			"notificaciones": { "alerta24h": true, "alerta1h": false, "cambios": true, "cercanos": true },
-			"permisoUbicacion": false
-		}
-	],
-
-	"eventos": [
-		{
-			"id": 1,
-			"name": "Fiesta de la Mama Negra",
-			"categoria": "Tradición",
-			"tipo": "cultural",
-			"region": "Sierra",
-			"provincia": "Latacunga",
-			"ciudad": "Latacunga",
-			"lugar": "Plaza Central",
-			"fecha": "2025-09-01",
-			"fecha_fin": "2025-09-05",
-			"horario": "10:00-22:00",
-			"imagen": "https://placehold.co/600x400/png",
-			"tags": ["folklore", "desfile"]
-		},
-		{
-			"id": 2,
-			"name": "Feria Gastronómica",
-			"categoria": "Gastronomía",
-			"tipo": "feria",
-			"region": "Costa",
-			"provincia": "Guayas",
-			"ciudad": "Guayaquil",
-			"lugar": "Malecón",
-			"fecha": "2025-11-10",
-			"imagen": "https://placehold.co/600x400/png",
-			"tags": ["comida", "familia"]
-		}
-	],
-
-
-	"intereses": [
-		{ "id": 1, "tag": "folklore" },
-		{ "id": 2, "tag": "gastronomía" },
-		{ "id": 3, "tag": "naturaleza" }
-	],
-
-	"ubicacion": [
-		{ "id": 1, "usuarioId": 1, "lat": -0.22985, "lng": -78.52495 }
-	],
-
-	"eventos_admin": [
-		{ "id": 101, "name": "Evento admin demo", "status": "draft" }
-	]
+  "usuarios": [
+    {
+      "id": "1",
+      "nombre": "Jose Avilez",
+      "email": "angelo.conteron@epn.edu.ec",
+      "contra": "12345",
+      "preferencias": {},
+      "intereses": {
+        "tags": []
+      },
+      "notificaciones": {
+        "alerta24h": true,
+        "alerta1h": false,
+        "cambios": true,
+        "cercanos": true
+      },
+      "permisoUbicacion": false
+    },
+    {
+      "id": "2",
+      "nombre": "Veronica Aguilar",
+      "email": "veronica.aguilar@epn.edu.ec",
+      "contra": "12345",
+      "preferencias": {},
+      "intereses": {
+        "tags": []
+      },
+      "notificaciones": {
+        "alerta24h": true,
+        "alerta1h": false,
+        "cambios": true,
+        "cercanos": true
+      },
+      "permisoUbicacion": false
+    },
+    {
+      "id": "3",
+      "nombre": "Angelo Conterón",
+      "email": "angelo.conteron@epn.edu.ec",
+      "contra": "12345",
+      "preferencias": {},
+      "intereses": {
+        "tags": []
+      },
+      "notificaciones": {
+        "alerta24h": true,
+        "alerta1h": false,
+        "cambios": true,
+        "cercanos": true
+      },
+      "permisoUbicacion": false
+    }
+  ],
+  "eventos": [
+    {
+      "id": "1",
+      "name": "Fiesta de la Mama Negra",
+      "categoria": "Tradición",
+      "tipo": "cultural",
+      "region": "Sierra",
+      "provincia": "Latacunga",
+      "ciudad": "Latacunga",
+      "lugar": "Plaza Central",
+      "fecha": "2025-09-01",
+      "fecha_fin": "2025-09-05",
+      "horario": "10:00-22:00",
+      "imagen": "https://placehold.co/600x400/png",
+      "tags": [
+        "folklore",
+        "desfile"
+      ]
+    },
+    {
+      "id": "2",
+      "name": "Feria Gastronómica",
+      "categoria": "Gastronomía",
+      "tipo": "feria",
+      "region": "Costa",
+      "provincia": "Guayas",
+      "ciudad": "Guayaquil",
+      "lugar": "Malecón",
+      "fecha": "2025-11-10",
+      "imagen": "https://placehold.co/600x400/png",
+      "tags": [
+        "comida",
+        "familia"
+      ]
+    }
+  ],
+  "intereses": [
+    {
+      "id": "1",
+      "tag": "folklore"
+    },
+    {
+      "id": "2",
+      "tag": "gastronomía"
+    },
+    {
+      "id": "3",
+      "tag": "naturaleza"
+    }
+  ],
+  "ubicacion": [
+    {
+      "id": "1",
+      "usuarioId": 1,
+      "lat": -0.22985,
+      "lng": -78.52495
+    }
+  ],
+  "eventos_admin": [
+    {
+      "id": "101",
+      "name": "Evento admin demo",
+      "status": "draft"
+    }
+  ]
 }
