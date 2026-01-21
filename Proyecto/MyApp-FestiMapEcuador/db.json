@@ -1,0 +1,124 @@
+
+{
+  "eventos": [
+    {
+      "id": 1,
+      "nombre": "Inti Raymi",
+      "descripcion": "Fiesta del Sol y la cosecha en honor a la Pacha Mama.",
+      "fecha": "2024-06-21",
+      "provincia": "Imbabura",
+      "categoria": "Cultural",
+      "imagen": "https://images.unsplash.com/photo-1590012357755-90186980689e?q=80&w=800",
+      "coords": { "lat": 0.3506, "lng": -78.1222 },
+      "rating": 4.9
+    },
+    {
+      "id": 2,
+      "nombre": "Mama Negra",
+      "descripcion": "Festividad en honor a la Virgen de la Merced con desfiles folclóricos.",
+      "fecha": "2024-11-23",
+      "provincia": "Cotopaxi",
+      "categoria": "Folclore",
+      "imagen": "https://images.unsplash.com/photo-1563294332-9a3d4f8f3c75?q=80&w=800",
+      "coords": { "lat": -0.9333, "lng": -78.6167 },
+      "rating": 4.8
+    },
+    {
+      "id": 3,
+      "nombre": "Diablada de Píllaro",
+      "descripcion": "Tradición donde cientos de 'diablos' bailan por las calles de Píllaro.",
+      "fecha": "2024-01-01",
+      "provincia": "Tungurahua",
+      "categoria": "Tradición",
+      "imagen": "https://images.unsplash.com/photo-1517457373958-b7bdd4587205?q=80&w=800",
+      "coords": { "lat": -1.1731, "lng": -78.5397 },
+      "rating": 4.7
+    },
+    {
+      "id": 4,
+      "nombre": "Fiesta de las Flores y las Frutas",
+      "descripcion": "Celebración de la resiliencia de Ambato con carros alegóricos y flores.",
+      "fecha": "2024-02-11",
+      "provincia": "Tungurahua",
+      "categoria": "Cultural",
+      "imagen": "https://images.unsplash.com/photo-1490750967868-88aa4486c946?q=80&w=800",
+      "coords": { "lat": -1.2417, "lng": -78.6197 },
+      "rating": 4.9
+    },
+    {
+      "id": 5,
+      "nombre": "Carnaval de Guaranda",
+      "descripcion": "El carnaval más famoso de la sierra ecuatoriana con el Pájaro Azul.",
+      "fecha": "2024-02-13",
+      "provincia": "Bolívar",
+      "categoria": "Tradición",
+      "imagen": "https://images.unsplash.com/photo-1543851508-4126780c8503?q=80&w=800",
+      "coords": { "lat": -1.5925, "lng": -79.0019 },
+      "rating": 4.6
+    },
+    {
+      "id": 6,
+      "nombre": "Romería de la Virgen del Cisne",
+      "descripcion": "Gran peregrinación religiosa en el sur de Ecuador.",
+      "fecha": "2024-08-15",
+      "provincia": "Loja",
+      "categoria": "Religiosa",
+      "imagen": "https://images.unsplash.com/photo-1548625361-195ce7165511?q=80&w=800",
+      "coords": { "lat": -3.9931, "lng": -79.2042 },
+      "rating": 4.8
+    },
+    {
+      "id": 7,
+      "nombre": "Pase del Niño Viajero",
+      "descripcion": "Tradicional desfile navideño en las calles de Cuenca.",
+      "fecha": "2024-12-24",
+      "provincia": "Azuay",
+      "categoria": "Religiosa",
+      "imagen": "https://images.unsplash.com/photo-1543508282-5c1f427f023f?q=80&w=800",
+      "coords": { "lat": -2.8974, "lng": -79.0045 },
+      "rating": 4.9
+    },
+    {
+      "id": 8,
+      "nombre": "Fiesta de San Biritute",
+      "descripcion": "Celebración de la fertilidad y la lluvia en la comuna Sacachún.",
+      "fecha": "2024-07-16",
+      "provincia": "Santa Elena",
+      "categoria": "Ancestral",
+      "imagen": "https://images.unsplash.com/photo-1506466010722-395aa2bef877?q=80&w=800",
+      "coords": { "lat": -2.2267, "lng": -80.8583 },
+      "rating": 4.5
+    },
+    {
+      "id": 9,
+      "nombre": "Kasama de la Etnia Tsáchila",
+      "descripcion": "Nuevo año para la comunidad Tsáchila en Santo Domingo.",
+      "fecha": "2024-04-08",
+      "provincia": "Santo Domingo",
+      "categoria": "Ancestral",
+      "imagen": "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=800",
+      "coords": { "lat": -0.2531, "lng": -79.1754 },
+      "rating": 4.7
+    },
+    {
+      "id": 10,
+      "nombre": "Rodeo Montubio",
+      "descripcion": "Competencia de destreza vaquera en el litoral ecuatoriano.",
+      "fecha": "2024-10-12",
+      "provincia": "Guayas",
+      "categoria": "Tradición",
+      "imagen": "https://images.unsplash.com/photo-1533616688419-b7a585564566?q=80&w=800",
+      "coords": { "lat": -2.1894, "lng": -79.8891 },
+      "rating": 4.8
+    }
+  ],
+  "usuarios": [
+    {
+      "id": 1,
+      "email": "test@festimap.com",
+      "password": "123",
+      "nombre": "Usuario Prueba",
+      "agenda": []
+    }
+  ]
+}

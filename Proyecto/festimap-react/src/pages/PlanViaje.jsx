@@ -206,7 +206,9 @@ function storageKeyForUser() {
 export default function PlanViaje() {
   /* ----- Dataset de eventos para sugerencias ----- */
   const eventosBase = useMemo(() => {
+    const hoy = new Date().toISOString().slice(0, 10);
     return listEventos()
+      .filter(ev => ev.fecha && ev.fecha >= hoy)
       .map((ev) => ({
         ...ev,
         id: ev.id,

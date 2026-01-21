@@ -67,6 +67,17 @@ export default function Agenda() {
         const uid = getCurrentUserId();
         const data = listAgenda(uid);
         setItems(data);
+
+        // Escuchar cambios en la agenda desde otras páginas
+        function handleAgendaChanged() {
+            const updatedData = listAgenda(uid);
+            setItems(updatedData);
+        }
+        window.addEventListener('fm:agenda:changed', handleAgendaChanged);
+        
+        return () => {
+            window.removeEventListener('fm:agenda:changed', handleAgendaChanged);
+        };
     }, []);
 
     // Eliminar un evento de la agenda del usuario y actualizar UI.

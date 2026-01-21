@@ -10,7 +10,8 @@ import { list as listEventos } from "../services/eventos.service";
 
 import "../styles/pages/tema.css";
 
-const EVENTOS_TODOS = listEventos();
+const hoy = new Date().toISOString().slice(0, 10);
+const EVENTOS_TODOS = listEventos().filter(ev => ev.fecha && ev.fecha >= hoy);
 
 function hoyISO() {
   return new Date().toISOString().slice(0, 10);

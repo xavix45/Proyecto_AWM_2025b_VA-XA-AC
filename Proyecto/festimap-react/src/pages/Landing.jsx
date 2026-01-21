@@ -16,8 +16,11 @@ export default function Landing() {
     };
   }, []);
 
-  // Tomamos algunos eventos de la data como “de temporada”
-  const destacados = listEventos().slice(0, 5);
+  // Tomamos algunos eventos de la data como "de temporada" (solo futuros)
+  const hoy = new Date().toISOString().slice(0, 10);
+  const destacados = listEventos()
+    .filter(ev => ev.fecha && ev.fecha >= hoy)
+    .slice(0, 5);
 
   return (
     <>

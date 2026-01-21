@@ -43,9 +43,31 @@
 .modo-oscuro-bienvenida input,
 .modo-oscuro-bienvenida textarea,
 .modo-oscuro-bienvenida select {
-  background: rgba(255,255,255,0.03);
-  color: var(--ink);
-  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.05);
+  color: var(--text-light);
+  border: 1px solid rgba(255,255,255,0.15);
+  font-weight: 600;
+}
+
+.modo-oscuro-bienvenida input::placeholder,
+.modo-oscuro-bienvenida textarea::placeholder {
+  color: rgba(255,255,255,0.4);
+}
+
+.modo-oscuro-bienvenida input:focus,
+.modo-oscuro-bienvenida textarea:focus,
+.modo-oscuro-bienvenida select:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: rgba(255,255,255,0.08);
+  box-shadow: 0 0 0 3px rgba(255, 184, 0, .15);
+}
+
+/* Select dropdown options */
+.modo-oscuro-bienvenida select option {
+  background: #1a0e26;
+  color: var(--text-light);
+  padding: 10px;
 }
 
 /* Buttons: ensure contrast when some were previously white */
@@ -122,4 +144,442 @@
   background-color: var(--surface-card) !important;
   color: var(--ink) !important;
   border-color: var(--border-light) !important;
+}
+/* ===== PÁGINA ESPECÍFICAS ===== */
+
+/* Home, Agenda, Region, Tema, PlanViaje, Cuenta, DetalleEvento - pages */
+.modo-oscuro-bienvenida .page-home,
+.modo-oscuro-bienvenida .page-agenda,
+.modo-oscuro-bienvenida .page-region,
+.modo-oscuro-bienvenida .page-tema,
+.modo-oscuro-bienvenida .planner-page,
+.modo-oscuro-bienvenida .page-cuenta,
+.modo-oscuro-bienvenida .page-detalle {
+  background: var(--bg);
+  color: var(--ink);
+}
+
+/* Títulos de página */
+.modo-oscuro-bienvenida .page-title,
+.modo-oscuro-bienvenida .section-title,
+.modo-oscuro-bienvenida h1, 
+.modo-oscuro-bienvenida h2, 
+.modo-oscuro-bienvenida h3 {
+  color: var(--text-light);
+}
+
+/* Section backgrounds */
+.modo-oscuro-bienvenida .section {
+  background: transparent;
+}
+
+/* Filtros y barras de búsqueda */
+.modo-oscuro-bienvenida .filters,
+.modo-oscuro-bienvenida .filters-bar,
+.modo-oscuro-bienvenida .main-search-bar,
+.modo-oscuro-bienvenida .agenda-controls {
+  background: var(--surface-card);
+  border-color: var(--border-light);
+}
+
+.modo-oscuro-bienvenida .input-search,
+.modo-oscuro-bienvenida .filters input,
+.modo-oscuro-bienvenida .filters select,
+.modo-oscuro-bienvenida .filters-bar input,
+.modo-oscuro-bienvenida .filters-bar select {
+  background: rgba(255,255,255,0.05);
+  color: var(--ink);
+  border-color: var(--border-light);
+}
+
+.modo-oscuro-bienvenida .input-search:focus,
+.modo-oscuro-bienvenida .filters input:focus,
+.modo-oscuro-bienvenida .filters select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(255, 184, 0, .15);
+}
+
+/* Tabs */
+.modo-oscuro-bienvenida .tab {
+  color: rgba(255,255,255,0.6);
+  border-bottom-color: transparent;
+  background: rgba(255,255,255,0.03);
+}
+
+.modo-oscuro-bienvenida .tab:hover {
+  color: var(--text-light);
+  background: rgba(255,255,255,0.05);
+}
+
+.modo-oscuro-bienvenida .tab.is-active {
+  background: linear-gradient(135deg, #ffd54a, var(--accent));
+  color: #111;
+  font-weight: 800;
+  border-bottom-color: var(--accent);
+  box-shadow: 0 4px 12px rgba(255, 184, 0, 0.3);
+}
+
+/* Tarjetas de eventos */
+.modo-oscuro-bienvenida .slide,
+.modo-oscuro-bienvenida .event-item,
+.modo-oscuro-bienvenida .event-card-sm,
+.modo-oscuro-bienvenida .temporada .card,
+.modo-oscuro-bienvenida .tema-card,
+.modo-oscuro-bienvenida .region-card {
+  background: var(--surface-card);
+  border-color: var(--border-light);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .45);
+}
+
+.modo-oscuro-bienvenida .slide:hover,
+.modo-oscuro-bienvenida .event-item:hover,
+.modo-oscuro-bienvenida .temporada .card:hover {
+  border-color: var(--violet-600);
+  box-shadow: 0 18px 42px rgba(124, 58, 237, .35);
+}
+
+/* Event card content - mantener texto blanco sobre imágenes */
+.modo-oscuro-bienvenida .slide-content h3,
+.modo-oscuro-bienvenida .card-content h3,
+.modo-oscuro-bienvenida .event-item h3 {
+  color: #ffffff;
+}
+
+/* Texto en tarjetas sin imagen */
+.modo-oscuro-bienvenida .tema-card h3,
+.modo-oscuro-bienvenida .tema-card__body h3 {
+  color: var(--text-light);
+}
+
+.modo-oscuro-bienvenida .tema-card .desc,
+.modo-oscuro-bienvenida .tema-card__body .desc {
+  color: var(--muted);
+}
+
+/* Lista de eventos */
+.modo-oscuro-bienvenida .explore-list .event-item {
+  background: var(--surface-card);
+  border-color: var(--border-light);
+}
+
+/* Alertas / paneles laterales */
+.modo-oscuro-bienvenida .alert-panel,
+.modo-oscuro-bienvenida .panel-usuario,
+.modo-oscuro-bienvenida .panel-ajustes,
+.modo-oscuro-bienvenida .detail-description-bar {
+  background: var(--surface-card);
+  border-color: var(--border-light);
+}
+
+/* Mapa */
+.modo-oscuro-bienvenida .map {
+  background: var(--surface-card);
+  border-color: var(--border-light);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+}
+
+/* Banner de imagen */
+.modo-oscuro-bienvenida .banner {
+  background: var(--surface-card);
+  border-color: var(--border-light);
+}
+
+/* Chips/tags */
+.modo-oscuro-bienvenida .chip {
+  background: rgba(255,255,255,0.05);
+  color: var(--muted);
+  border-color: var(--border-light);
+}
+
+.modo-oscuro-bienvenida .chip:hover,
+.modo-oscuro-bienvenida .chip.is-on {
+  background: var(--accent);
+  color: #111;
+  border-color: var(--accent);
+}
+
+.modo-oscuro-bienvenida .chip-alt {
+  background: rgba(124, 58, 237, 0.2);
+  color: var(--violet-600);
+}
+
+.modo-oscuro-bienvenida .chip-tag {
+  background: rgba(255, 184, 0, 0.15);
+  color: var(--accent);
+}
+
+/* Form sections */
+.modo-oscuro-bienvenida .form-section {
+  border-bottom-color: var(--border-light);
+}
+
+.modo-oscuro-bienvenida .form-row-line {
+  border-bottom-color: var(--border-light);
+}
+
+.modo-oscuro-bienvenida .form-row-line label {
+  color: var(--text-light);
+}
+
+/* Botones secundarios y acciones */
+.modo-oscuro-bienvenida .btn--ghost,
+.modo-oscuro-bienvenida .btn-secondary {
+  background: transparent;
+  color: var(--text-light);
+  border: 1.5px solid rgba(255, 255, 255, .35);
+}
+
+.modo-oscuro-bienvenida .btn--ghost:hover,
+.modo-oscuro-bienvenida .btn-secondary:hover {
+  background: var(--violet-600);
+  color: #fff;
+  border-color: var(--violet-600);
+}
+
+/* Botón primario (ya definido, pero aseguramos hover) */
+.modo-oscuro-bienvenida .btn-primary {
+  background: linear-gradient(135deg, #ffd54a, var(--accent));
+  color: #111;
+  box-shadow: 0 12px 26px rgba(255, 184, 0, .30);
+}
+
+.modo-oscuro-bienvenida .btn-primary:hover {
+  background: var(--violet-600);
+  color: #fff;
+}
+
+/* Footer (ya estaba parcialmente, completamos) */
+.modo-oscuro-bienvenida .site-footer {
+  background: radial-gradient(1200px 420px at 50% -40px, rgba(124, 58, 237, .08), transparent), #0b0f1a;
+  color: #e5e7eb;
+  border-top-color: var(--border-light);
+}
+
+.modo-oscuro-bienvenida .site-footer h4 {
+  color: #fff;
+}
+
+.modo-oscuro-bienvenida .site-footer a {
+  color: #d1d5db;
+}
+
+.modo-oscuro-bienvenida .site-footer a:hover {
+  color: var(--accent);
+}
+
+/* Header navegación (completar) */
+.modo-oscuro-bienvenida .site-header {
+  background: rgba(11, 15, 26, 0.68);
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  border-bottom: 1px solid var(--border-light);
+}
+
+.modo-oscuro-bienvenida .nav a,
+.modo-oscuro-bienvenida .main-nav a,
+.modo-oscuro-bienvenida .nav-list a {
+  color: var(--text-light);
+}
+
+.modo-oscuro-bienvenida .nav a:hover,
+.modo-oscuro-bienvenida .main-nav a:hover {
+  color: var(--accent);
+}
+
+.modo-oscuro-bienvenida .nav a.active,
+.modo-oscuro-bienvenida .main-nav a.active {
+  color: var(--accent);
+}
+
+/* Logo */
+.modo-oscuro-bienvenida .logo,
+.modo-oscuro-bienvenida .site-logo {
+  color: var(--accent);
+}
+
+/* User area links */
+.modo-oscuro-bienvenida .user-link,
+.modo-oscuro-bienvenida .login-link {
+  color: var(--text-light);
+}
+
+.modo-oscuro-bienvenida .user-link:hover,
+.modo-oscuro-bienvenida .login-link:hover {
+  color: var(--accent);
+}
+
+/* Botón de logout */
+.modo-oscuro-bienvenida .btn-logout {
+  background: rgba(255,255,255,0.05);
+  color: var(--text-light);
+  border: 1px solid var(--border-light);
+}
+
+.modo-oscuro-bienvenida .btn-logout:hover {
+  background: var(--accent);
+  color: #111;
+}
+
+/* Plan de viaje hero (ya tiene fondo oscuro, aseguramos compatibilidad) */
+.modo-oscuro-bienvenida .planner-hero {
+  /* Mantener el fondo radial existing */
+  background:
+    radial-gradient(900px 420px at 0% -40px, rgba(124, 58, 237, 0.2), transparent),
+    radial-gradient(600px 260px at 100% 120%, rgba(251, 191, 36, 0.15), transparent),
+    #020617;
+  color: #f9fafb;
+}
+
+.modo-oscuro-bienvenida .hero-summary__card {
+  background: rgba(15, 23, 42, 0.95);
+  border-color: rgba(148, 163, 184, 0.55);
+}
+
+.modo-oscuro-bienvenida .hero-summary__value {
+  color: var(--accent);
+}
+
+/* Form de planner */
+.modo-oscuro-bienvenida .planner-form {
+  background: var(--surface-card);
+  border-color: var(--border-light);
+}
+
+.modo-oscuro-bienvenida .planner-form h2 {
+  color: var(--text-light);
+}
+
+/* Agenda timeline */
+.modo-oscuro-bienvenida .timeline-item {
+  background: var(--surface-card);
+  border-color: var(--border-light);
+}
+
+/* Feature cards (servicios en landing, aplicable a otras) */
+.modo-oscuro-bienvenida .feature {
+  background: var(--surface-card);
+  border-color: var(--border-light);
+}
+
+.modo-oscuro-bienvenida .feature:hover {
+  border-color: var(--violet-600);
+  box-shadow: 0 16px 32px rgba(124, 58, 237, .25);
+}
+
+.modo-oscuro-bienvenida .feature h3 {
+  color: var(--text-light);
+}
+
+.modo-oscuro-bienvenida .feature p {
+  color: var(--muted);
+}
+
+.modo-oscuro-bienvenida .feature .chip {
+  background: rgba(255, 184, 0, 0.15);
+  color: var(--accent);
+  border-color: rgba(255, 184, 0, .25);
+}
+
+/* Text muted general */
+.modo-oscuro-bienvenida .muted,
+.modo-oscuro-bienvenida p.muted {
+  color: var(--muted);
+}
+
+/* Texto normal en cuerpo */
+.modo-oscuro-bienvenida p,
+.modo-oscuro-bienvenida .desc {
+  color: var(--muted);
+}
+
+/* Asegurar contraste en elementos con fondo de imagen */
+.modo-oscuro-bienvenida .slide-content,
+.modo-oscuro-bienvenida .card-content,
+.modo-oscuro-bienvenida .card__content {
+  color: #ffffff;
+}
+
+/* Admin pages */
+.modo-oscuro-bienvenida .admin-page {
+  background: var(--bg);
+  color: var(--ink);
+}
+
+.modo-oscuro-bienvenida .admin-card {
+  background: var(--surface-card);
+  border-color: var(--border-light);
+}
+
+/* Tables */
+.modo-oscuro-bienvenida table {
+  background: var(--surface-card);
+  border-color: var(--border-light);
+}
+
+.modo-oscuro-bienvenida th {
+  background: rgba(255,255,255,0.03);
+  color: var(--text-light);
+  border-color: var(--border-light);
+}
+
+.modo-oscuro-bienvenida td {
+  color: var(--ink);
+  border-color: var(--border-light);
+}
+
+.modo-oscuro-bienvenida tr:hover {
+  background: rgba(255,255,255,0.02);
+}
+
+/* Modal / popup overlay */
+.modo-oscuro-bienvenida .modal-overlay {
+  background: rgba(0, 0, 0, 0.75);
+}
+
+.modo-oscuro-bienvenida .modal,
+.modo-oscuro-bienvenida .modal-content {
+  background: var(--surface-card);
+  border-color: var(--border-light);
+  color: var(--ink);
+}
+
+/* Links generales */
+.modo-oscuro-bienvenida a {
+  color: var(--violet-600);
+}
+
+.modo-oscuro-bienvenida a:hover {
+  color: var(--accent);
+}
+
+/* Admin Estadísticas */
+.modo-oscuro-bienvenida .admin-stats {
+  background: var(--bg);
+}
+
+.modo-oscuro-bienvenida .admin-stats__section {
+  background: rgba(255,255,255,0.05);
+  border-color: rgba(255,255,255,0.1);
+}
+
+.modo-oscuro-bienvenida .stat-card {
+  background: rgba(255,255,255,0.05);
+  border-color: rgba(255,255,255,0.1);
+}
+
+.modo-oscuro-bienvenida .top-item__bar {
+  background: linear-gradient(90deg, #ffd54a, #ffb800);
+}
+
+.modo-oscuro-bienvenida .stats-bar-item__fill {
+  background: linear-gradient(90deg, #ffd54a, #ffb800);
+}
+
+.modo-oscuro-bienvenida .timeline-bar__fill {
+  background: linear-gradient(180deg, #ffd54a 0%, #ffb800 100%);
+}
+
+.modo-oscuro-bienvenida .rating-item {
+  background: rgba(255, 184, 0, 0.15);
+  border-left-color: #ffb800;
 }

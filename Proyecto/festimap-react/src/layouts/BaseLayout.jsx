@@ -32,6 +32,14 @@ export default function BaseLayout() {
     const location = useLocation();
     const [scrolled, setScrolled] = useState(false);
 
+    // Aplicar tema oscuro globalmente
+    useEffect(() => {
+        document.body.classList.add("modo-oscuro-bienvenida");
+        return () => {
+            document.body.classList.remove("modo-oscuro-bienvenida");
+        };
+    }, []);
+
     // Escucha el evento global 'userChanged' que otras páginas disparan
     // cuando actualizan localStorage para que el header se actualice
     // (mostrar 'Mi cuenta' / 'Salir' sin recargar la página).

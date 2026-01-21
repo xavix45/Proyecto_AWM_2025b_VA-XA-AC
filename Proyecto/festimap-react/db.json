@@ -86,6 +86,13 @@
         "comida",
         "familia"
       ]
+    },
+    {
+      "id": "8e11",
+      "name": "Carnaval de Guaranda",
+      "categoria": "Fiesta",
+      "region": "Sierra",
+      "fecha": "2025-02-15"
     }
   ],
   "intereses": [
@@ -115,6 +122,15 @@
       "id": "101",
       "name": "Evento admin demo",
       "status": "draft"
+    }
+  ],
+  "reservas": [
+    {
+      "id": "1",
+      "usuarioId": 1,
+      "eventoId": 1,
+      "fechaReserva": "2024-01-15",
+      "estado": "confirmada"
     }
   ]
 }

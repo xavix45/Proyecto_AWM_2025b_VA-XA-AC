@@ -13,7 +13,20 @@ import ConfirmModal from "../components/ConfirmModal";
 
 import "../styles/pages/detalle-evento.css";
 
-const DEMO_USER_ID = "demo-user"; // luego Xavi lo reemplaza por el user real
+const DEMO_USER_ID = "demo-user"; // fallback
+
+function getCurrentUserId() {
+    try {
+        const raw = localStorage.getItem('festi_usuario');
+        if (raw) {
+            const u = JSON.parse(raw);
+            if (u && (u.email || u.id)) return u.email || u.id;
+        }
+    } catch (e) {}
+    const email = localStorage.getItem('currentUserEmail');
+    if (email) return email;
+    return DEMO_USER_ID;
+}
 
 function formateaFechas(ev) {
   if (!ev?.fecha) return "";
@@ -88,18 +101,24 @@ export default function DetalleEvento() {
   ).slice(0, 3);
 
   function handleAgregarAgenda() {
+    const userId = getCurrentUserId();
     const fechaItem =
       evento.fecha || new Date().toISOString().slice(0, 10);
 
-    addAgenda(DEMO_USER_ID, {
+    addAgenda(userId, {
       idEvento: evento.id,
       fecha: fechaItem,
       nota: "",
     });
 
+    // Notificar que la agenda cambió para actualizar la página Agenda
+    try { 
+      window.dispatchEvent(new Event('fm:agenda:changed')); 
+    } catch (e) {}
+
     // Registrar asistencia/visita en el dataset de eventos (persistente)
     try {
-      addAttendance(evento.id, DEMO_USER_ID);
+      addAttendance(evento.id, userId);
       // Notificar a la app que los eventos cambiaron (para refresh en admin/listados)
       try { window.dispatchEvent(new Event('fm:eventos:changed')); } catch (e) {}
     } catch (err) {
@@ -109,7 +128,7 @@ export default function DetalleEvento() {
     setModal({
       show: true,
       title: '✅ Evento Agregado',
-      message: 'Evento agregado a tu agenda y marcado como visitado (modo demo).',
+      message: 'Evento agregado a tu agenda. Ve a la página Agenda para verlo.',
       type: 'success',
       onConfirm: () => setModal({ show: false, title: '', message: '', type: 'info', onConfirm: null })
     });
@@ -134,8 +153,9 @@ export default function DetalleEvento() {
       return;
     }
 
+    const userId = getCurrentUserId();
     try {
-      addReview(evento.id, { userId: DEMO_USER_ID, rating, comment: comentario });
+      addReview(evento.id, { userId: userId, rating, comment: comentario });
       try { window.dispatchEvent(new Event('fm:eventos:changed')); } catch (e) {}
       setModal({
         show: true,

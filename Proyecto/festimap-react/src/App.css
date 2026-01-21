@@ -7,4 +7,7 @@
   margin: 0;
   padding: 0;
   text-align: initial;
+  background: linear-gradient(180deg, #0b0620 0%, #130822 60%, #1b1230 100%);
+  min-height: 100vh;
+  color: var(--text-light);
 }

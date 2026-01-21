@@ -11,7 +11,8 @@ import PROVINCIAS_BY_REGION from "../data/provincias";
 
 import "../styles/pages/region.css";
 
-const EVENTOS_TODOS = listEventos();
+const hoy = new Date().toISOString().slice(0, 10);
+const EVENTOS_TODOS = listEventos().filter(ev => ev.fecha && ev.fecha >= hoy);
 const REGIONES_TABS = ["Costa", "Sierra", "Amazonía", "Galápagos"];
 
 function buildTitle(ev) {

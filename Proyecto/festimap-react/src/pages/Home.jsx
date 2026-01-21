@@ -59,10 +59,17 @@ export default function Home() {
     [EVENTOS]
   );
 
+  // Fecha de hoy en ISO (YYYY-MM-DD)
+  const hoy = new Date().toISOString().slice(0, 10);
+
   const eventosFiltrados = useMemo(() => {
     const txt = texto.toLowerCase().trim();
 
     return EVENTOS.filter((ev) => {
+      // ✅ FILTRO 1: Solo eventos de hoy en adelante (no pasados)
+      const esEventoFuturo = ev.fecha && ev.fecha >= hoy;
+      if (!esEventoFuturo) return false;
+
       const title = buildTitle(ev).toLowerCase();
       const city = (ev.ciudad || "").toLowerCase();
 
@@ -92,10 +99,7 @@ export default function Home() {
       const fb = b.fecha || "9999-12-31";
       return fa.localeCompare(fb);
     });
-  }, [EVENTOS, texto, region, tipo, fecha]);
-
-  // Fecha de hoy en ISO (YYYY-MM-DD)
-  const hoy = new Date().toISOString().slice(0, 10);
+  }, [EVENTOS, texto, region, tipo, fecha, hoy]);
 
   // Carrusel: solo eventos próximos (no afectado por buscador)
   const destacados = useMemo(() => {
