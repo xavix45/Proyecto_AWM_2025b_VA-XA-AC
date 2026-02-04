@@ -13,8 +13,12 @@ const UsuarioSchema = new mongoose.Schema({
   password: { type: String, required: [true, "La contraseña es obligatoria"], minlength: [8, "Mínimo 8 caracteres"] },
   tipoViajero: { type: String, enum: ['turista', 'estudiante', 'administrador'], default: 'turista' },
   rol: { type: String, enum: ['user', 'admin'], default: 'user' },
-  agenda: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Evento' }]
+  agenda: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Evento' }],
+  preferencias: {
+    provincia: { type: String, default: '' },
+    categorias: [String]
+  }
 }, { timestamps: true });
 
-// Exportamos como 'Usuario' para que coincida con el index.js
-module.exports = mongoose.model('Usuario', UsuarioSchema);
+// El tercer parámetro 'usuarios' es CLAVE: obliga a conectar con la colección de tu captura
+module.exports = mongoose.model('Usuario', UsuarioSchema, 'usuarios');

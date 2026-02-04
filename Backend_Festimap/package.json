@@ -1,3 +1,4 @@
+
 {
   "name": "backend_festimap",
   "version": "1.0.0",
@@ -7,8 +8,10 @@
   "type": "commonjs",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "nodemon": "nodemon server.js"
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "seed": "node seed.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
@@ -16,8 +19,9 @@
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
-    "mogoose": "^0.0.1-security",
-    "mongoose": "^9.1.5",
+    "mongoose": "^9.1.5"
+  },
+  "devDependencies": {
     "nodemon": "^3.1.11"
   }
 }
