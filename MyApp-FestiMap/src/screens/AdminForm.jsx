@@ -101,6 +101,12 @@ export default function AdminForm({ route, navigation }) {
     });
   };
 
+  /**
+   * JUSTIFICACIÓN TEÓRICA (PREGUNTA 2 - INTEGRACIÓN):
+   * Implementamos validación síncrona en el cliente y asíncrona en el servidor.
+   * Realizamos un parseo de tipos (lat/lng/durMin) antes del envío para asegurar la
+   * compatibilidad con los tipos de datos definidos en el Mongoose Schema.
+   */
   const handleSave = async () => {
     if (!form.name || !form.ciudad || !form.lat || !form.lng || !form.fecha) {
       return Alert.alert("⚠️ Campos Críticos", "Nombre, Ciudad, Fecha y Coordenadas GPS son obligatorios.");
@@ -113,13 +119,12 @@ export default function AdminForm({ route, navigation }) {
         lat: parseFloat(form.lat),
         lng: parseFloat(form.lng),
         durMin: parseInt(form.durMin) || 0,
-        tags: form.tags.split(',').map(tag => tag.trim()).filter(t => t !== ""),
+        tags: typeof form.tags === 'string' ? form.tags.split(',').map(tag => tag.trim()).filter(t => t !== "") : form.tags,
         fecha_fin: form.fecha_fin || null,
         comentarios: editData?.comentarios || []
       };
 
       if (editData) {
-        // Usamos el _id real de MongoDB
         const targetId = editData._id || editData.id;
         await axios.put(`${ENDPOINTS.eventos}/${targetId}`, payload);
         Alert.alert("✅ Sincronizado", "Registro actualizado en el inventario nacional.");
@@ -151,7 +156,6 @@ export default function AdminForm({ route, navigation }) {
           <Text style={styles.title}>{editData ? 'Editor de Patrimonio' : 'Nuevo Registro'}</Text>
           <Text style={styles.subtitle}>Configuración técnica y logística del evento en MongoDB.</Text>
 
-          {/* PREVIEW DE IMAGEN */}
           <View style={styles.previewContainer}>
             <Image 
               source={{ uri: form.imagen || 'https://images.unsplash.com/photo-1589405270457-238478427778?q=80&w=600' }} 
