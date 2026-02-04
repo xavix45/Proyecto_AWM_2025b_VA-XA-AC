@@ -18,10 +18,9 @@ import {
 } from 'react-native';
 import { Video, ResizeMode } from 'expo-av';
 import axios from 'axios';
-import { ENDPOINTS } from '../config/api.js';
-import { useUser } from '../context/UserContext.jsx';
-// Importación corregida con extensión .jsx
-import { StatItem, RegionCard, FeatureItem, StepItem } from '../components/ui/LandingWidgets.jsx'; 
+import { ENDPOINTS } from '../config/api';
+import { useUser } from '../context/UserContext';
+import { StatItem, RegionCard, FeatureItem, StepItem } from '../components/ui/LandingWidgets';
 
 const { width, height } = Dimensions.get('window');
 
@@ -108,8 +107,6 @@ export default function Landing({ navigation }) {
         shouldPlay={true}
         isLooping={true}
         isMuted={true}
-        rate={1.0}
-        progressUpdateIntervalMillis={1000}
       />
       <View style={styles.overlay} />
 
@@ -211,7 +208,7 @@ export default function Landing({ navigation }) {
           ) : (
             <View style={styles.gridEvents}>
               {eventos.map((ev) => (
-                <TouchableOpacity key={ev.id} style={styles.eventCard} onPress={() => handleEventPress(ev)}>
+                <TouchableOpacity key={ev._id || ev.id} style={styles.eventCard} onPress={() => handleEventPress(ev)}>
                   <Image source={{ uri: ev.imagen }} style={styles.cardImg} />
                   <View style={styles.cardOverlay}>
                     <View style={styles.provBadge}><Text style={styles.provText}>{ev.provincia}</Text></View>

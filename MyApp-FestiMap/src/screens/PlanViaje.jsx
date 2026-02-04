@@ -30,6 +30,10 @@ import { ENDPOINTS } from '../config/api.js';
 
 const { width, height } = Dimensions.get('window');
 
+/** 
+ * PALETA DE COLORES PREMIUM 
+ * Utilizada para la identidad visual de FestiMap Ecuador.
+ */
 const COLORS = {
   accent: '#ffb800',
   violet: '#5b21b6',
@@ -46,6 +50,10 @@ const COLORS = {
   sand: '#fdfcf0'
 };
 
+/** 
+ * COORDENADAS DE REFERENCIA 
+ * Lugares precargados para optimizar el geocoding inicial.
+ */
 const LOCAL_PLACES = {
   "quito": { lat: -0.2201, lng: -78.5126 },
   "guayaquil": { lat: -2.1708, lng: -79.9224 },
@@ -54,9 +62,11 @@ const LOCAL_PLACES = {
 };
 
 export default function PlanViaje() {
+  // HOOKS DE CONTEXTO (BACKEND INTEGRATION)
   const { agregarEvento, guardarPlan } = useAgenda();
   const { user } = useUser();
 
+  // ESTADOS DE CONFIGURACIÓN DE VIAJE
   const [origen, setOrigen] = useState("Quito");
   const [destino, setDestino] = useState("Otavalo");
   const [fechaInicio, setFechaInicio] = useState("2026-01-02");
@@ -64,6 +74,7 @@ export default function PlanViaje() {
   const [radio, setRadio] = useState(15); 
   const [activeDay, setActiveDay] = useState(0);
 
+  // ESTADOS DE DATOS Y CARGA
   const [loading, setLoading] = useState(false);
   const [eventosBase, setEventosBase] = useState([]);
   const [sugerencias, setSugerencias] = useState([]);
@@ -74,15 +85,24 @@ export default function PlanViaje() {
   const [nombrePlan, setNombrePlan] = useState("");
   const [showSaveModal, setShowSaveModal] = useState(false);
 
+  // REFS Y ANIMACIONES
   const animNotif = useRef(new Animated.Value(-120)).current;
   const sliderWidth = width - 100;
 
+  /**
+   * EFECTO INICIAL: Carga el inventario de eventos desde MongoDB
+   * para tener la base lista antes de cualquier cálculo espacial.
+   */
   useEffect(() => {
     axios.get(ENDPOINTS.eventos)
       .then(res => setEventosBase(res.data))
-      .catch(err => console.error(err));
+      .catch(err => console.error("Fallo al conectar con MongoDB:", err));
   }, []);
 
+  /** 
+   * LÓGICA DE PROCESAMIENTO DE FECHAS
+   * Convierte strings YYYY-MM-DD a objetos Date locales de forma segura.
+   */
   const parseLocalDate = (dateStr) => {
     if (!dateStr) return null;
     const cleanStr = dateStr.replace(/\//g, '-').trim();
@@ -97,6 +117,10 @@ export default function PlanViaje() {
     return null;
   };
 
+  /** 
+   * FORMATO AMIGABLE 
+   * Retorna una fecha legible para humanos (Ej: Lunes 2 de Enero).
+   */
   const getFriendlyDate = (dateStr) => {
     const d = parseLocalDate(dateStr);
     if (!d) return "Formato inválido (Ej: 2026-01-02)";
@@ -104,6 +128,10 @@ export default function PlanViaje() {
     return d.toLocaleDateString('es-ES', options);
   };
 
+  /** 
+   * SLIDER PERSONALIZADO 
+   * Manejador táctil para el radio de exploración usando PanResponder.
+   */
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
@@ -118,6 +146,10 @@ export default function PlanViaje() {
     })
   ).current;
 
+  /** 
+   * SISTEMA DE NOTIFICACIONES TOAST 
+   * Muestra avisos animados en la parte superior de la pantalla.
+   */
   const triggerNotif = (text, type = 'info') => {
     setNotificacion({ show: true, text, type });
     Animated.sequence([
@@ -127,6 +159,11 @@ export default function PlanViaje() {
     ]).start();
   };
 
+  /** 
+   * MOTOR DE RUTA INTELIGENTE (TURF.JS) 
+   * Calcula la ruta por carretera, genera un buffer (tubo) de exploración 
+   * y filtra eventos por proximidad espacial y coincidencia temporal.
+   */
   const handleGenerarRuta = async () => {
     const start = parseLocalDate(fechaInicio);
     if (!start) return Alert.alert("Fecha inválida", "Usa el formato YYYY-MM-DD");
@@ -159,6 +196,7 @@ export default function PlanViaje() {
         .filter(ev => {
           const evDate = parseLocalDate(ev.fecha);
           if (!evDate) return false;
+          // Validación estricta de tiempo: el evento debe estar dentro de la duración del viaje
           return evDate.getTime() >= start.getTime() && evDate.getTime() < end.getTime();
         });
 
@@ -177,6 +215,10 @@ export default function PlanViaje() {
     }
   };
 
+  /** 
+   * GEOCODIFICADOR 
+   * Resuelve nombres de ciudades a coordenadas lat/lng.
+   */
   const geocode = async (q) => {
     if (!q) return null;
     const raw = q.toLowerCase().trim();
@@ -189,16 +231,27 @@ export default function PlanViaje() {
     return null;
   };
 
+  /** 
+   * LÓGICA DE ASIGNACIÓN DE PARADAS 
+   * Calcula automáticamente a qué día (0, 1, 2...) corresponde un evento 
+   * basándose en su fecha y la fecha de salida.
+   */
   const addStop = (ev) => {
     const start = parseLocalDate(fechaInicio);
     const evDate = parseLocalDate(ev.fecha);
+    
+    // Diferencia en milisegundos convertida a días
     const diffTime = evDate.getTime() - start.getTime();
     const dayIndex = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
-    if (dayIndex < 0 || dayIndex >= (parseInt(dias) || 1)) return;
+    // Seguridad: Verificar que el índice sea válido dentro de la duración
+    if (dayIndex < 0 || dayIndex >= (parseInt(dias) || 1)) {
+        triggerNotif("Este evento ocurre fuera de tu itinerario.", "info");
+        return;
+    }
 
     const currentDayStops = itinerario[dayIndex] || [];
-    if (currentDayStops.some(s => s.id === ev.id)) {
+    if (currentDayStops.some(s => (s._id || s.id) === (ev._id || ev.id))) {
         triggerNotif("Ya está en este día", "info");
         return;
     }
@@ -209,23 +262,47 @@ export default function PlanViaje() {
     triggerNotif(`Agregado al Día ${dayIndex + 1}`, "success");
   };
 
-  const handleGuardarPlanFinal = () => {
+  /** 
+   * PERSISTENCIA EN BACKEND 
+   * Guarda el plan finalizado en la base de datos MongoDB del usuario.
+   */
+  const handleGuardarPlanFinal = async () => {
     if (!nombrePlan.trim()) return Alert.alert("Falta nombre", "Ponle un nombre a tu plan.");
-    guardarPlan({
+    
+    // Mapear el itinerario para enviar solo IDs a MongoDB si es necesario
+    const itinerarioIds = {};
+    Object.keys(itinerario).forEach(day => {
+        itinerarioIds[day] = itinerario[day].map(ev => ev._id || ev.id);
+    });
+
+    const success = await guardarPlan({
       nombre: nombrePlan,
       origen,
       destino,
       fechaInicio,
-      dias,
-      itinerario,
-      geoData,
+      dias: parseInt(dias),
+      itinerario: itinerarioIds, // Estructura compatible con el Schema de Plan
+      eventosIds: Object.values(itinerario).flat().map(ev => ev._id || ev.id),
+      geoData: {
+          origen: geoData?.points?.o,
+          destino: geoData?.points?.d
+      },
       creado: new Date().toLocaleDateString()
     });
-    setShowSaveModal(false);
-    setNombrePlan("");
-    triggerNotif("Plan guardado en tu Agenda ✨", "success");
+
+    if (success) {
+        setShowSaveModal(false);
+        setNombrePlan("");
+        triggerNotif("Plan guardado en tu Agenda ✨", "success");
+    } else {
+        Alert.alert("Error de Sincronización", "No se pudo guardar en MongoDB. Verifica tu servidor.");
+    }
   };
 
+  /** 
+   * GENERADOR DE FOLIO PDF PREMIUM 
+   * Construye un documento de alta calidad editorial con los detalles del viaje.
+   */
   const handleDescargarPDF = async () => {
     const html = `
     <html>
@@ -277,7 +354,7 @@ export default function PlanViaje() {
         `).join('')}
         
         <div style="margin-top: 50px; text-align: center; color: #999; font-size: 10px; border-top: 1px solid #eee; padding-top: 20px;">
-          Generado automáticamente por FestiMap Ecuador • Tu guía cultural definitiva
+          Generado automáticamente por FestiMap Ecuador • Tu guía cultural definitiva • Sincronizado con MongoDB Engine
         </div>
       </body>
     </html>`;
@@ -290,6 +367,10 @@ export default function PlanViaje() {
     }
   };
 
+  /** 
+   * FORMATO DÍA CALENDARIO 
+   * Calcula el texto del día (Día 1, Día 2...) junto con su fecha específica.
+   */
   const getFormattedDateForDay = (index) => {
     const date = parseLocalDate(fechaInicio);
     if (!date) return "--";
@@ -298,6 +379,10 @@ export default function PlanViaje() {
     return `${date.getDate().toString().padStart(2, '0')} ${months[date.getMonth()]}`;
   };
 
+  /** 
+   * RENDER DE MAPA 
+   * Memoización del HTML para el WebView para evitar re-renderizados innecesarios.
+   */
   const mapHtml = useMemo(() => {
     if (!geoData) return '<html><body style="background:#0f172a"></body></html>';
     return `
@@ -329,12 +414,14 @@ export default function PlanViaje() {
     `;
   }, [geoData]);
 
+  // URL para el mapa estático del Folio
   const staticMapUrl = geoData ? `https://static-maps.yandex.ru/1.x/?lang=es_ES&l=map&size=600,300&bbox=${geoData.points.o.lng},${geoData.points.o.lat}~${geoData.points.d.lng},${geoData.points.d.lat}&pt=${geoData.points.o.lng},${geoData.points.o.lat},pm2rdl~${geoData.points.d.lng},${geoData.points.d.lat},pm2grl` : null;
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" />
       
+      {/* BARRA DE NOTIFICACIÓN TOAST */}
       <Animated.View style={[styles.notif, { transform: [{ translateY: animNotif }] }, notificacion.type === 'success' && { backgroundColor: COLORS.success }]}>
          <View style={styles.notifContent}>
             <View style={styles.notifBadge}><Text style={styles.notifEmoji}>{notificacion.type === 'success' ? '✅' : '🧭'}</Text></View>
@@ -348,6 +435,7 @@ export default function PlanViaje() {
           <Text style={styles.title}>Diseño de Ruta 🛣️</Text>
         </View>
 
+        {/* FORMULARIO DE RUTA */}
         <View style={styles.cardForm}>
            <View style={styles.routeSection}>
               <View style={styles.routeVisual}>
@@ -367,7 +455,7 @@ export default function PlanViaje() {
               </View>
            </View>
 
-           {/* LOGISTICA: FECHAS Y DÍAS (Corregido) */}
+           {/* LOGISTICA: FECHAS Y DÍAS */}
            <View style={[styles.row, {marginTop: 25, alignItems: 'flex-start'}]}>
               <View style={{flex: 1, marginRight: 15}}>
                  <Text style={styles.label}>FECHA SALIDA (AAAA-MM-DD)</Text>
@@ -393,6 +481,7 @@ export default function PlanViaje() {
               </View>
            </View>
 
+           {/* CONTROL DE RADIO DE EXPLORACIÓN */}
            <View style={styles.radioBox}>
               <View style={styles.rowBetween}>
                  <Text style={styles.label}>RADIO DE EXPLORACIÓN</Text>
@@ -414,18 +503,20 @@ export default function PlanViaje() {
            </TouchableOpacity>
         </View>
 
+        {/* MAPA INTERACTIVO */}
         {geoData && (
           <View style={styles.mapContainer}>
              <WebView originWhitelist={['*']} source={{ html: mapHtml }} style={{ flex: 1 }} scrollEnabled={false} />
           </View>
         )}
 
+        {/* SECCIÓN DE SUGERENCIAS FILTRADAS */}
         {sugerencias.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>PARADAS RECOMENDADAS ({sugerencias.length})</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.suggestionTrack}>
               {sugerencias.map(ev => (
-                <TouchableOpacity key={ev.id} style={styles.suggestCard} onPress={() => addStop(ev)}>
+                <TouchableOpacity key={ev._id || ev.id} style={styles.suggestCard} onPress={() => addStop(ev)}>
                   <Image source={{ uri: ev.imagen }} style={styles.suggestImg} />
                   <View style={styles.suggestFooter}>
                      <Text style={styles.suggestName} numberOfLines={1}>{ev.name}</Text>
@@ -438,7 +529,7 @@ export default function PlanViaje() {
           </View>
         )}
 
-        {/* ITINERARIO */}
+        {/* ÁREA DE ITINERARIO (TIMELINE) */}
         <View style={styles.itineraryMain}>
            <View style={styles.itineraryHeader}>
               <View>
@@ -447,6 +538,7 @@ export default function PlanViaje() {
               </View>
            </View>
 
+           {/* BOTONES DE ACCIÓN MONGODB / PDF */}
            <View style={styles.actionsBar}>
               <TouchableOpacity style={styles.actionBtnPrimary} onPress={() => setShowSaveModal(true)}>
                  <Text style={{fontSize: 16, marginRight: 8}}>💾</Text>
@@ -458,12 +550,12 @@ export default function PlanViaje() {
               </TouchableOpacity>
            </View>
 
-           {/* SCROLL DE DÍAS CORREGIDO PARA ALINEACIÓN */}
+           {/* SELECTOR DE DÍAS (SCROLL HORIZONTAL) */}
            <View style={{ marginBottom: 35 }}>
              <ScrollView 
                 horizontal 
                 showsHorizontalScrollIndicator={false} 
-                contentContainerStyle={{ paddingRight: 30 }} // Espacio final
+                contentContainerStyle={{ paddingRight: 30 }}
              >
                 {Array.from({length: parseInt(dias) || 1}).map((_, i) => (
                   <TouchableOpacity key={i} style={[styles.dayTab, activeDay === i && styles.dayTabActive]} onPress={() => setActiveDay(i)}>
@@ -474,6 +566,7 @@ export default function PlanViaje() {
              </ScrollView>
            </View>
 
+           {/* LÍNEA DE TIEMPO DEL DÍA ACTIVO */}
            <View style={styles.timeline}>
               {(itinerario[activeDay] || []).length === 0 ? (
                 <View style={styles.emptyPlan}>
@@ -483,7 +576,7 @@ export default function PlanViaje() {
                 </View>
               ) : (
                 itinerario[activeDay].map((stop, idx) => (
-                  <View key={stop.id} style={styles.timelineItem}>
+                  <View key={stop._id || stop.id} style={styles.timelineItem}>
                      <View style={styles.timelineGuide}>
                         <View style={[styles.node, idx === 0 && {backgroundColor: COLORS.accent}]} />
                         {idx !== itinerario[activeDay].length - 1 && <View style={styles.timelineLine} />}
@@ -495,7 +588,7 @@ export default function PlanViaje() {
                            <Text style={styles.stopLoc}>📍 {stop.ciudad}</Text>
                         </View>
                         <TouchableOpacity style={styles.deleteStop} onPress={() => {
-                           const next = itinerario[activeDay].filter(s => s.id !== stop.id);
+                           const next = itinerario[activeDay].filter(s => (s._id || s.id) !== (stop._id || stop.id));
                            setItinerario({...itinerario, [activeDay]: next});
                         }}><Text style={{color: COLORS.error, fontWeight: 'bold'}}>✕</Text></TouchableOpacity>
                      </View>
@@ -508,7 +601,7 @@ export default function PlanViaje() {
         <View style={{height: 100}} />
       </ScrollView>
 
-      {/* MODALES SIN CAMBIOS */}
+      {/* MODAL PARA ASIGNAR NOMBRE AL PLAN (MONGODB SAVE) */}
       <Modal visible={showSaveModal} transparent animationType="fade">
         <View style={styles.modalOverlay}>
             <View style={styles.saveBox}>
@@ -522,6 +615,7 @@ export default function PlanViaje() {
         </View>
       </Modal>
 
+      {/* MODAL DE VISTA PREVIA DEL FOLIO PDF */}
       <Modal visible={showFolio} animationType="slide" transparent={false}>
         <View style={styles.folioBg}>
            <SafeAreaView style={{flex: 1}}>
@@ -556,7 +650,7 @@ export default function PlanViaje() {
                         <Text style={styles.dayDateText}>{getFormattedDateForDay(parseInt(dayIdx))}</Text>
                       </View>
                       {itinerario[dayIdx].map(ev => (
-                        <View key={ev.id} style={styles.folioEventCard}>
+                        <View key={ev._id || ev.id} style={styles.folioEventCard}>
                           <Image source={{ uri: ev.imagen }} style={styles.folioEventImg} />
                           <View style={{flex: 1}}>
                             <Text style={styles.folioEventName}>{ev.name.toUpperCase()}</Text>
@@ -601,27 +695,9 @@ const styles = StyleSheet.create({
   inputWrap: { flex: 1 },
   label: { color: COLORS.accent, fontSize: 9, fontWeight: '900', marginBottom: 10, letterSpacing: 2 },
   input: { backgroundColor: 'rgba(255,255,255,0.03)', padding: 18, borderRadius: 18, color: 'white', borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)', fontSize: 14 },
-  
-  // NUEVOS ESTILOS PARA INPUTS
-  daysInputWrapper: {
-    backgroundColor: 'rgba(255,255,255,0.03)',
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 10
-  },
-  daysInput: {
-    color: 'white',
-    fontSize: 22,
-    fontWeight: 'bold',
-    width: '100%',
-    textAlign: 'center',
-    padding: 0
-  },
+  daysInputWrapper: { backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 18, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)', alignItems: 'center', justifyContent: 'center', paddingVertical: 10 },
+  daysInput: { color: 'white', fontSize: 22, fontWeight: 'bold', width: '100%', textAlign: 'center', padding: 0 },
   daysLabel: { color: COLORS.muted, fontSize: 8, fontWeight: 'bold' },
-
   row: { flexDirection: 'row' },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   dateHelper: { color: COLORS.success, fontSize: 10, fontWeight: 'bold', fontStyle: 'italic', marginTop: 8, marginLeft: 5 },
@@ -649,15 +725,11 @@ const styles = StyleSheet.create({
   itineraryMain: { paddingHorizontal: 30 },
   itineraryHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
   itSub: { color: COLORS.muted, fontSize: 11, marginTop: 4 },
-  
-  // NUEVOS BOTONES DE ACCIÓN
   actionsBar: { flexDirection: 'row', gap: 12, marginBottom: 25 },
   actionBtnPrimary: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.accent, padding: 15, borderRadius: 18 },
   actionTextPrimary: { color: COLORS.ink, fontWeight: '900', fontSize: 12, letterSpacing: 1 },
   actionBtnSecondary: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.1)', padding: 15, borderRadius: 18, borderWidth: 1, borderColor: COLORS.glassBorder },
   actionTextSecondary: { color: COLORS.white, fontWeight: '900', fontSize: 12, letterSpacing: 1 },
-
-  // daySelector: { marginBottom: 35 }, 
   dayTab: { paddingHorizontal: 22, paddingVertical: 18, borderRadius: 22, marginRight: 12, backgroundColor: COLORS.glass, alignItems: 'center', minWidth: 100 },
   dayTabActive: { backgroundColor: COLORS.accent },
   dayTabText: { color: COLORS.muted, fontWeight: 'bold', fontSize: 13 },

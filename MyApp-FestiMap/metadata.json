@@ -1,0 +1,8 @@
+
+{
+  "name": "FestiMap Ecuador - Premium Edition",
+  "description": "Aplicación cultural con integración de GPS y rutas inteligentes.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}

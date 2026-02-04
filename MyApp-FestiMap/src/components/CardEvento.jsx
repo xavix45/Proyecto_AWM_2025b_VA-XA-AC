@@ -24,7 +24,9 @@ const COLORS = {
 
 export default function CardEvento({ evento, distancia }) {
   const navigation = useNavigation();
-  const { name, provincia, fecha, imagen, categoria, status } = evento;
+  // MongoDB usa _id, el antiguo db.json usaba id. Soportamos ambos.
+  const { name, provincia, fecha, imagen, categoria, status, _id, id } = evento;
+  const identifier = _id || id;
 
   return (
     <TouchableOpacity 
@@ -32,7 +34,6 @@ export default function CardEvento({ evento, distancia }) {
       onPress={() => navigation.navigate('Detalles', { evento })}
       activeOpacity={0.95}
     >
-      {/* CONTENEDOR DE IMAGEN (PROTAGONISTA) */}
       <View style={styles.imageWrapper}>
         <Image 
           source={{ uri: imagen }} 
@@ -40,7 +41,6 @@ export default function CardEvento({ evento, distancia }) {
           resizeMode="cover"
         />
         
-        {/* OVERLAY SUPERIOR PARA BADGES */}
         <View style={styles.topOverlay}>
           <View style={styles.badgeRow}>
             {distancia ? (
@@ -63,15 +63,13 @@ export default function CardEvento({ evento, distancia }) {
           </View>
         </View>
 
-        {/* GRADIENTE SUTIL INFERIOR (Simulado con View) */}
         <View style={styles.bottomImageShadow} />
       </View>
 
-      {/* BLOQUE DE INFORMACIÓN (LIMPIO Y CLARO) */}
       <View style={styles.infoContainer}>
         <View style={styles.headerRow}>
           <Text style={styles.name} numberOfLines={1}>{name}</Text>
-          <Text style={styles.dateText}>{fecha.split('-')[2] || '??'} ENE</Text>
+          <Text style={styles.dateText}>{fecha?.split('-')[2] || '??'} ENE</Text>
         </View>
 
         <View style={styles.footerRow}>
@@ -107,7 +105,7 @@ const styles = StyleSheet.create({
   },
   imageWrapper: {
     width: '100%',
-    height: 180, // Espacio dedicado a la foto
+    height: 180,
     position: 'relative',
     backgroundColor: COLORS.ink,
   },
@@ -128,7 +126,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 40,
-    backgroundColor: 'rgba(30, 41, 59, 0.5)', // Oscurece un poco la base de la foto
+    backgroundColor: 'rgba(30, 41, 59, 0.5)',
   },
   badgeRow: { 
     flexDirection: 'row', 

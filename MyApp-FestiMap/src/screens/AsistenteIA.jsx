@@ -20,12 +20,10 @@ import axios from 'axios';
 import { GoogleGenAI } from "@google/genai";
 import { ENDPOINTS, GEMINI_API_KEY } from '../config/api.js';
 import { useUser } from '../context/UserContext.jsx';
-// Importación corregida con extensión .jsx
-import { ChatBubble } from '../components/ui/ChatWidgets.jsx';
+import { ChatBubble } from '../components/ui/ChatWidgets';
 
 const { width } = Dimensions.get('window');
 
-// Paleta de colores
 const COLORS = {
   accent: '#ffb800', 
   bg: '#0f172a',      
@@ -39,11 +37,11 @@ const COLORS = {
 const ALPI_AVATAR = require('../../alpi.png'); 
 
 export default function AsistenteIA({ navigation }) {
-  const { user } = useUser();
+  const { user, preferences } = useUser();
   const [messages, setMessages] = useState([
     { 
       id: '1', 
-      text: `¡Hola ${user?.nombre || 'Amigo'}! ✌️ Soy Alpi.\n\nLa alpaca más fiestera de los Andes. Conozco los mejores "huecas", festivales y rutas. ¿Qué plan buscamos hoy?`, 
+      text: `¡Habla ${user?.nombre?.split(' ')[0] || 'pana'}! ✌️ Soy Alpi.\n\n¿Qué planes tienes para hoy en ${preferences?.provincia || 'Ecuador'}? ¡Tira el dato y te acolito con la ruta!`, 
       sender: 'bot',
       suggestions: [] 
     }
@@ -55,15 +53,15 @@ export default function AsistenteIA({ navigation }) {
   
   const flatListRef = useRef();
 
-  // Cargar contexto de eventos
   useEffect(() => {
     const buildContext = async () => {
       try {
         const res = await axios.get(ENDPOINTS.eventos);
         const eventos = res.data;
         setAllEvents(eventos);
+        // Construimos un contexto compacto para Gemini
         const contextString = eventos.map(e => 
-          `ID:${e.id}|${e.name}|${e.ciudad}|${e.fecha}|${e.categoria}|${e.precio}`
+          `ID:${e._id || e.id}|${e.name}|${e.ciudad}|${e.provincia}|${e.fecha}|${e.categoria}|${e.precio}`
         ).join('\n');
         setEventsContext(contextString);
       } catch (e) {
@@ -74,7 +72,7 @@ export default function AsistenteIA({ navigation }) {
   }, []);
 
   const handleSend = async () => {
-    if (!input.trim()) return;
+    if (!input.trim() || loading) return;
 
     const textToSend = input;
     setInput(''); 
@@ -83,61 +81,39 @@ export default function AsistenteIA({ navigation }) {
     setMessages(prev => [...prev, userMsg]);
     setLoading(true);
 
-    const apiKey = GEMINI_API_KEY;
-    if (!apiKey || apiKey.includes("PEGAR_AQUI")) {
-      setTimeout(() => {
-        setMessages(prev => [...prev, { id: Date.now().toString(), text: "⚠️ Oye, falta la API Key en la configuración. ¡No puedo pensar sin ella!", sender: 'bot' }]);
-        setLoading(false);
-      }, 500);
-      return;
-    }
-
     try {
-      const ai = new GoogleGenAI({ apiKey: apiKey });
+      const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
       
-      const finalPrompt = `
-        ACTÚA COMO: "Alpi", una alpaca ecuatoriana joven, moderna y "kawaii". Usas gafas de sol (metafóricamente) y te gusta la fiesta.
-        TONO: Divertido, usas jerga ecuatoriana ligera (chévere, de una, acolita), muchos emojis (🦙, ✨, 🎉, 🕶️). Eres experta en turismo.
+      const systemPrompt = `
+        ERES: Alpi, una alpaca experta en fiestas y turismo de Ecuador.
+        CONTEXTO USUARIO: El usuario vive en ${preferences?.provincia || 'alguna parte de Ecuador'}.
+        PERSONALIDAD: Divertida, usas jerga ecuatoriana (bacán, de ley, acolita). Eres amable y te encanta la comida típica.
         
-        BASE DE DATOS (EVENTOS DISPONIBLES):
+        LISTA DE EVENTOS ACTUALES (MONGODB):
         ${eventsContext}
 
-        USUARIO DICE: "${textToSend}"
-
-        TU OBJETIVO: Responder la duda del usuario y recomendar eventos de la lista SI viene al caso. Si no hay eventos exactos, sugiere algo parecido o dales ánimos.
+        TU TAREA: Responder la consulta del usuario. Si mencionan un lugar o interés, busca en la lista de eventos arriba y sugiere los IDs que más calcen. 
+        Si el usuario pregunta algo general de Ecuador, responde con orgullo patrio.
         
-        INSTRUCCIONES CRÍTICAS DE FORMATO:
-        Tu respuesta DEBE ser un JSON válido. NO uses bloques de código Markdown (no uses \`\`\`json). Solo devuelve el objeto raw.
-        
-        FORMATO RESPUESTA:
+        IMPORTANTE: Tu respuesta debe ser un JSON raw (sin markdown) con este formato:
         {
-          "reply": "Tu respuesta textual aquí...",
+          "reply": "Tu respuesta aquí...",
           "suggested_ids": ["ID1", "ID2"]
         }
       `;
 
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview', 
-        contents: finalPrompt,
+        contents: [
+          { role: 'user', parts: [{ text: systemPrompt + "\n\nUSUARIO PREGUNTA: " + textToSend }] }
+        ],
         config: { responseMimeType: "application/json" }
       });
 
-      let parsed;
-      try {
-        const rawText = response.text || ""; 
-        const cleanText = rawText.replace(/```json|```/g, '').trim();
-        if (!cleanText) throw new Error("Respuesta vacía de IA");
-        parsed = JSON.parse(cleanText);
-      } catch (e) {
-        console.error("Error parseando JSON de Alpi:", e);
-        parsed = { 
-          reply: "¡Uy! Se me cruzaron los cables. ¿Me lo repites?", 
-          suggested_ids: [] 
-        };
-      }
+      const parsed = JSON.parse(response.text);
 
       const suggestions = allEvents.filter(ev => 
-        parsed.suggested_ids?.includes(ev.id) || parsed.suggested_ids?.includes(String(ev.id))
+        parsed.suggested_ids?.includes(ev._id) || parsed.suggested_ids?.includes(ev.id)
       );
 
       const botMsg = { 
@@ -148,10 +124,8 @@ export default function AsistenteIA({ navigation }) {
       };
       
       setMessages(prev => [...prev, botMsg]);
-
     } catch (error) {
-      console.error("Error General IA:", error);
-      setMessages(prev => [...prev, { id: Date.now().toString(), text: "¡Chuta! Me quedé sin señal en el páramo. Intenta otra vez.", sender: 'bot' }]);
+      setMessages(prev => [...prev, { id: Date.now().toString(), text: "¡Chuta! El servidor está más lento que desfile de pueblo. ¿Me lo repites?", sender: 'bot' }]);
     } finally {
       setLoading(false);
     }
@@ -159,109 +133,61 @@ export default function AsistenteIA({ navigation }) {
 
   const renderEventCard = (ev) => (
     <TouchableOpacity 
-      key={ev.id} 
+      key={ev._id || ev.id} 
       style={styles.cardContainer}
       onPress={() => navigation.navigate('Detalles', { evento: ev })}
-      activeOpacity={0.9}
     >
       <Image source={{ uri: ev.imagen }} style={styles.cardImage} />
       <View style={styles.cardOverlay}>
         <Text style={styles.cardTitle} numberOfLines={1}>{ev.name}</Text>
-        <Text style={styles.cardDate}>📅 {ev.fecha} • 💰 {ev.precio || 'Gratis'}</Text>
-        <View style={styles.cardBtn}><Text style={styles.cardBtnText}>→</Text></View>
+        <Text style={styles.cardLoc}>📍 {ev.ciudad}</Text>
       </View>
     </TouchableOpacity>
   );
 
-  const renderItem = ({ item }) => {
-    const isUser = item.sender === 'user';
-    return (
-      <ChatBubble item={item} isUser={isUser} avatarSource={ALPI_AVATAR}>
-        <Text style={styles.msgText}>{item.text}</Text>
-        
-        {item.suggestions && item.suggestions.length > 0 && (
-          <View style={{ marginTop: 12 }}>
-            <Text style={styles.suggestLabel}>Checa estos planes 👇</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -10 }} contentContainerStyle={{ paddingHorizontal: 10 }}>
-              {item.suggestions.map(renderEventCard)}
-            </ScrollView>
-          </View>
-        )}
-      </ChatBubble>
-    );
-  };
-
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.bg} />
-      
-      {/* HEADER ALPI */}
+      <StatusBar barStyle="light-content" />
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Text style={styles.backIcon}>✕</Text>
-        </TouchableOpacity>
-        
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}><Text style={styles.backIcon}>✕</Text></TouchableOpacity>
         <View style={styles.headerTitleContainer}>
-          <View style={styles.onlineIndicator} />
           <Text style={styles.headerTitle}>Alpi AI</Text>
-          <Text style={styles.headerSub}>Tu Pana de Viajes 🕶️</Text>
+          <Text style={styles.headerSub}>Tu Pana Turístico 🦙</Text>
         </View>
-        
-        <View style={styles.headerAvatarFrame}>
-           <Image source={ALPI_AVATAR} style={styles.headerAvatar} />
-        </View>
+        <Image source={ALPI_AVATAR} style={styles.headerAvatar} />
       </View>
 
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
-        style={styles.keyboardArea}
-      >
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{flex: 1}}>
         <FlatList
           ref={flatListRef}
           data={messages}
-          renderItem={renderItem}
+          renderItem={({ item }) => (
+            <ChatBubble item={item} isUser={item.sender === 'user'} avatarSource={ALPI_AVATAR}>
+              <Text style={styles.msgText}>{item.text}</Text>
+              {item.suggestions?.length > 0 && (
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{marginTop: 10}}>
+                  {item.suggestions.map(renderEventCard)}
+                </ScrollView>
+              )}
+            </ChatBubble>
+          )}
           keyExtractor={item => item.id}
-          contentContainerStyle={styles.listContent}
-          onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
-          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{padding: 20}}
+          onContentSizeChange={() => flatListRef.current?.scrollToEnd()}
         />
 
-        {loading && (
-          <View style={styles.typingIndicator}>
-            <ActivityIndicator size="small" color={COLORS.accent} />
-            <Text style={styles.typingText}>Alpi está pensando...</Text>
-          </View>
-        )}
-
-        {/* INPUT BAR */}
-        <View style={styles.inputWrapper}>
-          <View style={styles.inputGlass}>
-            <TextInput
-              style={styles.textInput}
-              placeholder="Pregúntale a Alpi..."
-              placeholderTextColor={COLORS.textMuted}
-              value={input}
-              onChangeText={setInput}
-              multiline={false} 
-              onSubmitEditing={handleSend}
-              returnKeyType="send"
-              maxLength={200}
-            />
-            <TouchableOpacity 
-              style={[styles.sendBtn, !input.trim() && styles.sendBtnDisabled]} 
-              onPress={handleSend}
-              disabled={!input.trim() || loading}
-            >
-              {loading ? (
-                <View style={styles.dot} /> 
-              ) : (
-                <Image 
-                  source={{ uri: 'https://cdn-icons-png.flaticon.com/512/60/60525.png' }} 
-                  style={[styles.sendIconImg, { tintColor: COLORS.bg }]} 
-                />
-              )}
-            </TouchableOpacity>
-          </View>
+        <View style={styles.inputArea}>
+          <TextInput 
+            style={styles.input} 
+            value={input} 
+            onChangeText={setInput} 
+            placeholder="Pregunta por una hueca o desfile..." 
+            placeholderTextColor={COLORS.textMuted}
+            onSubmitEditing={handleSend}
+          />
+          <TouchableOpacity style={styles.sendBtn} onPress={handleSend} disabled={loading}>
+            {loading ? <ActivityIndicator color={COLORS.bg} size="small" /> : <Text style={styles.sendIcon}>🚀</Text>}
+          </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -270,85 +196,21 @@ export default function AsistenteIA({ navigation }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.bg },
-  
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: Platform.OS === 'android' ? 45 : 10,
-    paddingBottom: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-    backgroundColor: 'rgba(15, 23, 42, 0.95)',
-    zIndex: 10
-  },
-  backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center', borderRadius: 20, backgroundColor: COLORS.glass },
-  backIcon: { color: COLORS.white, fontSize: 18, fontWeight: 'bold' },
+  header: { flexDirection: 'row', alignItems: 'center', padding: 20, paddingTop: 40, borderBottomWidth: 1, borderBottomColor: COLORS.border },
+  backBtn: { width: 35, height: 35, borderRadius: 18, backgroundColor: COLORS.glass, alignItems: 'center', justifyContent: 'center' },
+  backIcon: { color: 'white', fontWeight: 'bold' },
   headerTitleContainer: { flex: 1, alignItems: 'center' },
-  headerTitle: { color: COLORS.white, fontSize: 18, fontWeight: '900' },
-  headerSub: { color: COLORS.accent, fontSize: 10, fontWeight: 'bold', letterSpacing: 1 },
-  onlineIndicator: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#10b981', position: 'absolute', left: 45, top: 8 },
-  headerAvatarFrame: { 
-    width: 48, height: 48, borderRadius: 24, backgroundColor: COLORS.glass, 
-    alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: COLORS.accent 
-  },
-  headerAvatar: { width: 38, height: 38 },
-
-  keyboardArea: { flex: 1 },
-  listContent: { paddingHorizontal: 15, paddingBottom: 20, paddingTop: 20 },
-  
-  msgText: { color: COLORS.white, fontSize: 15, lineHeight: 22 },
-
-  suggestLabel: { color: COLORS.textMuted, fontSize: 11, fontStyle: 'italic', marginBottom: 10, marginTop: 5 },
-  cardContainer: { width: 200, height: 160, borderRadius: 18, marginRight: 12, overflow: 'hidden', backgroundColor: '#000', borderWidth: 1, borderColor: COLORS.border },
-  cardImage: { width: '100%', height: '100%', opacity: 0.8 },
-  cardOverlay: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: 12, backgroundColor: 'rgba(0,0,0,0.7)' },
-  cardTitle: { color: 'white', fontWeight: 'bold', fontSize: 13, marginBottom: 2 },
-  cardDate: { color: COLORS.accent, fontSize: 10 },
-  cardBtn: { position: 'absolute', right: 10, bottom: 10, backgroundColor: COLORS.accent, width: 24, height: 24, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  cardBtnText: { color: COLORS.bg, fontWeight: 'bold', fontSize: 12 },
-  
-  typingIndicator: { flexDirection: 'row', alignItems: 'center', marginLeft: 60, marginBottom: 15 },
-  typingText: { color: COLORS.textMuted, fontSize: 12, marginLeft: 8, fontStyle: 'italic' },
-
-  inputWrapper: { 
-    padding: 12, 
-    backgroundColor: COLORS.bg,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.border
-  },
-  inputGlass: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.inputBg,
-    borderRadius: 28,
-    paddingHorizontal: 6,
-    paddingVertical: 6,
-    borderWidth: 1,
-    borderColor: COLORS.border
-  },
-  textInput: {
-    flex: 1,
-    color: COLORS.white,
-    paddingHorizontal: 15,
-    paddingVertical: 10,
-    fontSize: 16,
-    maxHeight: 100
-  },
-  sendBtn: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: COLORS.accent,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginLeft: 5,
-    elevation: 5,
-    shadowColor: COLORS.accent,
-    shadowOpacity: 0.4,
-    shadowRadius: 5
-  },
-  sendBtnDisabled: { backgroundColor: COLORS.glass, elevation: 0 },
-  sendIconImg: { width: 20, height: 20, resizeMode: 'contain' },
-  dot: { width: 10, height: 10, borderRadius: 5, backgroundColor: COLORS.bg }
+  headerTitle: { color: 'white', fontSize: 18, fontWeight: 'bold' },
+  headerSub: { color: COLORS.accent, fontSize: 10, fontWeight: '900' },
+  headerAvatar: { width: 45, height: 45 },
+  msgText: { color: 'white', fontSize: 14, lineHeight: 20 },
+  inputArea: { flexDirection: 'row', padding: 15, backgroundColor: 'rgba(30,41,59,0.8)', alignItems: 'center' },
+  input: { flex: 1, backgroundColor: COLORS.bg, borderRadius: 20, paddingHorizontal: 20, height: 50, color: 'white', borderWidth: 1, borderColor: COLORS.border },
+  sendBtn: { width: 50, height: 50, borderRadius: 25, backgroundColor: COLORS.accent, marginLeft: 10, alignItems: 'center', justifyContent: 'center' },
+  sendIcon: { fontSize: 20 },
+  cardContainer: { width: 140, height: 100, borderRadius: 15, overflow: 'hidden', marginRight: 10, backgroundColor: '#000' },
+  cardImage: { width: '100%', height: '100%', opacity: 0.6 },
+  cardOverlay: { position: 'absolute', bottom: 5, left: 10, right: 10 },
+  cardTitle: { color: 'white', fontSize: 10, fontWeight: 'bold' },
+  cardLoc: { color: COLORS.accent, fontSize: 8 }
 });

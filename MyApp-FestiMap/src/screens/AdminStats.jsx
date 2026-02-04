@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { 
   View, 
@@ -139,12 +138,12 @@ export default function AdminStats() {
   }, [eventos, regionFilter, catFilter]);
 
   const filteredPicker = useMemo(() => {
-    return eventos.filter(e => e.name.toLowerCase().includes(searchEvent.toLowerCase())).slice(0, 12);
+    return eventos.filter(e => (e.name || "").toLowerCase().includes(searchEvent.toLowerCase())).slice(0, 12);
   }, [eventos, searchEvent]);
 
   const compareData = useMemo(() => {
     if (!selectedId || !globalStats) return null;
-    const ev = eventos.find(e => e.id === selectedId);
+    const ev = eventos.find(e => (e._id || e.id) === selectedId);
     if (!ev) return null;
     const evConv = ev.visitas > 0 ? (ev.asistencias / ev.visitas) * 100 : 0;
     return {
@@ -177,7 +176,7 @@ export default function AdminStats() {
            <Text style={styles.headerTitle}>FestiMap Intelligence 🏢</Text>
            <View style={styles.syncStatus}>
               <View style={styles.syncDot} />
-              <Text style={styles.syncText}>DATA SYNC: DB.JSON • {new Date().toLocaleTimeString()}</Text>
+              <Text style={styles.syncText}>DATA SYNC: MONGODB • {new Date().toLocaleTimeString()}</Text>
            </View>
         </View>
 
@@ -197,7 +196,7 @@ export default function AdminStats() {
             onPress={() => {
               LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
               setActiveTab('DeepDive');
-              if(!selectedId && eventos.length > 0) setSelectedId(eventos[0].id);
+              if(!selectedId && eventos.length > 0) setSelectedId(eventos[0]._id || eventos[0].id);
             }}
            >
               <Text style={[styles.moduleTabText, activeTab === 'DeepDive' && styles.moduleTabTextActive]}>ANÁLISIS POR EVENTO</Text>
@@ -296,7 +295,7 @@ export default function AdminStats() {
                  <Text style={styles.cardHeader}>TOP 5: LOS MÁS EFECTIVOS 🏆</Text>
                  <Text style={styles.cardSub}>Basado en el ratio Visita / Asistencia real.</Text>
                  {globalStats.efficiencyRanking.map((ev, i) => (
-                   <View key={ev.id} style={styles.rankItem}>
+                   <View key={ev._id || ev.id} style={styles.rankItem}>
                       <View style={styles.rankNum}><Text style={styles.rankNumTxt}>{i+1}</Text></View>
                       <View style={styles.rankInfo}>
                          <Text style={styles.rankName} numberOfLines={1}>{ev.name}</Text>
@@ -313,7 +312,7 @@ export default function AdminStats() {
               <View style={styles.card}>
                  <Text style={styles.cardHeader}>ELITE EXPERIENCE: MEJOR RATING ⭐</Text>
                  {globalStats.topRatedRanking.map((ev, i) => (
-                   <View key={ev.id} style={styles.rankItem}>
+                   <View key={ev._id || ev.id} style={styles.rankItem}>
                       <View style={[styles.rankNum, {backgroundColor: COLORS.emerald + '30'}]}><Text style={[styles.rankNumTxt, {color: COLORS.emerald}]}>{i+1}</Text></View>
                       <View style={styles.rankInfo}>
                          <Text style={styles.rankName} numberOfLines={1}>{ev.name}</Text>
@@ -342,15 +341,18 @@ export default function AdminStats() {
                     />
                  </View>
                  <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.pickerRow}>
-                    {filteredPicker.map(ev => (
-                      <TouchableOpacity 
-                        key={ev.id} 
-                        style={[styles.miniChip, selectedId === ev.id && styles.miniChipActive]} 
-                        onPress={() => setSelectedId(ev.id)}
-                      >
-                         <Text style={[styles.miniChipText, selectedId === ev.id && styles.miniChipTextActive]}>{ev.name}</Text>
-                      </TouchableOpacity>
-                    ))}
+                    {filteredPicker.map(ev => {
+                      const evId = ev._id || ev.id;
+                      return (
+                        <TouchableOpacity 
+                          key={evId} 
+                          style={[styles.miniChip, selectedId === evId && styles.miniChipActive]} 
+                          onPress={() => setSelectedId(evId)}
+                        >
+                           <Text style={[styles.miniChipText, selectedId === evId && styles.miniChipTextActive]}>{ev.name}</Text>
+                        </TouchableOpacity>
+                      );
+                    })}
                  </ScrollView>
               </View>
 
@@ -428,7 +430,7 @@ export default function AdminStats() {
                      <View style={styles.logRow}><Text style={styles.logKey}>Organizador:</Text><Text style={styles.logVal}>{compareData.ev.organizador || 'Empresa Pública'}</Text></View>
                      <View style={styles.logRow}><Text style={styles.logKey}>Categoría:</Text><Text style={styles.logVal}>{compareData.ev.categoria}</Text></View>
                      <View style={styles.logRow}><Text style={styles.logKey}>Precio Unitario:</Text><Text style={styles.logVal}>{compareData.ev.precio || 'Gratuito'}</Text></View>
-                     <View style={styles.logRow}><Text style={styles.logKey}>Lat/Lng:</Text><Text style={styles.logVal}>{compareData.ev.lat.toFixed(4)}, {compareData.ev.lng.toFixed(4)}</Text></View>
+                     <View style={styles.logRow}><Text style={styles.logKey}>Lat/Lng:</Text><Text style={styles.logVal}>{compareData.ev.lat?.toFixed(4)}, {compareData.ev.lng?.toFixed(4)}</Text></View>
                      <View style={styles.logRow}><Text style={styles.logKey}>Tag Cloud:</Text><Text style={styles.logVal}>{compareData.ev.tags?.join(', ') || 'Tradición'}</Text></View>
                   </View>
                 </View>
@@ -440,7 +442,7 @@ export default function AdminStats() {
         <View style={styles.footer}>
            <Text style={styles.footerText}>FESTIMAP ANALYTICS ENGINE v5.5.10</Text>
            <Text style={styles.footerSub}>Consola de Alto Rendimiento • Patrimonio Digital Ecuador</Text>
-           <Text style={styles.footerSub}>Sincronización segura vía Axios REST-API</Text>
+           <Text style={styles.footerSub}>Sincronización segura vía REST-API MongoDB</Text>
         </View>
 
         <View style={{height: 120}} />

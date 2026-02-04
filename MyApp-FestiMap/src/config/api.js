@@ -1,14 +1,20 @@
 
-// CONFIGURACIÓN CENTRALIZADA DE LA API
-export const API_BASE_URL = 'http://192.168.0.149:8000'; 
+// CONFIGURACIÓN CENTRALIZADA DE LA API (MONGODB + EXPRESS)
+// Asegúrate de que esta IP sea la de tu adaptador Wi-Fi real
+
+export const YOUR_COMPUTER_IP = '192.168.0.149'; // <--- VERIFICA ESTA IP CON IPCONFIG
+
+export const API_BASE_URL = `http://${YOUR_COMPUTER_IP}:8000/api`; 
 
 export const ENDPOINTS = {
   eventos: `${API_BASE_URL}/eventos`,
-  usuarios: `${API_BASE_URL}/usuarios`,
+  comentarios: (eventoId) => `${API_BASE_URL}/eventos/${eventoId}/comentarios`,
+  checkin: (eventoId) => `${API_BASE_URL}/eventos/${eventoId}/checkin`,
+  login: `${API_BASE_URL}/login`,
+  register: `${API_BASE_URL}/register`,
+  usuarios: `${API_BASE_URL}/usuarios`, // Endpoint base para CRUD de usuarios
+  planes: `${API_BASE_URL}/planes`
 };
 
-// --- CONFIGURACIÓN DE IA (GEMINI) ---
-// INSTRUCCIÓN: Borra el texto "PEGAR_AQUI_TU_CLAVE" (incluyendo las comillas si quieres, o déjalas)
-// y pon tu API Key real que empieza con "AIza...".
-// Si usas variables de entorno, puedes dejar: process.env.API_KEY || "PEGAR_AQUI_TU_CLAVE"
-export const GEMINI_API_KEY = "AIzaSyCFNPXoZBP6BLlw99r4W4-x6LQ3q69nlFc";
+// --- CONFIGURACIÓN DE IA ---
+export const GEMINI_API_KEY = process.env.API_KEY || "";

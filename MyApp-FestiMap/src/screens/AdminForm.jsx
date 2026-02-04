@@ -51,7 +51,6 @@ export default function AdminForm({ route, navigation }) {
   const editData = route.params?.evento;
   const [loading, setLoading] = useState(false);
   
-  // ESTADO COMPLEJO (Concepto PDF 1: Hooks de estado pág. 64)
   const [form, setForm] = useState({
     name: '',
     descripcion: '',
@@ -103,14 +102,12 @@ export default function AdminForm({ route, navigation }) {
   };
 
   const handleSave = async () => {
-    // Validaciones de Integridad (PDF 1 pág. 73)
     if (!form.name || !form.ciudad || !form.lat || !form.lng || !form.fecha) {
-      return Alert.alert("⚠️ Campos Críticos", "Nombre, Ciudad, Fecha y Coordenadas GPS son obligatorios para el mapa.");
+      return Alert.alert("⚠️ Campos Críticos", "Nombre, Ciudad, Fecha y Coordenadas GPS son obligatorios.");
     }
 
     setLoading(true);
     try {
-      // PROCESAMIENTO DE DATOS (Concepto: Conversión de tipos para db.json)
       const payload = {
         ...form,
         lat: parseFloat(form.lat),
@@ -122,15 +119,17 @@ export default function AdminForm({ route, navigation }) {
       };
 
       if (editData) {
-        await axios.put(`${ENDPOINTS.eventos}/${form.id}`, payload);
+        // Usamos el _id real de MongoDB
+        const targetId = editData._id || editData.id;
+        await axios.put(`${ENDPOINTS.eventos}/${targetId}`, payload);
         Alert.alert("✅ Sincronizado", "Registro actualizado en el inventario nacional.");
       } else {
-        await axios.post(ENDPOINTS.eventos, { ...payload, id: Date.now().toString() });
+        await axios.post(ENDPOINTS.eventos, payload);
         Alert.alert("✅ Publicado", "Nueva festividad añadida exitosamente al mapa.");
       }
       navigation.goBack();
     } catch (err) {
-      Alert.alert("❌ Error de Red", "No se pudo conectar con el servidor cultural.");
+      Alert.alert("❌ Error de Red", "No se pudo conectar con el servidor MongoDB.");
     } finally {
       setLoading(false);
     }
@@ -150,7 +149,7 @@ export default function AdminForm({ route, navigation }) {
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
           
           <Text style={styles.title}>{editData ? 'Editor de Patrimonio' : 'Nuevo Registro'}</Text>
-          <Text style={styles.subtitle}>Configuración técnica y logística del evento.</Text>
+          <Text style={styles.subtitle}>Configuración técnica y logística del evento en MongoDB.</Text>
 
           {/* PREVIEW DE IMAGEN */}
           <View style={styles.previewContainer}>
@@ -172,7 +171,7 @@ export default function AdminForm({ route, navigation }) {
             <TextInput style={styles.input} value={form.imagen} onChangeText={t => setForm({...form, imagen: t})} placeholder="https://..." placeholderTextColor={COLORS.muted} />
 
             <Text style={styles.label}>DESCRIPCIÓN EXTENDIDA*</Text>
-            <TextInput style={[styles.input, styles.area]} multiline value={form.descripcion} onChangeText={t => setForm({...form, descripcion: t})} placeholder="Detalles históricos y culturales..." placeholderTextColor={COLORS.muted} />
+            <TextInput style={[styles.input, styles.area]} multiline value={form.descripcion} onChangeText={t => setForm({...form, descripcion: t})} placeholder="Detalles históricos..." placeholderTextColor={COLORS.muted} />
             
             <View style={styles.rowInputs}>
               <View style={{flex: 1}}>
@@ -236,9 +235,6 @@ export default function AdminForm({ route, navigation }) {
                </View>
             </View>
 
-            <Text style={styles.label}>REFERENCIA FÍSICA PARA GPS</Text>
-            <TextInput style={styles.input} value={form.referencia} onChangeText={t => setForm({...form, referencia: t})} placeholder="Junto a la iglesia mayor..." placeholderTextColor={COLORS.muted} />
-
             <View style={styles.row}>
                <View style={{flex: 1}}>
                   <Text style={styles.label}>LATITUD (GPS)*</Text>
@@ -261,31 +257,10 @@ export default function AdminForm({ route, navigation }) {
                </View>
                <View style={{width: 15}} />
                <View style={{flex: 1}}>
-                  <Text style={styles.label}>FECHA FIN</Text>
-                  <TextInput style={styles.input} value={form.fecha_fin} onChangeText={t => setForm({...form, fecha_fin: t})} placeholder="2026-01-05" placeholderTextColor={COLORS.muted} />
-               </View>
-            </View>
-
-            <View style={styles.row}>
-               <View style={{flex: 1.5}}>
-                  <Text style={styles.label}>HORARIO</Text>
-                  <TextInput style={styles.input} value={form.horario} onChangeText={t => setForm({...form, horario: t})} placeholder="08:00 - 20:00" placeholderTextColor={COLORS.muted} />
-               </View>
-               <View style={{width: 15}} />
-               <View style={{flex: 0.5}}>
                   <Text style={styles.label}>DURACIÓN (MIN)</Text>
                   <TextInput style={styles.input} value={form.durMin} onChangeText={t => setForm({...form, durMin: t})} keyboardType="numeric" />
                </View>
             </View>
-
-            <Text style={styles.label}>FRECUENCIA DE REPETICIÓN</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipsRow}>
-              {REPETICIONES.map(r => (
-                <TouchableOpacity key={r} style={[styles.chip, form.repeticion === r && styles.chipActive]} onPress={() => setForm({...form, repeticion: r})}>
-                  <Text style={[styles.chipText, form.repeticion === r && styles.chipTextActive]}>{r}</Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
 
             <View style={styles.row}>
                <View style={{flex: 1}}>
@@ -321,19 +296,6 @@ export default function AdminForm({ route, navigation }) {
               />
             </View>
 
-            <View style={styles.switchRow}>
-              <View>
-                 <Text style={styles.switchLabel}>MODERACIÓN PREVIA</Text>
-                 <Text style={styles.switchSub}>Aprobar reseñas manualmente.</Text>
-              </View>
-              <Switch 
-                value={form.requireApproval} 
-                onValueChange={v => setForm({...form, requireApproval: v})} 
-                trackColor={{ false: '#334155', true: COLORS.violet }}
-                thumbColor={form.requireApproval ? COLORS.accent : '#94a3b8'}
-              />
-            </View>
-
             <Text style={styles.label}>ESTADO DEL EVENTO</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipsRow}>
               {ESTADOS.map(s => (
@@ -342,16 +304,6 @@ export default function AdminForm({ route, navigation }) {
                 </TouchableOpacity>
               ))}
             </ScrollView>
-
-            {form.status === 'rejected' && (
-              <TextInput 
-                style={[styles.input, {marginTop: 15}]} 
-                placeholder="Motivo del rechazo..." 
-                placeholderTextColor={COLORS.muted}
-                value={form.rejectReason}
-                onChangeText={t => setForm({...form, rejectReason: t})}
-              />
-            )}
           </View>
 
           <TouchableOpacity 
@@ -359,7 +311,7 @@ export default function AdminForm({ route, navigation }) {
             onPress={handleSave} 
             disabled={loading}
           >
-             {loading ? <ActivityIndicator color={COLORS.ink} /> : <Text style={styles.saveText}>{editData ? 'ACTUALIZAR REGISTRO 🔄' : 'PUBLICAR EN EL MAPA 🚀'}</Text>}
+             {loading ? <ActivityIndicator color={COLORS.ink} /> : <Text style={styles.saveText}>{editData ? 'ACTUALIZAR EN MONGODB 🔄' : 'PUBLICAR EN EL MAPA 🚀'}</Text>}
           </TouchableOpacity>
 
           <View style={{height: 100}} />
@@ -399,6 +351,6 @@ const styles = StyleSheet.create({
   switchRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 25 },
   switchLabel: { color: 'white', fontSize: 12, fontWeight: 'bold' },
   switchSub: { color: COLORS.muted, fontSize: 10, marginTop: 2 },
-  saveBtn: { backgroundColor: COLORS.accent, padding: 22, borderRadius: 25, alignItems: 'center', elevation: 15, shadowColor: COLORS.accent, shadowOpacity: 0.3, shadowRadius: 10 },
+  saveBtn: { backgroundColor: COLORS.accent, padding: 22, borderRadius: 25, alignItems: 'center', elevation: 15 },
   saveText: { color: COLORS.ink, fontWeight: '900', fontSize: 13, letterSpacing: 1.5 }
 });

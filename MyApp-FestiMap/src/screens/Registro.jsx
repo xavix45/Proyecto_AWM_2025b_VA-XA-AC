@@ -1,25 +1,13 @@
 
 import React, { useState } from 'react';
 import { 
-  View, 
-  Text, 
-  TextInput, 
-  TouchableOpacity, 
-  StyleSheet, 
-  SafeAreaView, 
-  ScrollView,
-  Platform, 
-  StatusBar,
-  Modal,
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Dimensions
+  View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, 
+  ScrollView, Platform, StatusBar, Modal, ActivityIndicator, 
+  KeyboardAvoidingView, Dimensions 
 } from 'react-native';
 import axios from 'axios';
 import { ENDPOINTS } from '../config/api.js';
 import { useUser } from '../context/UserContext.jsx';
-
-const { width } = Dimensions.get('window');
 
 const COLORS = {
   accent: '#ffb800',
@@ -44,46 +32,28 @@ export default function Registro({ navigation }) {
 
   const [modal, setModal] = useState({ show: false, title: '', message: '', type: 'info' });
 
-  const validatePassword = (pass) => /^(?=.*[A-Z])(?=.*\d).{8,}$/.test(pass);
-
   const handleRegister = async () => {
     if (!nombre || !email || !password) {
-      setModal({ show: true, title: '❌ Campos Vacíos', message: 'Toda aventura requiere un nombre y una llave.', type: 'error' });
-      return;
-    }
-    if (!validatePassword(password)) {
-      setModal({ show: true, title: '🔒 Seguridad', message: 'Tu contraseña debe tener 8 caracteres, una mayúscula y un número.', type: 'error' });
+      setModal({ show: true, title: '❌ Error', message: 'Completa todos los campos.', type: 'error' });
       return;
     }
 
     setLoading(true);
     try {
-      const checkRes = await axios.get(`${ENDPOINTS.usuarios}?email=${email.toLowerCase()}`);
-      if (checkRes.data.length > 0) {
-        setModal({ show: true, title: '❌ Duplicado', message: 'Este correo ya es parte de nuestra comunidad.', type: 'error' });
-        setLoading(false);
-        return;
-      }
-
-      // ID numérico basado en timestamp para evitar conflictos y strings
-      const numericId = Date.now(); 
-
-      const nuevoUsuario = { 
-        id: numericId, 
+      const res = await axios.post(ENDPOINTS.register, { 
         nombre, 
         email: email.toLowerCase(), 
-        contra: password, 
-        tipoViajero: viajero, 
-        rol: 'user', // Rol por defecto
-        agenda: [] 
-      };
-      
-      const saveRes = await axios.post(ENDPOINTS.usuarios, nuevoUsuario);
-      login(saveRes.data);
-      setModal({ show: true, title: '✅ ¡Éxito!', message: 'Tu pasaporte cultural está listo.', type: 'success' });
+        password, 
+        tipoViajero: viajero 
+      });
+
+      if (res.status === 201) {
+        login(res.data.user, res.data.token);
+        setModal({ show: true, title: '✅ ¡Éxito!', message: 'Tu cuenta ha sido creada en MongoDB.', type: 'success' });
+      }
     } catch (e) {
-      console.error(e);
-      setModal({ show: true, title: '❌ Error', message: 'No pudimos registrarte. Intenta de nuevo.', type: 'error' });
+      const errorMsg = e.response?.data?.mensaje || 'No pudimos conectarnos al servidor.';
+      setModal({ show: true, title: '❌ Error', message: errorMsg, type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -105,45 +75,43 @@ export default function Registro({ navigation }) {
           <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
             
             <View style={styles.header}>
-               <Text style={styles.preTitle}>COMIENZA TU VIAJE</Text>
-               <Text style={styles.title}>Crear Cuenta ✨</Text>
+               <Text style={styles.preTitle}>PASAPORTE DIGITAL</Text>
+               <Text style={styles.title}>Nuevo Usuario ✨</Text>
             </View>
 
             <View style={styles.form}>
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>NOMBRE COMPLETO</Text>
-                <TextInput style={styles.input} placeholder="Xavier Anatoa" placeholderTextColor={COLORS.muted} value={nombre} onChangeText={setNombre} />
+                <TextInput style={styles.input} placeholder="Angelo Conterón" placeholderTextColor={COLORS.muted} value={nombre} onChangeText={setNombre} />
               </View>
 
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>CORREO ELECTRÓNICO</Text>
-                <TextInput style={styles.input} placeholder="tu@email.com" placeholderTextColor={COLORS.muted} value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
+                <TextInput style={styles.input} placeholder="angelo@epn.edu.ec" placeholderTextColor={COLORS.muted} value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>CONTRASEÑA</Text>
+                <Text style={styles.label}>CONTRASEÑA SEGURA</Text>
                 <View style={styles.passWrap}>
-                   <TextInput style={{flex:1, color:'white', height: 60}} placeholder="••••••••" placeholderTextColor={COLORS.muted} secureTextEntry={!verPassword} value={password} onChangeText={setPassword} />
+                   <TextInput style={{flex:1, color:'white', height: 55}} placeholder="••••••••" placeholderTextColor={COLORS.muted} secureTextEntry={!verPassword} value={password} onChangeText={setPassword} />
                    <TouchableOpacity onPress={() => setVerPassword(!verPassword)} style={styles.eye}>
-                      <Text style={{fontSize: 18}}>{verPassword ? '👁️' : '🙈'}</Text>
+                      <Text style={{fontSize: 16}}>{verPassword ? '👁️' : '🙈'}</Text>
                    </TouchableOpacity>
                 </View>
               </View>
 
-              <Text style={styles.label}>¿CÓMO EXPLORARÁS ECUADOR?</Text>
+              <Text style={styles.label}>ESTILO DE VIAJE</Text>
               <View style={styles.typeSelector}>
                 <TouchableOpacity style={[styles.typeBtn, viajero === 'turista' && styles.typeActive]} onPress={() => setViajero('turista')}>
-                  <Text style={styles.typeIcon}>🌍</Text>
-                  <Text style={[styles.typeText, viajero === 'turista' && styles.typeTextActive]}>TURISTA</Text>
+                  <Text style={[styles.typeText, viajero === 'turista' && {color:'white'}]}>TURISTA 🌍</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={[styles.typeBtn, viajero === 'residente' && styles.typeActive]} onPress={() => setViajero('residente')}>
-                  <Text style={styles.typeIcon}>🏠</Text>
-                  <Text style={[styles.typeText, viajero === 'residente' && styles.typeTextActive]}>RESIDENTE</Text>
+                <TouchableOpacity style={[styles.typeBtn, viajero === 'estudiante' && styles.typeActive]} onPress={() => setViajero('estudiante')}>
+                  <Text style={[styles.typeText, viajero === 'estudiante' && {color:'white'}]}>ESTUDIANTE 🎓</Text>
                 </TouchableOpacity>
               </View>
 
               <TouchableOpacity style={[styles.mainBtn, loading && {opacity: 0.7}]} onPress={handleRegister} disabled={loading}>
-                {loading ? <ActivityIndicator color={COLORS.ink} /> : <Text style={styles.mainBtnText}>REGISTRARME AHORA</Text>}
+                {loading ? <ActivityIndicator color={COLORS.ink} /> : <Text style={styles.mainBtnText}>REGISTRAR EN BASE DE DATOS</Text>}
               </TouchableOpacity>
             </View>
 
@@ -172,31 +140,29 @@ export default function Registro({ navigation }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.ink },
-  blurCircle: { position: 'absolute', bottom: -50, left: -50, width: 250, height: 250, borderRadius: 125, backgroundColor: COLORS.accent, opacity: 0.05 },
-  scroll: { padding: 40, flexGrow: 1, justifyContent: 'center' },
-  header: { marginBottom: 35 },
-  preTitle: { color: COLORS.accent, fontSize: 10, fontWeight: '900', letterSpacing: 3, marginBottom: 5 },
-  title: { color: 'white', fontSize: 34, fontWeight: '900', letterSpacing: -1 },
+  blurCircle: { position: 'absolute', bottom: -50, left: -50, width: 200, height: 200, borderRadius: 100, backgroundColor: COLORS.accent, opacity: 0.05 },
+  scroll: { padding: 30, flexGrow: 1, justifyContent: 'center' },
+  header: { marginBottom: 30 },
+  preTitle: { color: COLORS.accent, fontSize: 9, fontWeight: '900', letterSpacing: 2, marginBottom: 5 },
+  title: { color: 'white', fontSize: 32, fontWeight: '900' },
   form: { width: '100%' },
-  inputGroup: { marginBottom: 20 },
-  label: { fontSize: 9, fontWeight: '900', color: 'rgba(255,255,255,0.3)', letterSpacing: 1.5, marginBottom: 12 },
-  input: { backgroundColor: COLORS.glass, paddingHorizontal: 20, height: 60, borderRadius: 20, color: 'white', borderWidth: 1, borderColor: COLORS.glassBorder },
-  passWrap: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.glass, paddingHorizontal: 20, borderRadius: 20, borderWidth: 1, borderColor: COLORS.glassBorder },
+  inputGroup: { marginBottom: 15 },
+  label: { fontSize: 8, fontWeight: '900', color: 'rgba(255,255,255,0.3)', letterSpacing: 1.5, marginBottom: 8 },
+  input: { backgroundColor: COLORS.glass, paddingHorizontal: 15, height: 55, borderRadius: 15, color: 'white', borderWidth: 1, borderColor: COLORS.glassBorder },
+  passWrap: { flexDirection: 'row', alignItems: 'center', backgroundColor: COLORS.glass, paddingHorizontal: 15, borderRadius: 15, borderWidth: 1, borderColor: COLORS.glassBorder },
   eye: { padding: 5 },
-  typeSelector: { flexDirection: 'row', gap: 15, marginBottom: 35, marginTop: 10 },
-  typeBtn: { flex: 1, backgroundColor: COLORS.glass, padding: 20, borderRadius: 25, alignItems: 'center', borderWidth: 1, borderColor: COLORS.glassBorder },
+  typeSelector: { flexDirection: 'row', gap: 10, marginBottom: 25 },
+  typeBtn: { flex: 1, backgroundColor: COLORS.glass, padding: 15, borderRadius: 15, alignItems: 'center', borderWidth: 1, borderColor: COLORS.glassBorder },
   typeActive: { backgroundColor: 'rgba(91, 33, 182, 0.2)', borderColor: COLORS.violet },
-  typeIcon: { fontSize: 24, marginBottom: 8 },
   typeText: { fontSize: 10, fontWeight: 'bold', color: COLORS.muted },
-  typeTextActive: { color: 'white' },
-  mainBtn: { backgroundColor: COLORS.accent, padding: 22, borderRadius: 22, alignItems: 'center', elevation: 10 },
-  mainBtnText: { color: COLORS.ink, fontWeight: '900', fontSize: 14, letterSpacing: 1 },
-  backLink: { marginTop: 35, alignItems: 'center' },
+  mainBtn: { backgroundColor: COLORS.accent, padding: 20, borderRadius: 18, alignItems: 'center' },
+  mainBtnText: { color: COLORS.ink, fontWeight: '900', fontSize: 12 },
+  backLink: { marginTop: 25, alignItems: 'center' },
   backText: { color: COLORS.muted, fontSize: 13 },
-  modalBg: { flex: 1, backgroundColor: 'rgba(15,23,42,0.96)', justifyContent: 'center', padding: 35 },
-  modalBox: { backgroundColor: '#1e293b', padding: 35, borderRadius: 35, alignItems: 'center', borderWidth: 1 },
-  modalTitle: { color: 'white', fontSize: 22, fontWeight: 'bold', marginBottom: 15 },
-  modalMsg: { color: COLORS.muted, textAlign: 'center', lineHeight: 24, marginBottom: 30 },
-  modalAction: { width: '100%', padding: 20, borderRadius: 18, alignItems: 'center' },
+  modalBg: { flex: 1, backgroundColor: 'rgba(0,0,0,0.9)', justifyContent: 'center', padding: 30 },
+  modalBox: { backgroundColor: '#1e293b', padding: 30, borderRadius: 25, alignItems: 'center', borderWidth: 1 },
+  modalTitle: { color: 'white', fontSize: 20, fontWeight: 'bold', marginBottom: 10 },
+  modalMsg: { color: COLORS.muted, textAlign: 'center', marginBottom: 20 },
+  modalAction: { width: '100%', padding: 15, borderRadius: 12, alignItems: 'center' },
   modalActionText: { color: 'white', fontWeight: 'bold' }
 });

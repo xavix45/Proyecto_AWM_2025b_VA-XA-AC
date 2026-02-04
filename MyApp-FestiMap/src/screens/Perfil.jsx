@@ -13,7 +13,8 @@ import {
   Animated,
   Modal,
   TextInput,
-  Image
+  Image,
+  ActivityIndicator
 } from 'react-native';
 import { useUser } from '../context/UserContext.jsx';
 import { useAgenda } from '../context/AgendaContext.jsx';
@@ -34,7 +35,7 @@ const COLORS = {
   inputBg: 'rgba(0,0,0,0.3)'
 };
 
-// LOGROS
+// LOGROS BASE (Lógica local vinculada a MongoDB)
 const LOGROS_BASE = [
   { id: 1, title: "Primer Viaje", desc: "Agrega 1 evento", icon: "🥇", target: 1, color: '#ffb800' },
   { id: 2, title: "Ruta Volcanes", desc: "Agrega 3 eventos", icon: "🌋", target: 3, color: '#ef4444' },
@@ -43,19 +44,20 @@ const LOGROS_BASE = [
 ];
 
 export default function Perfil({ navigation }) {
-  const { user, preferences, logout, login } = useUser(); // Usamos login para actualizar datos
+  const { user, preferences, logout, syncUserWithServer } = useUser();
   const { agenda } = useAgenda();
   
   // Estados UI
   const [modalAccount, setModalAccount] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [syncing, setSyncing] = useState(false);
   const [notifEnabled, setNotifEnabled] = useState(false);
   
-  // Estados Edición
+  // Estados Edición (Datos temporales antes de MongoDB)
   const [tempName, setTempName] = useState('');
   const [tempEmail, setTempEmail] = useState('');
 
-  // Estado Modal Personalizado (Alert Replacement)
+  // Estado Modal Personalizado
   const [customAlert, setCustomAlert] = useState({ show: false, title: '', msg: '', type: 'info', action: null });
 
   // Animaciones
@@ -69,7 +71,7 @@ export default function Perfil({ navigation }) {
     ]).start();
   }, []);
 
-  // Lógica: Historial vs Próximos (Filtrado de fechas)
+  // Lógica: Historial vs Próximos (Filtrado de fechas de la Agenda cargada de MongoDB)
   const historialViajes = useMemo(() => {
     const hoy = new Date().toISOString().slice(0, 10);
     return agenda.filter(ev => ev.fecha < hoy);
@@ -94,7 +96,7 @@ export default function Perfil({ navigation }) {
     setCustomAlert({
       show: true,
       title: newState ? "🔔 Activadas" : "🔕 Desactivadas",
-      msg: newState ? "Te avisaremos de eventos cercanos a tu ubicación." : "Ya no recibirás alertas de eventos.",
+      msg: newState ? "Te avisaremos de eventos cercanos." : "Alertas pausadas.",
       type: newState ? 'success' : 'info'
     });
   };
@@ -106,15 +108,23 @@ export default function Perfil({ navigation }) {
     setModalAccount(true);
   };
 
-  const saveProfileChanges = () => {
+  const saveProfileChanges = async () => {
     if (!tempName.trim() || !tempEmail.trim()) {
-      setCustomAlert({ show: true, title: "⚠️ Error", msg: "El nombre y correo no pueden estar vacíos.", type: 'error' });
+      setCustomAlert({ show: true, title: "⚠️ Error", msg: "Campos obligatorios vacíos.", type: 'error' });
       return;
     }
-    // Actualizamos el contexto (Simulación de API PUT)
-    login({ ...user, nombre: tempName, email: tempEmail });
-    setIsEditing(false);
-    setCustomAlert({ show: true, title: "✅ Actualizado", msg: "Tus datos de viajero han sido guardados.", type: 'success' });
+
+    setSyncing(true);
+    // Persistencia real en MongoDB vía UserContext
+    const exito = await syncUserWithServer({ nombre: tempName, email: tempEmail });
+    setSyncing(false);
+
+    if (exito) {
+      setIsEditing(false);
+      setCustomAlert({ show: true, title: "✅ Sincronizado", msg: "Tus datos han sido actualizados en MongoDB.", type: 'success' });
+    } else {
+      setCustomAlert({ show: true, title: "❌ Error", msg: "No se pudo conectar con el servidor backend.", type: 'error' });
+    }
   };
 
   const esAdmin = user?.rol === 'admin' || user?.tipoViajero === 'administrador' || user?.email === 'admin@epn.edu.ec';
@@ -159,7 +169,7 @@ export default function Perfil({ navigation }) {
               <Text style={styles.userName}>{user?.nombre || 'Explorador'}</Text>
               <View style={styles.rankBadge}>
                 <Text style={styles.rankText}>
-                  {agenda.length > 5 ? "EXPLORADOR ÉLITE" : "VIAJERO INICIAL"}
+                  {agenda.length >= 10 ? "MAESTRO FESTIVO 👑" : agenda.length >= 5 ? "EXPLORADOR ÉLITE" : "VIAJERO INICIAL"}
                 </Text>
               </View>
             </View>
@@ -198,13 +208,13 @@ export default function Perfil({ navigation }) {
           </ScrollView>
         </View>
 
-        {/* HISTORIAL DE VIAJES (NUEVA SECCIÓN PEDAGÓGICA) */}
+        {/* HISTORIAL DE VIAJES */}
         {historialViajes.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>BITÁCORA DE VIAJES ({historialViajes.length})</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.historyScroll}>
-              {historialViajes.map((ev) => (
-                <View key={ev.id} style={styles.historyCard}>
+              {historialViajes.map((ev, i) => (
+                <View key={i} style={styles.historyCard}>
                   <Image source={{ uri: ev.imagen }} style={styles.historyImg} />
                   <View style={styles.historyOverlay}>
                     <Text style={styles.historyBadge}>VISITADO</Text>
@@ -224,7 +234,7 @@ export default function Perfil({ navigation }) {
           <ProfileOption 
             icon="📍" 
             label="Ubicación Base" 
-            sublabel={preferences.provincia || "No definida"} 
+            sublabel={preferences.provincia || "Ajustar ubicación"} 
             onPress={() => navigation.navigate('Ubicacion', { fromProfile: true })}
           />
           
@@ -246,7 +256,7 @@ export default function Perfil({ navigation }) {
                   <View key={i} style={styles.chip}><Text style={styles.chipText}>{cat}</Text></View>
                 ))
               ) : (
-                <Text style={{color: COLORS.muted, fontSize: 12}}>Sin intereses seleccionados.</Text>
+                <Text style={{color: COLORS.muted, fontSize: 12}}>Sin filtros activos.</Text>
               )}
             </View>
           </TouchableOpacity>
@@ -261,7 +271,7 @@ export default function Perfil({ navigation }) {
           >
             <View style={styles.adminGradient}>
               <View style={styles.adminHeader}>
-                 <Text style={styles.adminEmoji}>🛡️</Text>
+                 <View style={styles.adminIconBox}><Text style={styles.adminEmoji}>🛡️</Text></View>
                  <View>
                     <Text style={styles.adminTitle}>MODO ADMINISTRADOR</Text>
                     <Text style={styles.adminSub}>Gestión avanzada de festividades</Text>
@@ -272,18 +282,19 @@ export default function Perfil({ navigation }) {
           </TouchableOpacity>
         )}
 
+        {/* SOPORTE */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>SOPORTE Y CUENTA</Text>
           <ProfileOption 
             icon="👤" 
             label="Datos de Cuenta" 
-            sublabel="Ver o editar información" 
+            sublabel="Ver o editar información en MongoDB" 
             onPress={openAccountModal}
           />
           <ProfileOption 
             icon={notifEnabled ? "🔔" : "🔕"}
             label="Notificaciones" 
-            sublabel={notifEnabled ? "Activadas (Simulación)" : "Desactivadas"}
+            sublabel={notifEnabled ? "Activadas" : "Desactivadas"}
             onPress={toggleNotif}
           />
           <ProfileOption 
@@ -297,14 +308,14 @@ export default function Perfil({ navigation }) {
         </View>
 
         <View style={styles.footer}>
-          <Text style={styles.version}>FESTIMAP ECUADOR v2.9.2</Text>
-          <Text style={styles.copyright}>© 2025 PATRIMONIO DIGITAL VIVO</Text>
+          <Text style={styles.version}>FESTIMAP ECUADOR v5.5 PREMIUM</Text>
+          <Text style={styles.copyright}>SINCROZINADO CON MONGODB © 2025</Text>
         </View>
 
         <View style={{height: 120}} />
       </ScrollView>
 
-      {/* MODAL DE CUENTA (CON EDICIÓN) */}
+      {/* MODAL DE CUENTA (CON EDICIÓN MONGODB) */}
       <Modal visible={modalAccount} transparent animationType="fade">
         <View style={styles.modalBg}>
           <View style={styles.modalContent}>
@@ -314,7 +325,7 @@ export default function Perfil({ navigation }) {
              </View>
              
              <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>NOMBRE</Text>
+                <Text style={styles.infoLabel}>NOMBRE COMPLETO</Text>
                 {isEditing ? (
                   <TextInput 
                     style={styles.modalInput} 
@@ -323,14 +334,14 @@ export default function Perfil({ navigation }) {
                     placeholderTextColor={COLORS.muted}
                   />
                 ) : (
-                  <Text style={styles.infoVal}>{user?.nombre}</Text>
+                  <Text style={styles.infoVal}>{user?.nombre || 'Explorador'}</Text>
                 )}
              </View>
              
              <View style={styles.divider} />
              
              <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>CORREO</Text>
+                <Text style={styles.infoLabel}>CORREO ELECTRÓNICO</Text>
                 {isEditing ? (
                   <TextInput 
                     style={styles.modalInput} 
@@ -340,14 +351,14 @@ export default function Perfil({ navigation }) {
                     placeholderTextColor={COLORS.muted}
                   />
                 ) : (
-                  <Text style={styles.infoVal}>{user?.email}</Text>
+                  <Text style={styles.infoVal}>{user?.email || 'email@desconocido.com'}</Text>
                 )}
              </View>
              
              <View style={styles.divider} />
              
              <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>TIPO DE VIAJERO</Text>
+                <Text style={styles.infoLabel}>ESTADO DE CUENTA</Text>
                 <View style={styles.roleBadge}>
                    <Text style={styles.roleText}>{user?.tipoViajero?.toUpperCase() || 'TURISTA'}</Text>
                 </View>
@@ -355,8 +366,12 @@ export default function Perfil({ navigation }) {
 
              <View style={styles.modalActions}>
                 {isEditing ? (
-                  <TouchableOpacity style={[styles.modalBtn, {backgroundColor: COLORS.success}]} onPress={saveProfileChanges}>
-                    <Text style={[styles.modalBtnText, {color: COLORS.ink}]}>GUARDAR CAMBIOS</Text>
+                  <TouchableOpacity 
+                    style={[styles.modalBtn, {backgroundColor: COLORS.success}]} 
+                    onPress={saveProfileChanges}
+                    disabled={syncing}
+                  >
+                    {syncing ? <ActivityIndicator color={COLORS.ink} /> : <Text style={[styles.modalBtnText, {color: COLORS.ink}]}>GUARDAR EN BACKEND</Text>}
                   </TouchableOpacity>
                 ) : (
                   <TouchableOpacity style={styles.modalBtn} onPress={() => setIsEditing(true)}>
@@ -372,9 +387,6 @@ export default function Perfil({ navigation }) {
       <Modal visible={customAlert.show} transparent animationType="fade">
         <View style={styles.modalBg}>
           <View style={[styles.alertContent, { borderColor: customAlert.type === 'error' ? COLORS.error : (customAlert.type === 'warning' ? COLORS.accent : COLORS.success) }]}>
-             <Text style={{fontSize: 40, marginBottom: 15}}>
-               {customAlert.type === 'success' ? '✅' : (customAlert.type === 'error' ? '❌' : (customAlert.type === 'warning' ? '⚠️' : 'ℹ️'))}
-             </Text>
              <Text style={styles.alertTitle}>{customAlert.title}</Text>
              <Text style={styles.alertMsg}>{customAlert.msg}</Text>
              
@@ -395,7 +407,7 @@ export default function Perfil({ navigation }) {
                  }}
                >
                  <Text style={[styles.alertBtnText, {color: COLORS.ink}]}>
-                   {customAlert.type === 'warning' ? 'CONFIRMA' : 'ENTENDIDO'}
+                   {customAlert.type === 'warning' ? 'CONFIRMAR' : 'ENTENDIDO'}
                  </Text>
                </TouchableOpacity>
              </View>
@@ -410,13 +422,13 @@ export default function Perfil({ navigation }) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.ink },
   scroll: { flexGrow: 1 },
-  header: { padding: 25, paddingTop: Platform.OS === 'ios' ? 20 : 60, marginBottom: 10 },
-  profileMain: { flexDirection: 'row', alignItems: 'center', marginBottom: 30 },
+  header: { padding: 30, paddingTop: Platform.OS === 'ios' ? 20 : 60, marginBottom: 10 },
+  profileMain: { flexDirection: 'row', alignItems: 'center', marginBottom: 35 },
   avatarFrame: { position: 'relative' },
   avatarInner: { 
-    width: 85, 
-    height: 85, 
-    borderRadius: 30, 
+    width: 90, 
+    height: 90, 
+    borderRadius: 32, 
     backgroundColor: COLORS.violet, 
     alignItems: 'center', 
     justifyContent: 'center',
@@ -426,11 +438,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.5,
     shadowRadius: 10
   },
-  avatarText: { fontSize: 32, fontWeight: '900', color: COLORS.white },
+  avatarText: { fontSize: 36, fontWeight: '900', color: COLORS.white },
   statusDot: { 
     position: 'absolute', 
-    bottom: -2, 
-    right: -2, 
+    bottom: 2, 
+    right: 2, 
     width: 22, 
     height: 22, 
     borderRadius: 11, 
@@ -438,99 +450,88 @@ const styles = StyleSheet.create({
     borderWidth: 4, 
     borderColor: COLORS.ink 
   },
-  userNameContainer: { marginLeft: 20 },
-  userName: { fontSize: 24, fontWeight: '900', color: COLORS.white, letterSpacing: -0.5 },
+  userNameContainer: { marginLeft: 25 },
+  userName: { fontSize: 26, fontWeight: '900', color: COLORS.white, letterSpacing: -0.5 },
   rankBadge: { 
-    backgroundColor: 'rgba(255,184,0,0.15)', 
-    paddingHorizontal: 10, 
-    paddingVertical: 4, 
-    borderRadius: 8, 
-    marginTop: 6,
+    backgroundColor: 'rgba(255,184,0,0.1)', 
+    paddingHorizontal: 12, 
+    paddingVertical: 5, 
+    borderRadius: 10, 
+    marginTop: 8,
     borderWidth: 1,
-    borderColor: 'rgba(255,184,0,0.3)',
+    borderColor: 'rgba(255,184,0,0.2)',
     alignSelf: 'flex-start'
   },
-  rankText: { color: COLORS.accent, fontSize: 10, fontWeight: '900', letterSpacing: 1 },
+  rankText: { color: COLORS.accent, fontSize: 9, fontWeight: '900', letterSpacing: 1 },
   statsGrid: { 
     flexDirection: 'row', 
     backgroundColor: COLORS.glass, 
-    borderRadius: 30, 
-    padding: 20, 
+    borderRadius: 35, 
+    padding: 25, 
     borderWidth: 1, 
     borderColor: COLORS.glassBorder 
   },
   statBox: { flex: 1, alignItems: 'center' },
-  statNumber: { color: COLORS.white, fontSize: 24, fontWeight: '900' },
-  statDesc: { color: COLORS.muted, fontSize: 10, marginTop: 4, fontWeight: 'bold' },
-  statDivider: { width: 1, height: '60%', backgroundColor: COLORS.glassBorder, alignSelf: 'center' },
-  
-  section: { marginVertical: 15 },
-  sectionTitle: { color: COLORS.accent, fontSize: 10, fontWeight: '900', letterSpacing: 2, marginLeft: 30, marginBottom: 15 },
+  statNumber: { color: COLORS.white, fontSize: 26, fontWeight: '900' },
+  statDesc: { color: COLORS.muted, fontSize: 9, marginTop: 5, fontWeight: 'bold' },
+  statDivider: { width: 1, height: '50%', backgroundColor: COLORS.glassBorder, alignSelf: 'center' },
+  section: { marginVertical: 20 },
+  sectionTitle: { color: COLORS.accent, fontSize: 9, fontWeight: '900', letterSpacing: 2, marginLeft: 30, marginBottom: 20 },
   achievementsScroll: { paddingLeft: 30, gap: 15, paddingRight: 30 },
-  achievement: { alignItems: 'center', width: 90 },
-  achievementLocked: { opacity: 0.5 },
-  achIcon: { width: 60, height: 60, borderRadius: 20, alignItems: 'center', justifyContent: 'center', marginBottom: 8, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
-  achText: { color: COLORS.white, fontSize: 10, fontWeight: 'bold', textAlign: 'center', marginTop: 5 },
+  achievement: { alignItems: 'center', width: 95 },
+  achievementLocked: { opacity: 0.4 },
+  achIcon: { width: 65, height: 65, borderRadius: 22, alignItems: 'center', justifyContent: 'center', marginBottom: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
+  achText: { color: COLORS.white, fontSize: 9, fontWeight: 'bold', textAlign: 'center' },
   achLockIcon: { position: 'absolute', top: 0, right: 10, fontSize: 12 },
-
-  // HISTORIAL
   historyScroll: { paddingLeft: 30, gap: 15, paddingRight: 30 },
-  historyCard: { width: 140, height: 180, borderRadius: 20, overflow: 'hidden', borderWidth: 1, borderColor: COLORS.glassBorder },
-  historyImg: { width: '100%', height: '100%', opacity: 0.6 },
-  historyOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.4)', padding: 12, justifyContent: 'flex-end' },
-  historyBadge: { color: COLORS.success, fontSize: 8, fontWeight: '900', marginBottom: 4, letterSpacing: 1 },
-  historyTitle: { color: 'white', fontWeight: 'bold', fontSize: 12 },
+  historyCard: { width: 145, height: 190, borderRadius: 25, overflow: 'hidden', borderWidth: 1, borderColor: COLORS.glassBorder },
+  historyImg: { width: '100%', height: '100%', opacity: 0.5 },
+  historyOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.4)', padding: 15, justifyContent: 'flex-end' },
+  historyBadge: { color: COLORS.success, fontSize: 8, fontWeight: '900', marginBottom: 6, letterSpacing: 1 },
+  historyTitle: { color: 'white', fontWeight: 'bold', fontSize: 13 },
   historyDate: { color: COLORS.muted, fontSize: 10 },
-
-  card: { backgroundColor: COLORS.glass, marginHorizontal: 25, borderRadius: 30, padding: 25, marginBottom: 20, borderWidth: 1, borderColor: COLORS.glassBorder },
-  cardTitle: { color: COLORS.muted, fontSize: 10, fontWeight: '900', marginBottom: 20, letterSpacing: 1 },
-  optionItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 18, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.05)' },
-  optionIconBox: { width: 40, height: 40, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.03)', alignItems: 'center', justifyContent: 'center', marginRight: 15 },
+  card: { backgroundColor: COLORS.glass, marginHorizontal: 25, borderRadius: 35, padding: 25, marginBottom: 20, borderWidth: 1, borderColor: COLORS.glassBorder },
+  cardTitle: { color: COLORS.muted, fontSize: 9, fontWeight: '900', marginBottom: 20, letterSpacing: 1.5 },
+  optionItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 20, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.03)' },
+  optionIconBox: { width: 42, height: 42, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.02)', alignItems: 'center', justifyContent: 'center', marginRight: 15 },
   optionEmoji: { fontSize: 18 },
   optionLabel: { fontSize: 15, fontWeight: 'bold', color: 'white' },
-  optionSub: { color: COLORS.muted, fontSize: 11, marginTop: 2 },
+  optionSub: { color: COLORS.muted, fontSize: 11, marginTop: 3 },
   optionArrow: { color: COLORS.muted, fontSize: 20, fontWeight: 'bold' },
-  
-  // INTERESTS BOX STYLES
   interestsBox: { marginTop: 10, paddingTop: 10 },
-  editLink: { color: COLORS.accent, fontSize: 10, fontWeight: '900' },
-  chipsContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 5 },
-  chip: { backgroundColor: 'rgba(255,255,255,0.1)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10 },
-  chipText: { color: 'white', fontSize: 10, fontWeight: 'bold' },
-
-  adminCard: { marginHorizontal: 25, marginBottom: 20, borderRadius: 30, overflow: 'hidden', elevation: 10 },
-  adminGradient: { backgroundColor: COLORS.violet, padding: 25, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  editLink: { color: COLORS.accent, fontSize: 9, fontWeight: '900' },
+  chipsContainer: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 8 },
+  chip: { backgroundColor: 'rgba(255,255,255,0.08)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10 },
+  chipText: { color: 'white', fontSize: 9, fontWeight: 'bold' },
+  adminCard: { marginHorizontal: 25, marginBottom: 25, borderRadius: 35, overflow: 'hidden', elevation: 15 },
+  adminGradient: { backgroundColor: COLORS.violet, padding: 30, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   adminHeader: { flexDirection: 'row', alignItems: 'center' },
-  adminEmoji: { fontSize: 28, marginRight: 15 },
-  adminTitle: { color: COLORS.white, fontSize: 13, fontWeight: '900', letterSpacing: 1 },
-  adminSub: { color: 'rgba(255,255,255,0.6)', fontSize: 10, marginTop: 2 },
-  adminEnter: { color: COLORS.accent, fontWeight: '900', fontSize: 11 },
-  
+  adminIconBox: { width: 45, height: 45, borderRadius: 15, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center', marginRight: 15 },
+  adminEmoji: { fontSize: 24 },
+  adminTitle: { color: COLORS.white, fontSize: 15, fontWeight: '900', letterSpacing: 1 },
+  adminSub: { color: 'rgba(255,255,255,0.6)', fontSize: 10, marginTop: 3 },
+  adminEnter: { color: COLORS.accent, fontWeight: '900', fontSize: 10 },
   footer: { alignItems: 'center', paddingVertical: 40 },
-  version: { color: 'rgba(255,255,255,0.1)', fontSize: 10, fontWeight: 'bold', letterSpacing: 1 },
+  version: { color: 'rgba(255,255,255,0.1)', fontSize: 9, fontWeight: 'bold', letterSpacing: 2 },
   copyright: { color: 'rgba(255,255,255,0.05)', fontSize: 8, fontWeight: '900', marginTop: 8, letterSpacing: 2 },
-
-  // MODAL STYLES
-  modalBg: { flex: 1, backgroundColor: 'rgba(15,23,42,0.95)', justifyContent: 'center', padding: 30 },
-  modalContent: { backgroundColor: COLORS.card, borderRadius: 30, padding: 25, borderWidth: 1, borderColor: COLORS.glassBorder },
-  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 25 },
-  modalTitle: { color: 'white', fontSize: 18, fontWeight: 'bold' },
+  modalBg: { flex: 1, backgroundColor: 'rgba(2, 6, 23, 0.98)', justifyContent: 'center', padding: 35 },
+  modalContent: { backgroundColor: COLORS.card, borderRadius: 40, padding: 30, borderWidth: 1, borderColor: COLORS.glassBorder },
+  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 30 },
+  modalTitle: { color: 'white', fontSize: 20, fontWeight: '900' },
   infoRow: { marginBottom: 15 },
-  infoLabel: { color: COLORS.muted, fontSize: 10, fontWeight: '900', letterSpacing: 1, marginBottom: 5 },
-  infoVal: { color: 'white', fontSize: 16, fontWeight: '500' },
-  modalInput: { backgroundColor: COLORS.inputBg, color: 'white', padding: 12, borderRadius: 12, fontSize: 15, borderWidth: 1, borderColor: COLORS.glassBorder },
-  divider: { height: 1, backgroundColor: 'rgba(255,255,255,0.05)', marginBottom: 15 },
-  roleBadge: { backgroundColor: COLORS.violet, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, alignSelf: 'flex-start' },
-  roleText: { color: 'white', fontSize: 10, fontWeight: 'bold' },
+  infoLabel: { color: COLORS.muted, fontSize: 9, fontWeight: '900', letterSpacing: 1, marginBottom: 8 },
+  infoVal: { color: 'white', fontSize: 16, fontWeight: '600' },
+  modalInput: { backgroundColor: COLORS.inputBg, color: 'white', padding: 15, borderRadius: 15, fontSize: 14, borderWidth: 1, borderColor: COLORS.glassBorder },
+  divider: { height: 1, backgroundColor: 'rgba(255,255,255,0.05)', marginBottom: 20 },
+  roleBadge: { backgroundColor: COLORS.violet, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10, alignSelf: 'flex-start' },
+  roleText: { color: 'white', fontSize: 9, fontWeight: 'bold' },
   modalActions: { marginTop: 10 },
-  modalBtn: { backgroundColor: 'rgba(255,255,255,0.1)', padding: 15, borderRadius: 15, alignItems: 'center' },
-  modalBtnText: { color: 'white', fontWeight: 'bold' },
-
-  // ALERT MODAL
-  alertContent: { backgroundColor: COLORS.card, padding: 30, borderRadius: 30, alignItems: 'center', borderWidth: 2 },
-  alertTitle: { color: 'white', fontSize: 20, fontWeight: '900', marginBottom: 10, textAlign: 'center' },
-  alertMsg: { color: COLORS.muted, textAlign: 'center', fontSize: 14, lineHeight: 22 },
-  alertBtn: { paddingVertical: 15, paddingHorizontal: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
-  alertBtnCancel: { paddingVertical: 15, paddingHorizontal: 20, borderRadius: 15, alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.1)' },
+  modalBtn: { backgroundColor: 'rgba(255,255,255,0.05)', padding: 18, borderRadius: 18, alignItems: 'center' },
+  modalBtnText: { color: 'white', fontWeight: 'bold', fontSize: 13 },
+  alertContent: { backgroundColor: COLORS.card, padding: 35, borderRadius: 40, alignItems: 'center', borderWidth: 1 },
+  alertTitle: { color: 'white', fontSize: 22, fontWeight: '900', marginBottom: 15, textAlign: 'center' },
+  alertMsg: { color: COLORS.muted, textAlign: 'center', fontSize: 15, lineHeight: 22 },
+  alertBtn: { padding: 18, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
+  alertBtnCancel: { padding: 18, width: 90, alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: 18 },
   alertBtnText: { fontWeight: '900', fontSize: 12, color: 'white' }
 });

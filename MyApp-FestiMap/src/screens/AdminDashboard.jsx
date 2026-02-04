@@ -16,7 +16,6 @@ import {
 import axios from 'axios';
 import { ENDPOINTS } from '../config/api.js';
 import { useUser } from '../context/UserContext.jsx';
-// Importación corregida con extensión .jsx
 import { KPICard } from '../components/ui/AdminWidgets.jsx';
 
 const { width } = Dimensions.get('window');
@@ -210,14 +209,10 @@ const styles = StyleSheet.create({
     width: 55, height: 55, borderRadius: 20, backgroundColor: COLORS.violet, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: COLORS.glassBorder
   },
   avatarText: { color: 'white', fontWeight: 'bold', fontSize: 20 },
-
   kpiGrid: { flexDirection: 'row', gap: 12, marginBottom: 25 },
-
   previewModeBtn: { backgroundColor: 'rgba(255,184,0,0.06)', padding: 18, borderRadius: 20, alignItems: 'center', marginBottom: 30, borderWidth: 1, borderColor: 'rgba(255,184,0,0.3)' },
   previewModeText: { color: COLORS.accent, fontWeight: '900', fontSize: 11, letterSpacing: 1.5 },
-
   sectionTitle: { color: COLORS.muted, fontSize: 10, fontWeight: '900', letterSpacing: 2, marginBottom: 20, marginLeft: 5 },
-
   heroAction: { backgroundColor: COLORS.violet, borderRadius: 35, padding: 30, marginBottom: 25, overflow: 'hidden', elevation: 12 },
   heroContent: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   heroTitle: { color: 'white', fontSize: 22, fontWeight: '900' },
@@ -226,14 +221,12 @@ const styles = StyleSheet.create({
   heroIcon: { fontSize: 24 },
   heroBadge: { backgroundColor: 'rgba(0,0,0,0.2)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10, alignSelf: 'flex-start', marginTop: 20 },
   heroBadgeText: { color: COLORS.accent, fontSize: 9, fontWeight: '900', letterSpacing: 1 },
-
   actionsGrid: { flexDirection: 'row', gap: 15, marginBottom: 40 },
   actionCard: { flex: 1, backgroundColor: COLORS.glass, padding: 25, borderRadius: 30, borderWidth: 1, borderColor: COLORS.glassBorder },
   actionIconCircle: { width: 50, height: 50, borderRadius: 18, alignItems: 'center', justifyContent: 'center', marginBottom: 15 },
   actionEmoji: { fontSize: 22 },
   actionTitle: { color: 'white', fontSize: 14, fontWeight: 'bold' },
   actionDesc: { color: COLORS.muted, fontSize: 10, marginTop: 5 },
-
   logoutBtn: { backgroundColor: 'rgba(239, 68, 68, 0.05)', padding: 22, borderRadius: 25, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(239, 68, 68, 0.2)' },
   logoutText: { color: COLORS.error, fontWeight: '900', fontSize: 10, letterSpacing: 1 }
 });
