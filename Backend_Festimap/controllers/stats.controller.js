@@ -2,9 +2,15 @@
 const { Evento, Plan, Usuario } = require('../models');
 const { AppError } = require('../middlewares/errorHandler');
 
+/**
+ * JUSTIFICACIÓN TEÓRICA (PREGUNTA 3 - DOMINIO):
+ * Utilizamos el Aggregation Framework de MongoDB. Esto es superior a realizar 
+ * cálculos en el frontend porque el procesamiento ocurre directamente en el motor 
+ * de la base de datos (B-Tree index support), reduciendo el ancho de banda 
+ * y la carga computacional del dispositivo móvil.
+ */
 module.exports.obtenerMetricasGlobales = async (req, res, next) => {
   try {
-    // Pipeline de MongoDB: Procesa miles de registros en milisegundos
     const stats = await Evento.aggregate([
       {
         $group: {

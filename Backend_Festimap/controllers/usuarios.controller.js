@@ -6,6 +6,12 @@ const { AppError } = require('../middlewares/errorHandler');
 
 const CLAVE = "festimap_secret_2026";
 
+/**
+ * JUSTIFICACIÓN TEÓRICA (PREGUNTA 2 - CRUD):
+ * Este controlador implementa la lógica de "Sincronización Atómica" mediante operators de MongoDB ($addToSet / $pull),
+ * evitando redundancia de datos en la agenda del usuario.
+ */
+
 module.exports.registrar = async (req, res, next) => {
   try {
     const { nombre, email, password, tipoViajero } = req.body;
@@ -58,10 +64,6 @@ module.exports.login = async (req, res, next) => {
   }
 };
 
-/**
- * ACTUALIZACIÓN INTELIGENTE (Agenda y Perfil)
- * Maneja la lógica de añadir/quitar de agenda mediante el servidor
- */
 module.exports.actualizar = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -69,7 +71,6 @@ module.exports.actualizar = async (req, res, next) => {
     
     let updateOperation = {};
 
-    // Lógica de Agenda: Si viene toggleAgendaId, el servidor decide si añadir o quitar
     if (toggleAgendaId) {
       const user = await Usuario.findById(id);
       const isPresent = user.agenda.includes(toggleAgendaId);
@@ -77,7 +78,6 @@ module.exports.actualizar = async (req, res, next) => {
       updateOperation[operator] = { agenda: toggleAgendaId };
     }
 
-    // Lógica de Perfil y Preferencias
     if (preferencias) updateOperation.$set = { ...updateOperation.$set, preferencias };
     if (nombre) updateOperation.$set = { ...updateOperation.$set, nombre };
     if (email) updateOperation.$set = { ...updateOperation.$set, email: email.toLowerCase() };
@@ -90,7 +90,6 @@ module.exports.actualizar = async (req, res, next) => {
     
     if (!actualizado) return next(new AppError("Usuario no encontrado", 404));
     
-    console.log(`[LOG] Usuario ${actualizado.nombre} sincronizado con MongoDB`);
     res.json(actualizado);
   } catch (error) {
     next(new AppError("Error en la sincronización del perfil", 500, error));

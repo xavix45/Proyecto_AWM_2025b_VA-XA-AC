@@ -10,12 +10,11 @@ module.exports.obtenerEventos = async (req, res, next) => {
     const { categoria, region, search, lat, lng, radio } = req.query;
     let query = {};
 
-    // 1. Lógica Geoespacial: Si vienen coordenadas, el servidor calcula la cercanía
     if (lat && lng && radio) {
       query.location = {
         $near: {
           $geometry: { type: "Point", coordinates: [parseFloat(lng), parseFloat(lat)] },
-          $maxDistance: parseFloat(radio) * 1000 // Convertir KM a metros
+          $maxDistance: parseFloat(radio) * 1000 
         }
       };
     }
@@ -36,17 +35,26 @@ module.exports.obtenerEventos = async (req, res, next) => {
   }
 };
 
+// ESTA FUNCIÓN FALTABA Y CAUSABA EL ERROR
+module.exports.obtenerEventoPorId = async (req, res, next) => {
+  try {
+    const evento = await Evento.findById(req.params.id);
+    if (!evento) return next(new AppError("Evento no localizado en MongoDB", 404));
+    res.json(evento);
+  } catch (error) {
+    next(new AppError("Error al consultar el documento por ID", 500, error));
+  }
+};
+
 module.exports.crearEvento = async (req, res, next) => {
   try {
-    // Sincronizar location con lat/lng antes de guardar
     const datos = {
       ...req.body,
-      location: { type: 'Point', coordinates: [parseFloat(req.body.lng), parseFloat(req.body.lat)] }
+      location: { type: 'Point', coordinates: [parseFloat(req.body.lng || 0), parseFloat(req.body.lat || 0)] }
     };
     
     const nuevo = await Evento.create(datos);
     
-    // AUDITORÍA: El servidor registra la acción
     await Log.create({
       accion: 'CREATE',
       recurso: 'EVENTO',
@@ -68,7 +76,6 @@ module.exports.actualizarEvento = async (req, res, next) => {
 
     const actualizado = await Evento.findByIdAndUpdate(req.params.id, req.body, { new: true });
     
-    // AUDITORÍA: El servidor registra el cambio
     await Log.create({
       accion: 'UPDATE',
       recurso: 'EVENTO',
@@ -87,7 +94,6 @@ module.exports.eliminarEvento = async (req, res, next) => {
     const eliminado = await Evento.findByIdAndDelete(req.params.id);
     if (!eliminado) return next(new AppError("No existe el registro", 404));
 
-    // AUDITORÍA: El servidor registra la eliminación
     await Log.create({
       accion: 'DELETE',
       recurso: 'EVENTO',
