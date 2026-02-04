@@ -1,4 +1,4 @@
-// Exportación centralizada de todos los modelos
+
 const Evento = require('./eventos.model');
 const Usuario = require('./usuario.model');
 const Plan = require('./planes.model');
