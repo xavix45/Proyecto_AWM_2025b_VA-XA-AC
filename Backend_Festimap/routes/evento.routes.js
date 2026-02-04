@@ -4,7 +4,7 @@ const { eventosController } = require("../controllers");
 module.exports = (app) => {
     // Rutas de Analítica (Nuevas)
   app.get("/api/admin/stats/global", statsController.obtenerMetricasGlobales);
-
+ // Rutas Estándar
     app.get("/api/eventos", eventosController.obtenerEventos);
   app.get("/api/eventos/:id", eventosController.obtenerEventoPorId);
   app.post("/api/eventos", eventosController.crearEvento);
