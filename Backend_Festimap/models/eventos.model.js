@@ -25,6 +25,11 @@ const EventoSchema = new mongoose.Schema({
   referencia: String,
   lat: { type: Number, required: true },
   lng: { type: Number, required: true },
+  // GeoJSON para búsquedas espaciales en el servidor
+  location: {
+    type: { type: String, default: 'Point' },
+    coordinates: { type: [Number], default: [0, 0] } // [lng, lat]
+  },
   fecha: { type: String, required: true },
   fecha_fin: { type: String, default: null },
   horario: { type: String, required: true },
@@ -40,9 +45,11 @@ const EventoSchema = new mongoose.Schema({
   requireApproval: { type: Boolean, default: false },
   status: { type: String, enum: ['approved', 'pending', 'rejected', 'unpublished'], default: 'approved' },
   comentarios: [ComentarioSchema],
-  // Campos de Inteligencia de Negocio (BI)
   visitas: { type: Number, default: 0 },
   asistencias: { type: Number, default: 0 }
 }, { timestamps: true });
+
+// CRÍTICO PARA EXPOSICIÓN: Índice espacial para que el servidor calcule distancias
+EventoSchema.index({ location: "2dsphere" });
 
 module.exports = mongoose.model('Evento', EventoSchema);

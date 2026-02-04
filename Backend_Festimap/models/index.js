@@ -1,12 +1,14 @@
 
-const Evento = require('./eventos.model'); // Sincronizado con eventos.model.js
-const Usuario = require('./usuario.model'); // Sincronizado con usuario.model.js
-const Plan = require('./planes.model');    // Sincronizado con planes.model.js
+const Evento = require('./eventos.model');
+const Usuario = require('./usuario.model');
+const Plan = require('./planes.model');
 const Comentario = require('./comentarios.model');
+const Log = require('./log.model'); // Añadido
 
 module.exports = {
   Evento,
   Usuario,
   Plan,
-  Comentario
+  Comentario,
+  Log
 };
