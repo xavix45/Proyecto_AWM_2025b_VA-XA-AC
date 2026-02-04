@@ -14,13 +14,8 @@ const EventoSchema = new mongoose.Schema({
   descripcion: { type: String, required: [true, "La descripción es obligatoria"] },
   categoria: { 
     type: String, 
-    required: true, 
-    // Agregamos 'Deportes' y otras variantes para que no falle la validación
-    enum: [
-      'Cultural', 'Musical', 'Entretenimiento', 'Educativo', 'Deportivo', 
-      'Deportes', 'Tecnología', 'Gastronómico', 'Gastronomía', 'Religioso', 
-      'Ancestral', 'Tradición', 'Otro'
-    ] 
+    required: true,
+    enum: ["Entretenimiento", "Tecnología", "Educativo", "Cultural", "Musical", "Deportes", "Gastronomía", "Ancestral", "Tradición"]
   },
   tipo: { type: String, required: true },
   region: { type: String, required: true, enum: ['Sierra', 'Costa', 'Amazonía', 'Galápagos', 'Insular'] },
@@ -33,11 +28,19 @@ const EventoSchema = new mongoose.Schema({
   fecha: { type: String, required: true },
   fecha_fin: { type: String, default: null },
   horario: { type: String, required: true },
-  precio: { type: String, required: true },
+  repeticion: { type: String, default: "Anual" },
+  durMin: { type: Number, default: 60 },
+  organizador: String,
+  telefono: String,
+  url: String,
+  precio: { type: String, default: "Gratuito" },
   imagen: { type: String, required: true },
   tags: [String],
+  allowComments: { type: Boolean, default: true },
+  requireApproval: { type: Boolean, default: false },
   status: { type: String, enum: ['approved', 'pending', 'rejected', 'unpublished'], default: 'approved' },
   comentarios: [ComentarioSchema],
+  // Campos de Inteligencia de Negocio (BI)
   visitas: { type: Number, default: 0 },
   asistencias: { type: Number, default: 0 }
 }, { timestamps: true });

@@ -1,214 +1,100 @@
-const Evento = require('../models/eventos.model');
 
-// Obtener todos los eventos con filtros opcionales
-const obtenerEventos = async (req, res) => {
-  try {
-    const { categoria, region, ciudad, provincia, tipo, status } = req.query;
-    
-    let filtros = {};
-    
-    if (categoria) filtros.categoria = categoria;
-    if (region) filtros.region = region;
-    if (ciudad) filtros.ciudad = ciudad;
-    if (provincia) filtros.provincia = provincia;
-    if (tipo) filtros.tipo = tipo;
-    if (status) filtros.status = status;
-    
-    const eventos = await Evento.find(filtros).sort({ fecha: 1 });
-    
-    res.status(200).json(eventos);
-  } catch (error) {
-    console.error("Error al obtener eventos:", error);
-    res.status(500).json({ message: "Error al obtener eventos", error: error.message });
-  }
-};
+const { Evento } = require('../models');
+const { AppError } = require('../middlewares/errorHandler');
 
-// Obtener un evento por ID
-const obtenerEventoPorId = async (req, res) => {
+/**
+ * MOTOR DE EVENTOS - LÓGICA DE NEGOCIO CENTRALIZADA
+ */
+module.exports.obtenerEventos = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    
-    const evento = await Evento.findById(id);
-    
-    if (!evento) {
-      return res.status(404).json({ message: "Evento no encontrado" });
+    const { categoria, region, search, status } = req.query;
+    let query = {};
+
+    // El Backend ahora filtra dinámicamente para ahorrar carga al celular
+    if (categoria && categoria !== 'Todas') query.categoria = categoria;
+    if (region) query.region = region;
+    if (status) query.status = status;
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { ciudad: { $regex: search, $options: 'i' } }
+      ];
     }
+
+    const eventos = await Evento.find(query).sort({ fecha: 1 });
     
-    res.status(200).json(evento);
+    // El Backend incrementa el contador de 'visitas' cada vez que se consultan los eventos
+    // Esto genera datos para el Analytics Engine
+    await Evento.updateMany(query, { $inc: { visitas: 1 } });
+
+    res.json(eventos);
   } catch (error) {
-    console.error("Error al obtener evento:", error);
-    res.status(500).json({ message: "Error al obtener evento", error: error.message });
+    next(new AppError("Error en el motor de eventos del servidor", 500, error));
   }
 };
 
-// Crear un nuevo evento (solo admin)
-const crearEvento = async (req, res) => {
+module.exports.crearEvento = async (req, res, next) => {
   try {
-    const nuevoEvento = new Evento(req.body);
-    
-    const eventoGuardado = await nuevoEvento.save();
-    
-    res.status(201).json({
-      message: "Evento creado exitosamente",
-      evento: eventoGuardado
-    });
+    // El servidor valida la integridad de los datos antes de persistir
+    const nuevo = await Evento.create(req.body);
+    console.log(`[LOG] Evento creado: ${nuevo.name} por Admin`);
+    res.status(201).json(nuevo);
   } catch (error) {
-    console.error("Error al crear evento:", error);
-    
-    if (error.name === 'ValidationError') {
-      return res.status(400).json({ 
-        message: "Error de validación", 
-        errors: Object.values(error.errors).map(e => e.message)
-      });
-    }
-    
-    res.status(500).json({ message: "Error al crear evento", error: error.message });
+    next(new AppError("Fallo en la creación: El esquema de MongoDB rechazó los datos", 400, error));
   }
 };
 
-// Actualizar un evento (solo admin)
-const actualizarEvento = async (req, res) => {
+module.exports.obtenerEventoPorId = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    
-    const eventoActualizado = await Evento.findByIdAndUpdate(
-      id,
-      req.body,
+    const evento = await Evento.findById(req.params.id);
+    if (!evento) return next(new AppError("ID inexistente en el inventario", 404));
+    res.json(evento);
+  } catch (error) {
+    next(new AppError("Error al recuperar el documento", 500, error));
+  }
+};
+
+module.exports.actualizarEvento = async (req, res, next) => {
+  try {
+    const actualizado = await Evento.findByIdAndUpdate(
+      req.params.id, 
+      req.body, 
       { new: true, runValidators: true }
     );
-    
-    if (!eventoActualizado) {
-      return res.status(404).json({ message: "Evento no encontrado" });
-    }
-    
-    res.status(200).json({
-      message: "Evento actualizado exitosamente",
-      evento: eventoActualizado
-    });
+    if (!actualizado) return next(new AppError("No se encontró para actualizar", 404));
+    res.json(actualizado);
   } catch (error) {
-    console.error("Error al actualizar evento:", error);
-    
-    if (error.name === 'ValidationError') {
-      return res.status(400).json({ 
-        message: "Error de validación", 
-        errors: Object.values(error.errors).map(e => e.message)
-      });
-    }
-    
-    res.status(500).json({ message: "Error al actualizar evento", error: error.message });
+    next(new AppError("Error de validación en la actualización", 400, error));
   }
 };
 
-// Eliminar un evento (solo admin)
-const eliminarEvento = async (req, res) => {
+module.exports.eliminarEvento = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    
-    const eventoEliminado = await Evento.findByIdAndDelete(id);
-    
-    if (!eventoEliminado) {
-      return res.status(404).json({ message: "Evento no encontrado" });
-    }
-    
-    res.status(200).json({
-      message: "Evento eliminado exitosamente",
-      evento: eventoEliminado
-    });
+    const eliminado = await Evento.findByIdAndDelete(req.params.id);
+    if (!eliminado) return next(new AppError("Evento no encontrado", 404));
+    res.json({ mensaje: "Registro eliminado permanentemente del patrimonio" });
   } catch (error) {
-    console.error("Error al eliminar evento:", error);
-    res.status(500).json({ message: "Error al eliminar evento", error: error.message });
+    next(new AppError("Error en el borrado físico", 500, error));
   }
 };
 
-// Agregar comentario a un evento
-const agregarComentario = async (req, res) => {
+module.exports.agregarComentario = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const { usuario, rating, comentario } = req.body;
-    
-    const evento = await Evento.findById(id);
-    
-    if (!evento) {
-      return res.status(404).json({ message: "Evento no encontrado" });
-    }
-    
-    if (!evento.allowComments) {
-      return res.status(403).json({ message: "Este evento no permite comentarios" });
-    }
-    
+    const evento = await Evento.findById(req.params.id);
+    if (!evento) return next(new AppError("Evento inexistente", 404));
+
     const nuevoComentario = {
       id: Date.now(),
-      usuario,
-      rating,
-      comentario,
+      usuario: req.body.usuario,
+      rating: req.body.rating,
+      comentario: req.body.comentario,
       fecha: new Date().toISOString().split('T')[0]
     };
-    
+
     evento.comentarios.push(nuevoComentario);
     await evento.save();
-    
-    res.status(201).json({
-      message: "Comentario agregado exitosamente",
-      comentario: nuevoComentario
-    });
+    res.status(201).json(nuevoComentario);
   } catch (error) {
-    console.error("Error al agregar comentario:", error);
-    res.status(500).json({ message: "Error al agregar comentario", error: error.message });
+    next(new AppError("Error al procesar la opinión en el servidor", 500, error));
   }
-};
-
-// Buscar eventos por texto (búsqueda en nombre, descripción, tags)
-const buscarEventos = async (req, res) => {
-  try {
-    const { texto } = req.query;
-    
-    if (!texto) {
-      return res.status(400).json({ message: "Debe proporcionar un texto de búsqueda" });
-    }
-    
-    const eventos = await Evento.find({
-      $or: [
-        { name: { $regex: texto, $options: 'i' } },
-        { descripcion: { $regex: texto, $options: 'i' } },
-        { tags: { $regex: texto, $options: 'i' } },
-        { ciudad: { $regex: texto, $options: 'i' } }
-      ]
-    });
-    
-    res.status(200).json(eventos);
-  } catch (error) {
-    console.error("Error al buscar eventos:", error);
-    res.status(500).json({ message: "Error al buscar eventos", error: error.message });
-  }
-};
-
-// Obtener eventos por rango de fechas
-const obtenerEventosPorFechas = async (req, res) => {
-  try {
-    const { fechaInicio, fechaFin } = req.query;
-    
-    if (!fechaInicio || !fechaFin) {
-      return res.status(400).json({ message: "Debe proporcionar fechaInicio y fechaFin" });
-    }
-    
-    const eventos = await Evento.find({
-      fecha: { $gte: fechaInicio, $lte: fechaFin }
-    }).sort({ fecha: 1 });
-    
-    res.status(200).json(eventos);
-  } catch (error) {
-    console.error("Error al obtener eventos por fechas:", error);
-    res.status(500).json({ message: "Error al obtener eventos", error: error.message });
-  }
-};
-
-module.exports = {
-  obtenerEventos,
-  obtenerEventoPorId,
-  crearEvento,
-  actualizarEvento,
-  eliminarEvento,
-  agregarComentario,
-  buscarEventos,
-  obtenerEventosPorFechas
 };
