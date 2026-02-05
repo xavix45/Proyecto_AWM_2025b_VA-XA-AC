@@ -35,7 +35,7 @@ const COLORS = {
 };
 
 export default function AdminDashboard({ navigation }) {
-  const { user } = useUser();
+  const { user, token } = useUser();
   const [stats, setStats] = useState({ total: 0, provincias: 0, pendientes: 0 });
   const [logs, setLogs] = useState([]); // NUEVO: Estado para auditoría
   const [loading, setLoading] = useState(true);
@@ -44,33 +44,67 @@ export default function AdminDashboard({ navigation }) {
   const slideAnim = useRef(new Animated.Value(20)).current;
 
   const fetchDashboardData = async () => {
+    setLoading(true);
     try {
-      const [resEv, resLogs] = await Promise.all([
-        axios.get(ENDPOINTS.eventos),
-        axios.get(`${ENDPOINTS.API_BASE_URL}/admin/logs`) // Nueva ruta de auditoría
-      ]);
+      // Intentar con token primero
+      const config = token ? {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      } : {};
+
+      console.log("🔄 Cargando Dashboard... Token:", token ? "✅ Disponible" : "❌ No disponible");
+
+      // Eventos es público, no requiere autenticación obligatoria
+      const resEv = await axios.get(ENDPOINTS.eventos, config).catch(err => {
+        console.error("❌ GET /eventos falló:", err.message);
+        throw err;
+      });
+
+      console.log("✅ Eventos cargados:", resEv.data.length);
       
       const uniqueProv = [...new Set(resEv.data.map(item => item.provincia))];
       const pending = resEv.data.filter(e => e.status !== 'approved').length;
       
       setStats({ total: resEv.data.length, provincias: uniqueProv.length, pendientes: pending });
-      setLogs(resLogs.data);
+
+      // Intentar cargar logs si hay token
+      if (token) {
+        try {
+          const resLogs = await axios.get(`${ENDPOINTS.API_BASE_URL}/admin/logs`, config);
+          setLogs(resLogs.data || []);
+          console.log("✅ Logs cargados:", resLogs.data?.length || 0);
+        } catch (logError) {
+          console.log("⚠️ Logs no disponibles (esto es normal si no están implementados)");
+          setLogs([]);
+        }
+      }
 
       Animated.parallel([
         Animated.timing(fadeAnim, { toValue: 1, duration: 800, useNativeDriver: true }),
         Animated.spring(slideAnim, { toValue: 0, friction: 8, useNativeDriver: true })
       ]).start();
     } catch (e) {
-      console.error("Dashboard error:", e);
+      console.error("🚨 Dashboard error:", {
+        message: e.message,
+        status: e.response?.status,
+        data: e.response?.data,
+        config: e.config?.url
+      });
+      setStats({ total: 0, provincias: 0, pendientes: 0 });
+      setLogs([]);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', fetchDashboardData);
-    return unsubscribe;
-  }, [navigation]);
+    if (token) {
+      const unsubscribe = navigation.addListener('focus', fetchDashboardData);
+      return unsubscribe;
+    }
+  }, [navigation, token]);
 
   if (loading) return (
     <View style={[styles.container, styles.center]}>

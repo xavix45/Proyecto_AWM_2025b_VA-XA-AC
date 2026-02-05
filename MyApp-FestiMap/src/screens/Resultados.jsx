@@ -63,11 +63,14 @@ export default function Resultados({ route, navigation }) {
 
   const filtrados = useMemo(() => {
     let result = eventos.filter(ev => {
+      // FILTRO: Solo eventos aprobados
+      const isApproved = ev.status === 'approved';
+      
       const matchSearch = !search || 
                           ev.name.toLowerCase().includes(search.toLowerCase()) || 
                           ev.ciudad.toLowerCase().includes(search.toLowerCase());
       const matchCat = catSel === 'Todas' || ev.categoria === catSel;
-      return matchSearch && matchCat;
+      return isApproved && matchSearch && matchCat;
     });
 
     if (sortMode === 'fecha') {

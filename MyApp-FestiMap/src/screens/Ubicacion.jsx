@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   View, 
@@ -11,7 +10,8 @@ import {
   ActivityIndicator,
   Modal,
   Dimensions,
-  Animated
+  Animated,
+  Alert
 } from 'react-native';
 import { useUser } from '../context/UserContext.jsx';
 import axios from 'axios';
@@ -43,7 +43,7 @@ const PROVINCIAS = [
 ];
 
 export default function Ubicacion({ navigation, route }) {
-  const { updatePreferences } = useUser();
+  const { updatePreferences, syncUserWithServer } = useUser();
   const [loadingGPS, setLoadingGPS] = useState(false);
   const [modal, setModal] = useState({ show: false, title: '', message: '', type: 'info', action: null });
   
@@ -64,10 +64,9 @@ export default function Ubicacion({ navigation, route }) {
     }
   };
 
-  // CAPA DE RESCATE: Si todo falla, intentamos una segunda API de IP
   const rescueIP = async () => {
     try {
-      const res = await axios.get('http://ip-api.com/json/'); // Servicio secundario
+      const res = await axios.get('http://ip-api.com/json/'); 
       if (res.data && res.data.regionName) {
         updatePreferences({ 
           provincia: res.data.regionName, 
@@ -84,12 +83,7 @@ export default function Ubicacion({ navigation, route }) {
         throw new Error("Fallo total");
       }
     } catch (e) {
-      setModal({ 
-        show: true, 
-        title: '⚠️ Sin Acceso', 
-        message: 'No pudimos determinar tu ubicación automáticamente por seguridad del navegador. Por favor elige una provincia manualmente.', 
-        type: 'error' 
-      });
+      setModal({ show: true, title: '⚠️ Sin Acceso', message: 'No pudimos determinar tu ubicación automáticamente. Por favor elige una provincia manualmente.', type: 'error' });
     } finally {
       setLoadingGPS(false);
     }
@@ -108,15 +102,19 @@ export default function Ubicacion({ navigation, route }) {
         action: () => isEditing ? navigation.goBack() : navigation.navigate('Intereses')
       });
     } catch (e) {
-      rescueIP(); // Si la primera API falla, vamos a la de rescate
+      rescueIP(); 
+    } finally {
+      setLoadingGPS(false);
     }
   };
 
   const manejarGPS = () => {
     setLoadingGPS(true);
-    if (!navigator.geolocation) { 
-      ubicarPorIP(); 
-      return; 
+    
+    // Verificación robusta: Si el objeto global no existe, saltamos directo a IP sin alertar "No soportado"
+    if (typeof navigator === 'undefined' || !navigator.geolocation) {
+      ubicarPorIP();
+      return;
     }
 
     navigator.geolocation.getCurrentPosition(
@@ -126,12 +124,14 @@ export default function Ubicacion({ navigation, route }) {
           const res = await axios.get(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`);
           const prov = res.data.address.state || res.data.address.region || "Pichincha";
           const provLimpia = prov.replace("Provincia de ", "");
+          
           updatePreferences({ provincia: provLimpia, coords: { lat: latitude, lng: longitude } });
+          
           setLoadingGPS(false);
           setModal({ 
             show: true, 
             title: '📍 GPS Detectado', 
-            message: `Bienvenido a ${provLimpia}. Hemos ajustado el mapa para ti.`, 
+            message: `Bienvenido a ${provLimpia}. Hemos ajustado el mapa de forma nativa.`, 
             type: 'success', 
             action: () => isEditing ? navigation.goBack() : navigation.navigate('Intereses') 
           });
@@ -139,8 +139,16 @@ export default function Ubicacion({ navigation, route }) {
           ubicarPorIP(); 
         }
       },
-      () => { ubicarPorIP(); },
-      { timeout: 12000, enableHighAccuracy: true }
+      (error) => {
+        // Si el usuario niega el permiso o hay error de sensor, usamos IP como respaldo
+        console.log("Error de ubicación:", error);
+        ubicarPorIP();
+      },
+      { 
+        enableHighAccuracy: true, // Esto es lo que dispara el diálogo de "Alta precisión" en Android
+        timeout: 15000, 
+        maximumAge: 10000 
+      }
     );
   };
 
@@ -165,7 +173,7 @@ export default function Ubicacion({ navigation, route }) {
               <View style={styles.gpsIconCircle}><Text style={styles.gpsEmoji}>📡</Text></View>
               <View style={{flex: 1}}>
                 <Text style={styles.gpsTitle}>USAR MI UBICACIÓN ACTUAL</Text>
-                <Text style={styles.gpsSub}>Detección inteligente GPS/Red</Text>
+                <Text style={styles.gpsSub}>Detección nativa inteligente</Text>
               </View>
               <Text style={styles.gpsArrow}>›</Text>
             </>

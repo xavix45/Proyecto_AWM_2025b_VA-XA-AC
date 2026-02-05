@@ -18,6 +18,7 @@ import {
 } from 'react-native';
 import axios from 'axios';
 import { ENDPOINTS } from '../config/api.js';
+import { useUser } from '../context/UserContext.jsx';
 // Importación corregida con extensión .jsx
 import { KPICard, DataProgress, CircularDonut, SentimentMatrix, SeasonalChart } from '../components/ui/AdminWidgets.jsx';
 
@@ -43,6 +44,7 @@ const COLORS = {
 };
 
 export default function AdminStats() {
+  const { token } = useUser();
   const [eventos, setEventos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedId, setSelectedId] = useState(null);
@@ -64,11 +66,13 @@ export default function AdminStats() {
 
   const fetchData = async () => {
     try {
-      const res = await axios.get(ENDPOINTS.eventos);
+      const config = token ? { headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } } : {};
+      const res = await axios.get(ENDPOINTS.eventos, config);
       setEventos(res.data);
       Animated.timing(fadeAnim, { toValue: 1, duration: 1500, useNativeDriver: true }).start();
     } catch (err) {
-      console.error("Critical BI Error:", err);
+      console.error("Critical BI Error:", err.message);
+      setEventos([]);
     } finally {
       setLoading(false);
     }
@@ -77,10 +81,25 @@ export default function AdminStats() {
   // Función para demostrar la potencia del Backend en la exposición
   const fetchServerInsights = async () => {
     try {
-      const res = await axios.get(`${ENDPOINTS.API_BASE_URL}/admin/stats/global`);
+      if (!token) {
+        console.log("⚠️ No hay token de autenticación para estadísticas avanzadas.");
+        setServerStats(null);
+        return;
+      }
+      const config = { 
+        headers: { 
+          'Authorization': `Bearer ${token}`, 
+          'Content-Type': 'application/json' 
+        } 
+      };
+      // Endpoint correcto del backend
+      const res = await axios.get(`${ENDPOINTS.eventos}/stats`, config);
       setServerStats(res.data);
+      console.log("✅ Estadísticas del servidor cargadas");
     } catch (e) {
-      console.log("Servidor no soporta analítica avanzada aún.");
+      // Error silencioso - el endpoint es opcional
+      console.log("⚠️ Servidor no soporta analítica avanzada aún (opcional).");
+      setServerStats(null);
     }
   };
 
@@ -93,8 +112,9 @@ export default function AdminStats() {
       return matchReg && matchCat;
     });
 
-    const totalV = filtrados.reduce((s, e) => s + (Number(e.visitas) || 0), 0);
-    const totalA = filtrados.reduce((s, e) => s + (Number(e.asistencias) || 0), 0);
+    // SOLO DATOS REALES DEL BACKEND
+    const totalAsistencias = filtrados.reduce((s, e) => s + (Number(e.asistencias) || 0), 0);
+    const totalComentarios = filtrados.reduce((s, e) => s + (e.comentarios?.length || 0), 0);
     
     const revenueByRegion = { Sierra: 0, Costa: 0, Amazonía: 0, Galápagos: 0 };
     const totalRevenue = filtrados.reduce((acc, ev) => {
@@ -117,13 +137,17 @@ export default function AdminStats() {
       }
     });
 
-    const avgConversion = totalV > 0 ? (totalA / totalV) * 100 : 0;
+    // Engagement = (Eventos con comentarios / Total) * 100
+    const eventosConInteraccion = filtrados.filter(e => (e.asistencias || 0) > 0 || (e.comentarios?.length || 0) > 0).length;
+    const engagementRate = filtrados.length > 0 ? (eventosConInteraccion / filtrados.length) * 100 : 0;
+    
     const approvedCount = filtrados.filter(e => e.status === 'approved').length;
     const healthScore = filtrados.length > 0 ? (approvedCount / filtrados.length) * 100 : 0;
 
+    // TOP 5: Por ASISTENCIAS (dato real)
     const efficiencyRanking = [...filtrados]
-      .filter(e => e.visitas > 2)
-      .sort((a, b) => ((b.asistencias || 0) / (b.visitas || 1)) - ((a.asistencias || 0) / (a.visitas || 1)))
+      .filter(e => (e.asistencias || 0) > 0)
+      .sort((a, b) => (b.asistencias || 0) - (a.asistencias || 0))
       .slice(0, 5);
 
     const topRatedRanking = [...filtrados]
@@ -145,26 +169,53 @@ export default function AdminStats() {
       .slice(0, 5);
 
     return { 
-      filtrados, totalV, totalA, totalRevenue, starCounts, avgConversion, healthScore, 
-      monthDistribution, efficiencyRanking, topRatedRanking, topCities, revenueByRegion,
+      filtrados, 
+      totalAsistencias, 
+      totalComentarios,
+      totalRevenue, 
+      starCounts, 
+      engagementRate, 
+      healthScore, 
+      monthDistribution, 
+      efficiencyRanking, 
+      topRatedRanking, 
+      topCities, 
+      revenueByRegion,
       count: filtrados.length,
-      allReviewsCount: allReviews.length
+      allReviewsCount: allReviews.length,
+      eventosConInteraccion
     };
   }, [eventos, regionFilter, catFilter]);
 
   const filteredPicker = useMemo(() => {
-    return eventos.filter(e => (e.name || "").toLowerCase().includes(searchEvent.toLowerCase())).slice(0, 12);
+    if (searchEvent.trim() === '') {
+      // Si no hay búsqueda, mostrar los primeros 20 eventos
+      return eventos.slice(0, 20);
+    }
+    // Si hay búsqueda, filtrar por nombre
+    const filtered = eventos.filter(e => {
+      const nombre = (e.name || '').toLowerCase();
+      const ciudad = (e.ciudad || '').toLowerCase();
+      const provincia = (e.provincia || '').toLowerCase();
+      const search = searchEvent.toLowerCase();
+      return nombre.includes(search) || ciudad.includes(search) || provincia.includes(search);
+    });
+    return filtered.slice(0, 20);
   }, [eventos, searchEvent]);
 
   const compareData = useMemo(() => {
     if (!selectedId || !globalStats) return null;
     const ev = eventos.find(e => (e._id || e.id) === selectedId);
     if (!ev) return null;
-    const evConv = ev.visitas > 0 ? (ev.asistencias / ev.visitas) * 100 : 0;
+    const evAsistencias = ev.asistencias || 0;
+    const evComentarios = ev.comentarios?.length || 0;
+    const avgAsistencias = globalStats.totalAsistencias / globalStats.count;
     return {
       ev,
-      evConv,
-      diff: evConv - globalStats.avgConversion
+      evAsistencias,
+      evComentarios,
+      avgAsistencias,
+      diffAsistencias: evAsistencias - avgAsistencias
     };
   }, [selectedId, globalStats, eventos]);
 
@@ -230,11 +281,11 @@ export default function AdminStats() {
             <View>
               <View style={styles.kpiGrid}>
                  <KPICard emoji="💼" label="Impacto Econ." value={`$${globalStats.totalRevenue.toLocaleString()}`} sub="Ingreso Estimado" color={COLORS.info} border={COLORS.info + '40'} />
-                 <KPICard emoji="🎯" label="Conversión" value={`${globalStats.avgConversion.toFixed(1)}%`} sub="Visitas vs Asist." color={COLORS.success} border={COLORS.success + '40'} />
+                 <KPICard emoji="🎯" label="Engagement" value={`${globalStats.engagementRate.toFixed(1)}%`} sub="Eventos con Actividad" color={COLORS.success} border={COLORS.success + '40'} />
               </View>
               <View style={styles.kpiGrid}>
                  <KPICard emoji="🛡️" label="Salud Mapa" value={`${globalStats.healthScore.toFixed(0)}%`} sub="Eventos Aprobados" color={COLORS.accent} border={COLORS.accent + '40'} />
-                 <KPICard emoji="📢" label="Exposición" value={globalStats.totalV.toLocaleString()} sub="Vistas Totales" color={COLORS.violet} border={COLORS.violet + '40'} />
+                 <KPICard emoji="👥" label="Asistencias" value={globalStats.totalAsistencias.toLocaleString()} sub="Check-ins Reales" color={COLORS.violet} border={COLORS.violet + '40'} />
               </View>
 
               <View style={styles.filterCard}>
@@ -257,15 +308,15 @@ export default function AdminStats() {
                  <Text style={styles.cardHeader}>EMBUDO DE ENGAGEMENT (FUNNEL)</Text>
                  <View style={styles.funnel}>
                     <View style={[styles.funnelStep, { width: '100%', backgroundColor: COLORS.info + '25' }]}>
-                       <Text style={styles.funnelText}>ALCANCE: {globalStats.totalV} VISTAS</Text>
+                       <Text style={styles.funnelText}>INVENTARIO: {globalStats.count} EVENTOS</Text>
                     </View>
                     <View style={styles.funnelLink} />
-                    <View style={[styles.funnelStep, { width: '80%', backgroundColor: COLORS.success + '25' }]}>
-                       <Text style={styles.funnelText}>INTERÉS: {globalStats.totalA} ASISTENCIAS</Text>
+                    <View style={[styles.funnelStep, { width: '75%', backgroundColor: COLORS.success + '25' }]}>
+                       <Text style={styles.funnelText}>ACTIVIDAD: {globalStats.eventosConInteraccion} CON CHECK-INS</Text>
                     </View>
                     <View style={styles.funnelLink} />
                     <View style={[styles.funnelStep, { width: '50%', backgroundColor: COLORS.accent + '25' }]}>
-                       <Text style={styles.funnelText}>FIDELIDAD: {globalStats.avgConversion.toFixed(1)}%</Text>
+                       <Text style={styles.funnelText}>FIDELIDAD: {globalStats.totalComentarios} RESEÑAS</Text>
                     </View>
                  </View>
               </View>
@@ -314,18 +365,18 @@ export default function AdminStats() {
               </View>
 
               <View style={styles.card}>
-                 <Text style={styles.cardHeader}>TOP 5: LOS MÁS EFECTIVOS 🏆</Text>
-                 <Text style={styles.cardSub}>Basado en el ratio Visita / Asistencia real.</Text>
+                 <Text style={styles.cardHeader}>TOP 5: MÁS POPULARES 🏆</Text>
+                 <Text style={styles.cardSub}>Basado en asistencias reales registradas (check-ins).</Text>
                  {globalStats.efficiencyRanking.map((ev, i) => (
                    <View key={ev._id || ev.id} style={styles.rankItem}>
                       <View style={styles.rankNum}><Text style={styles.rankNumTxt}>{i+1}</Text></View>
                       <View style={styles.rankInfo}>
                          <Text style={styles.rankName} numberOfLines={1}>{ev.name}</Text>
-                         <Text style={styles.rankSub}>{ev.ciudad} • {ev.visitas} vistas</Text>
+                         <Text style={styles.rankSub}>{ev.ciudad} • {ev.provincia}</Text>
                       </View>
                       <View style={styles.rankValBox}>
-                         <Text style={styles.rankValPerc}>{(ev.visitas > 0 ? (ev.asistencias/ev.visitas)*100 : 0).toFixed(1)}%</Text>
-                         <Text style={styles.rankValLabel}>RATIO</Text>
+                         <Text style={styles.rankValPerc}>{ev.asistencias || 0}</Text>
+                         <Text style={styles.rankValLabel}>ASISTENCIAS</Text>
                       </View>
                    </View>
                  ))}
@@ -362,20 +413,33 @@ export default function AdminStats() {
                       onChangeText={setSearchEvent}
                     />
                  </View>
-                 <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.pickerRow}>
-                    {filteredPicker.map(ev => {
-                      const evId = ev._id || ev.id;
-                      return (
-                        <TouchableOpacity 
-                          key={evId} 
-                          style={[styles.miniChip, selectedId === evId && styles.miniChipActive]} 
-                          onPress={() => setSelectedId(evId)}
-                        >
-                           <Text style={[styles.miniChipText, selectedId === evId && styles.miniChipTextActive]}>{ev.name}</Text>
-                        </TouchableOpacity>
-                      );
-                    })}
-                 </ScrollView>
+                 {filteredPicker.length === 0 ? (
+                   <View style={styles.emptySearch}>
+                     <Text style={styles.emptySearchIcon}>🔍</Text>
+                     <Text style={styles.emptySearchText}>No se encontraron eventos con "{searchEvent}"</Text>
+                     <TouchableOpacity 
+                       style={styles.clearSearchBtn} 
+                       onPress={() => setSearchEvent('')}
+                     >
+                       <Text style={styles.clearSearchText}>LIMPIAR BÚSQUEDA</Text>
+                     </TouchableOpacity>
+                   </View>
+                 ) : (
+                   <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.pickerRow}>
+                      {filteredPicker.map(ev => {
+                        const evId = ev._id || ev.id;
+                        return (
+                          <TouchableOpacity 
+                            key={evId} 
+                            style={[styles.miniChip, selectedId === evId && styles.miniChipActive]} 
+                            onPress={() => setSelectedId(evId)}
+                          >
+                             <Text style={[styles.miniChipText, selectedId === evId && styles.miniChipTextActive]}>{ev.name}</Text>
+                          </TouchableOpacity>
+                        );
+                      })}
+                   </ScrollView>
+                 )}
               </View>
 
               {compareData && (
@@ -396,37 +460,37 @@ export default function AdminStats() {
                      <Text style={styles.cardHeader}>PERFORMANCE BENCHMARKING</Text>
                      <View style={styles.benchRow}>
                         <View style={styles.benchItem}>
-                           <Text style={styles.benchVal}>{compareData.evConv.toFixed(1)}%</Text>
-                           <Text style={styles.benchLabel}>EVENTO ACTUAL</Text>
+                           <Text style={styles.benchVal}>{compareData.evAsistencias}</Text>
+                           <Text style={styles.benchLabel}>ASISTENCIAS</Text>
                         </View>
                         <View style={styles.benchCenter}>
-                           <Text style={[styles.benchDiff, { color: compareData.diff >= 0 ? COLORS.success : COLORS.error }]}>
-                             {compareData.diff >= 0 ? '+' : ''}{compareData.diff.toFixed(1)}%
+                           <Text style={[styles.benchDiff, { color: compareData.diffAsistencias >= 0 ? COLORS.success : COLORS.error }]}>
+                             {compareData.diffAsistencias >= 0 ? '+' : ''}{compareData.diffAsistencias.toFixed(0)}
                            </Text>
                            <View style={styles.benchDivider} />
                         </View>
                         <View style={styles.benchItem}>
-                           <Text style={styles.benchVal}>{globalStats.avgConversion.toFixed(1)}%</Text>
+                           <Text style={styles.benchVal}>{compareData.avgAsistencias.toFixed(0)}</Text>
                            <Text style={styles.benchLabel}>PROMEDIO GLOBAL</Text>
                         </View>
                      </View>
-                     <View style={[styles.benchIndicator, { backgroundColor: compareData.diff >= 0 ? COLORS.success + '15' : COLORS.error + '15' }]}>
-                        <Text style={[styles.benchIndText, { color: compareData.diff >= 0 ? COLORS.success : COLORS.error }]}>
-                           {compareData.diff >= 0 ? 'ESTE EVENTO SUPERA EL RENDIMIENTO PROMEDIO' : 'REQUIERE REVISIÓN DE CAMPAÑA DIGITAL'}
+                     <View style={[styles.benchIndicator, { backgroundColor: compareData.diffAsistencias >= 0 ? COLORS.success + '15' : COLORS.warning + '15' }]}>
+                        <Text style={[styles.benchIndText, { color: compareData.diffAsistencias >= 0 ? COLORS.success : COLORS.warning }]}>
+                           {compareData.diffAsistencias >= 0 ? 'ESTE EVENTO SUPERA LA MEDIA DE ASISTENCIAS' : 'POPULARIDAD POR DEBAJO DEL PROMEDIO'}
                         </Text>
                      </View>
                   </View>
 
                   <View style={styles.kpiGrid}>
-                     <KPICard emoji="👁️" label="Impacto Visual" value={compareData.ev.visitas || 0} sub="Visualizaciones" color={COLORS.info} />
-                     <KPICard emoji="🤝" label="Interacción" value={compareData.ev.asistencias || 0} sub="Check-ins Reales" color={COLORS.success} />
+                     <KPICard emoji="🤝" label="Check-ins" value={compareData.evAsistencias} sub="Asistencias Reales" color={COLORS.success} />
+                     <KPICard emoji="💬" label="Reseñas" value={compareData.evComentarios} sub="Comentarios" color={COLORS.violet} />
                   </View>
 
                   <View style={styles.card}>
-                     <Text style={styles.cardHeader}>RADAR DE ENGAGEMENT CRÍTICO</Text>
-                     <DataProgress label="Conversión Directa" count={compareData.ev.asistencias} total={compareData.ev.visitas} color={COLORS.success} />
-                     <DataProgress label="Interacción Social (Comentarios)" count={compareData.ev.comentarios?.length || 0} total={10} color={COLORS.violet} showPerc={false} />
-                     <Text style={styles.radarHelp}>Métricas normalizadas basadas en el historial del ecosistema.</Text>
+                     <Text style={styles.cardHeader}>MÉTRICAS DE ENGAGEMENT</Text>
+                     <DataProgress label="Asistencias Registradas" count={compareData.evAsistencias} total={Math.max(compareData.avgAsistencias * 2, compareData.evAsistencias + 10)} color={COLORS.success} />
+                     <DataProgress label="Interacción Social (Comentarios)" count={compareData.evComentarios} total={10} color={COLORS.violet} showPerc={false} />
+                     <Text style={styles.radarHelp}>Métricas basadas en datos reales de MongoDB.</Text>
                   </View>
 
                   <View style={styles.card}>
@@ -568,5 +632,10 @@ const styles = StyleSheet.create({
   footer: { padding: 50, alignItems: 'center' },
   footerText: { color: 'rgba(255,255,255,0.15)', fontSize: 11, fontWeight: 'bold', letterSpacing: 1.5 },
   footerSub: { color: 'rgba(255,255,255,0.06)', fontSize: 9, marginTop: 8, textAlign: 'center' },
-  emptyMsg: { color: COLORS.muted, textAlign: 'center', paddingVertical: 30, fontStyle: 'italic' }
+  emptyMsg: { color: COLORS.muted, textAlign: 'center', paddingVertical: 30, fontStyle: 'italic' },
+  emptySearch: { padding: 40, alignItems: 'center', backgroundColor: COLORS.glass, borderRadius: 20, marginVertical: 20, borderWidth: 1, borderColor: COLORS.glassBorder },
+  emptySearchIcon: { fontSize: 50, marginBottom: 15, opacity: 0.3 },
+  emptySearchText: { color: COLORS.muted, fontSize: 14, textAlign: 'center', marginBottom: 20 },
+  clearSearchBtn: { backgroundColor: COLORS.violet, paddingHorizontal: 20, paddingVertical: 10, borderRadius: 12 },
+  clearSearchText: { color: 'white', fontSize: 11, fontWeight: '900', letterSpacing: 1 }
 });

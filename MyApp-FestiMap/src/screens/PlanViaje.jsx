@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { 
   View, 
@@ -22,6 +21,7 @@ import {
 import { WebView } from 'react-native-webview'; 
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
+import * as Location from 'expo-location';
 import axios from 'axios';
 import * as turf from '@turf/turf';
 import { useUser } from '../context/UserContext.jsx';
@@ -31,8 +31,8 @@ import { ENDPOINTS } from '../config/api.js';
 const { width, height } = Dimensions.get('window');
 
 /** 
- * PALETA DE COLORES PREMIUM 
- * Utilizada para la identidad visual de FestiMap Ecuador.
+ * PALETA DE COLORES PREMIUM - FESTIMAP EDITION
+ * Diseño de alta fidelidad para el planificador cultural.
  */
 const COLORS = {
   accent: '#ffb800',
@@ -50,10 +50,6 @@ const COLORS = {
   sand: '#fdfcf0'
 };
 
-/** 
- * COORDENADAS DE REFERENCIA 
- * Lugares precargados para optimizar el geocoding inicial.
- */
 const LOCAL_PLACES = {
   "quito": { lat: -0.2201, lng: -78.5126 },
   "guayaquil": { lat: -2.1708, lng: -79.9224 },
@@ -61,10 +57,10 @@ const LOCAL_PLACES = {
   "otavalo": { lat: 0.233, lng: -78.262 },
 };
 
-export default function PlanViaje() {
-  // HOOKS DE CONTEXTO (BACKEND INTEGRATION)
-  const { agregarEvento, guardarPlan } = useAgenda();
-  const { user } = useUser();
+export default function PlanViaje({ route, navigation }) {
+  // HOOKS DE CONTEXTO
+  const { agregarEvento, guardarPlan, planes } = useAgenda();
+  const { user, token } = useUser();
 
   // ESTADOS DE CONFIGURACIÓN DE VIAJE
   const [origen, setOrigen] = useState("Quito");
@@ -76,6 +72,7 @@ export default function PlanViaje() {
 
   // ESTADOS DE DATOS Y CARGA
   const [loading, setLoading] = useState(false);
+  const [loadingGPS, setLoadingGPS] = useState(false);
   const [eventosBase, setEventosBase] = useState([]);
   const [sugerencias, setSugerencias] = useState([]);
   const [itinerario, setItinerario] = useState({}); 
@@ -90,19 +87,56 @@ export default function PlanViaje() {
   const sliderWidth = width - 100;
 
   /**
-   * EFECTO INICIAL: Carga el inventario de eventos desde MongoDB
-   * para tener la base lista antes de cualquier cálculo espacial.
+   * EFECTO 1: Carga de Inventario desde MongoDB
+   * Recupera todos los eventos culturales para el filtrado espacial.
    */
   useEffect(() => {
-    axios.get(ENDPOINTS.eventos)
-      .then(res => setEventosBase(res.data))
-      .catch(err => console.error("Fallo al conectar con MongoDB:", err));
+    const fetchEventos = async () => {
+      try {
+        const res = await axios.get(ENDPOINTS.eventos);
+        // FILTRAR: Solo eventos aprobados
+        const eventosAprobados = res.data.filter(e => e.status === 'approved');
+        setEventosBase(eventosAprobados);
+        console.log(`✅ ${eventosAprobados.length} eventos aprobados cargados para PlanViaje`);
+      } catch (err) {
+        console.error("Fallo al conectar con el motor de datos:", err);
+      }
+    };
+    fetchEventos();
   }, []);
 
-  /** 
-   * LÓGICA DE PROCESAMIENTO DE FECHAS
-   * Convierte strings YYYY-MM-DD a objetos Date locales de forma segura.
+  /**
+   * EFECTO 2: Carga de Plan Existente (Si viene de Agenda)
    */
+  useEffect(() => {
+    if (route.params?.planId && planes.length > 0) {
+      const planEncontrado = planes.find(p => p._id === route.params.planId);
+      if (planEncontrado) {
+        cargarPlanAFormulario(planEncontrado);
+      }
+    }
+  }, [route.params?.planId, planes]);
+
+  const cargarPlanAFormulario = (plan) => {
+    setNombrePlan(plan.nombrePlan || plan.nombre);
+    setOrigen(plan.origen);
+    setDestino(plan.destino);
+    setFechaInicio(plan.fechaInicio);
+    setDias(plan.dias.toString());
+    setRadio(plan.radio || 15);
+    
+    if (plan.itinerario) {
+      const nuevoItin = {};
+      Object.keys(plan.itinerario).forEach(day => {
+        const idsInDay = plan.itinerario[day];
+        nuevoItin[day] = eventosBase.filter(ev => idsInDay.includes(ev._id || ev.id));
+      });
+      setItinerario(nuevoItin);
+    }
+    
+    triggerNotif("Hoja de ruta cargada 📜", "success");
+  };
+
   const parseLocalDate = (dateStr) => {
     if (!dateStr) return null;
     const cleanStr = dateStr.replace(/\//g, '-').trim();
@@ -117,20 +151,15 @@ export default function PlanViaje() {
     return null;
   };
 
-  /** 
-   * FORMATO AMIGABLE 
-   * Retorna una fecha legible para humanos (Ej: Lunes 2 de Enero).
-   */
   const getFriendlyDate = (dateStr) => {
     const d = parseLocalDate(dateStr);
-    if (!d) return "Formato inválido (Ej: 2026-01-02)";
+    if (!d) return "Formato esperado: AAAA-MM-DD";
     const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
     return d.toLocaleDateString('es-ES', options);
   };
 
-  /** 
-   * SLIDER PERSONALIZADO 
-   * Manejador táctil para el radio de exploración usando PanResponder.
+  /**
+   * LÓGICA DEL SLIDER PERSONALIZADA (PAN RESPONDER)
    */
   const panResponder = useRef(
     PanResponder.create({
@@ -146,10 +175,6 @@ export default function PlanViaje() {
     })
   ).current;
 
-  /** 
-   * SISTEMA DE NOTIFICACIONES TOAST 
-   * Muestra avisos animados en la parte superior de la pantalla.
-   */
   const triggerNotif = (text, type = 'info') => {
     setNotificacion({ show: true, text, type });
     Animated.sequence([
@@ -159,14 +184,72 @@ export default function PlanViaje() {
     ]).start();
   };
 
-  /** 
-   * MOTOR DE RUTA INTELIGENTE (TURF.JS) 
-   * Calcula la ruta por carretera, genera un buffer (tubo) de exploración 
-   * y filtra eventos por proximidad espacial y coincidencia temporal.
+  /**
+   * MOTOR DE UBICACIÓN EXPO-LOCATION (ROBUSTO Y DISCIPLINADO)
+   * Dispara el permiso nativo del celular y DEPENDE de los ajustes del sistema.
+   */
+  const handleUseCurrentLocation = async () => {
+    setLoadingGPS(true);
+
+    try {
+      // 1. Verificar si los servicios de ubicación están activos en el celular
+      const servicesEnabled = await Location.hasServicesEnabledAsync();
+      if (!servicesEnabled) {
+        Alert.alert("📡 GPS Apagado", "Por favor, enciende la ubicación en el panel de control de tu celular.");
+        setLoadingGPS(false);
+        return;
+      }
+
+      // 2. Pedir permiso explícito al sistema operativo (Android/iOS)
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      
+      if (status !== 'granted') {
+        Alert.alert("🚫 Permiso Requerido", "Para detectar tu ciudad automáticamente, necesitamos que aceptes el permiso de ubicación.");
+        setLoadingGPS(false);
+        return;
+      }
+
+      // 3. Obtener posición del sensor físico
+      let location = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      });
+
+      const { latitude, longitude } = location.coords;
+      
+      // 4. Obtener nombre de ciudad (Geocoding Inverso)
+      const res = await axios.get(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`, {
+         headers: { 'User-Agent': 'FestiMapEcuador/2.0' }
+      });
+      const city = res.data.address.city || res.data.address.town || res.data.address.village || res.data.address.county || "Mi ubicación";
+      setOrigen(city);
+      triggerNotif("Punto de partida detectado 🛰️", "success");
+
+    } catch (error) {
+      console.log("Error GPS Nativo:", error);
+      Alert.alert("❌ Error de Sensor", "No pudimos conectar con el GPS. Asegúrate de estar en un lugar con señal.");
+    } finally {
+      setLoadingGPS(false);
+    }
+  };
+
+  const geocode = async (q) => {
+    if (!q) return null;
+    const raw = q.toLowerCase().trim();
+    if (LOCAL_PLACES[raw]) return LOCAL_PLACES[raw];
+    try {
+      const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(raw)}&limit=1`;
+      const res = await axios.get(url, { headers: { 'User-Agent': 'FestiMapGeocode/1.0' } });
+      if (res.data[0]) return { lat: parseFloat(res.data[0].lat), lng: parseFloat(res.data[0].lon) };
+    } catch (e) { return null; }
+    return null;
+  };
+
+  /**
+   * MOTOR DE GENERACIÓN DE RUTA (OSRM + TURF.JS)
    */
   const handleGenerarRuta = async () => {
     const start = parseLocalDate(fechaInicio);
-    if (!start) return Alert.alert("Fecha inválida", "Usa el formato YYYY-MM-DD");
+    if (!start) return Alert.alert("Fecha inválida", "Usa el formato AAAA-MM-DD");
     
     setLoading(true);
     setSugerencias([]); 
@@ -176,7 +259,7 @@ export default function PlanViaje() {
 
     if (!o || !d) {
       setLoading(false);
-      return Alert.alert("Lugar no encontrado", "Intenta con ciudades principales.");
+      return Alert.alert("Lugar no encontrado", "Intenta con nombres de ciudades principales de Ecuador.");
     }
 
     try {
@@ -196,80 +279,50 @@ export default function PlanViaje() {
         .filter(ev => {
           const evDate = parseLocalDate(ev.fecha);
           if (!evDate) return false;
-          // Validación estricta de tiempo: el evento debe estar dentro de la duración del viaje
           return evDate.getTime() >= start.getTime() && evDate.getTime() < end.getTime();
         });
 
       setSugerencias(dentro);
-      setGeoData({ route: routeGeometry, buffer: buffer.geometry, points: { o, d } });
+      setGeoData({ route: line, buffer: buffer, points: { o, d } });
 
       if (dentro.length === 0) {
-        triggerNotif("Ruta Despejada: No hay eventos en este rango.", "empty");
+        triggerNotif("Ruta Despejada: No hay eventos en este rango.", "info");
       } else {
-        triggerNotif(`¡Éxito! ${dentro.length} eventos encontrados.`, "success");
+        triggerNotif(`¡Éxito! ${dentro.length} paradas encontradas.`, "success");
       }
     } catch (e) {
-      triggerNotif("Error de conexión.", "error");
+      triggerNotif("Error de conexión con el motor de rutas.", "error");
     } finally {
       setLoading(false);
     }
   };
 
-  /** 
-   * GEOCODIFICADOR 
-   * Resuelve nombres de ciudades a coordenadas lat/lng.
-   */
-  const geocode = async (q) => {
-    if (!q) return null;
-    const raw = q.toLowerCase().trim();
-    if (LOCAL_PLACES[raw]) return LOCAL_PLACES[raw];
-    try {
-      const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(raw)}&limit=1`;
-      const res = await axios.get(url);
-      if (res.data[0]) return { lat: parseFloat(res.data[0].lat), lng: parseFloat(res.data[0].lon) };
-    } catch (e) { return null; }
-    return null;
-  };
-
-  /** 
-   * LÓGICA DE ASIGNACIÓN DE PARADAS 
-   * Calcula automáticamente a qué día (0, 1, 2...) corresponde un evento 
-   * basándose en su fecha y la fecha de salida.
-   */
   const addStop = (ev) => {
     const start = parseLocalDate(fechaInicio);
     const evDate = parseLocalDate(ev.fecha);
-    
-    // Diferencia en milisegundos convertida a días
     const diffTime = evDate.getTime() - start.getTime();
     const dayIndex = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
-    // Seguridad: Verificar que el índice sea válido dentro de la duración
     if (dayIndex < 0 || dayIndex >= (parseInt(dias) || 1)) {
-        triggerNotif("Este evento ocurre fuera de tu itinerario.", "info");
+        triggerNotif("Este evento ocurre fuera de tus días de viaje.", "info");
         return;
     }
 
     const currentDayStops = itinerario[dayIndex] || [];
     if (currentDayStops.some(s => (s._id || s.id) === (ev._id || ev.id))) {
-        triggerNotif("Ya está en este día", "info");
+        triggerNotif("Ya está en tu agenda para este día.", "info");
         return;
     }
     
     setItinerario({ ...itinerario, [dayIndex]: [...currentDayStops, ev] });
     agregarEvento(ev);
     setActiveDay(dayIndex);
-    triggerNotif(`Agregado al Día ${dayIndex + 1}`, "success");
+    triggerNotif(`Agregado al Día ${dayIndex + 1} ✅`, "success");
   };
 
-  /** 
-   * PERSISTENCIA EN BACKEND 
-   * Guarda el plan finalizado en la base de datos MongoDB del usuario.
-   */
   const handleGuardarPlanFinal = async () => {
-    if (!nombrePlan.trim()) return Alert.alert("Falta nombre", "Ponle un nombre a tu plan.");
+    if (!nombrePlan.trim()) return Alert.alert("Atención", "Escribe un nombre para el plan.");
     
-    // Mapear el itinerario para enviar solo IDs a MongoDB si es necesario
     const itinerarioIds = {};
     Object.keys(itinerario).forEach(day => {
         itinerarioIds[day] = itinerario[day].map(ev => ev._id || ev.id);
@@ -277,31 +330,33 @@ export default function PlanViaje() {
 
     const success = await guardarPlan({
       nombre: nombrePlan,
-      origen,
-      destino,
-      fechaInicio,
-      dias: parseInt(dias),
-      itinerario: itinerarioIds, // Estructura compatible con el Schema de Plan
+      origen, destino, fechaInicio, dias: parseInt(dias),
+      itinerario: itinerarioIds,
+      radio: radio,
       eventosIds: Object.values(itinerario).flat().map(ev => ev._id || ev.id),
-      geoData: {
-          origen: geoData?.points?.o,
-          destino: geoData?.points?.d
-      },
+      geoData: { origen: geoData?.points?.o, destino: geoData?.points?.d },
       creado: new Date().toLocaleDateString()
     });
 
     if (success) {
         setShowSaveModal(false);
         setNombrePlan("");
-        triggerNotif("Plan guardado en tu Agenda ✨", "success");
+        triggerNotif("Plan sincronizado en MongoDB ✨", "success");
     } else {
-        Alert.alert("Error de Sincronización", "No se pudo guardar en MongoDB. Verifica tu servidor.");
+        Alert.alert("Error de Persistencia", "No pudimos conectar con el servidor backend.");
     }
   };
 
-  /** 
-   * GENERADOR DE FOLIO PDF PREMIUM 
-   * Construye un documento de alta calidad editorial con los detalles del viaje.
+  const getFormattedDateForDay = (index) => {
+    const date = parseLocalDate(fechaInicio);
+    if (!date) return "--";
+    date.setDate(date.getDate() + index);
+    const months = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
+    return `${date.getDate().toString().padStart(2, '0')} ${months[date.getMonth()]}`;
+  };
+
+  /**
+   * GENERADOR DE PDF PREMIUM
    */
   const handleDescargarPDF = async () => {
     const html = `
@@ -309,16 +364,16 @@ export default function PlanViaje() {
       <body style="font-family: 'Helvetica', sans-serif; padding: 40px; background: #fdfcf0; color: #1a1a1a;">
         <div style="text-align: center; border-bottom: 2px solid #d4af37; padding-bottom: 20px;">
           <h1 style="color: #059669; margin: 0; letter-spacing: 5px; font-size: 30px;">FESTIMAP ECUADOR</h1>
-          <p style="color: #d4af37; font-weight: bold; margin: 5px 0;">Premium Travel Edition</p>
+          <p style="color: #d4af37; font-weight: bold; margin: 5px 0;">Premium Travel Edition • Bitácora Digital</p>
         </div>
         
-        <h2 style="text-align: center; font-size: 28px; margin: 30px 0;">${nombrePlan || 'Bitácora de Viaje'}</h2>
+        <h2 style="text-align: center; font-size: 28px; margin: 30px 0;">${nombrePlan || 'Ruta del Explorador'}</h2>
         
-        <div style="background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 30px; border-left: 5px solid #d4af37;">
-          <p style="margin: 5px 0;"><b>👤 Viajero:</b> ${user?.nombre || 'Explorador'}</p>
-          <p style="margin: 5px 0;"><b>🛣️ Ruta:</b> ${origen} &rarr; ${destino}</p>
-          <p style="margin: 5px 0;"><b>📅 Salida:</b> ${getFriendlyDate(fechaInicio)}</p>
-          <p style="margin: 5px 0;"><b>⏱️ Duración:</b> ${dias} Días</p>
+        <div style="background: white; padding: 25px; border-radius: 15px; margin-bottom: 30px; border-left: 5px solid #d4af37; box-shadow: 0 5px 15px rgba(0,0,0,0.05);">
+          <p>👤 <b>Viajero:</b> ${user?.nombre || 'Explorador Cultural'}</p>
+          <p>🛣️ <b>Ruta trazada:</b> ${origen} &rarr; ${destino}</p>
+          <p>📅 <b>Fecha de Salida:</b> ${getFriendlyDate(fechaInicio)}</p>
+          <p>⏱️ <b>Duración:</b> ${dias} Días de Tradición</p>
         </div>
 
         ${Object.keys(itinerario).sort().map(dayIdx => `
@@ -330,59 +385,31 @@ export default function PlanViaje() {
               <span style="color: #d4af37; font-weight: bold; font-size: 18px;">${getFormattedDateForDay(parseInt(dayIdx))}</span>
             </div>
             <div style="height: 1px; background: #ddd; width: 100%; margin: 15px 0;"></div>
-            
             ${itinerario[dayIdx].map(ev => `
               <div style="display: flex; gap: 20px; margin-bottom: 25px; background: white; padding: 15px; border-radius: 12px; border: 1px solid #eee;">
-                <img src="${ev.imagen}" style="width: 120px; height: 120px; border-radius: 10px; object-fit: cover;" />
+                <img src="${ev.imagen}" style="width: 110px; height: 110px; border-radius: 10px; object-fit: cover;" />
                 <div style="flex: 1;">
-                  <h4 style="margin: 0; color: #1a1a1a; font-size: 18px;">${ev.name.toUpperCase()}</h4>
-                  <p style="margin: 5px 0; color: #059669; font-weight: bold; font-size: 12px;">
-                    📍 ${ev.ciudad}, ${ev.provincia}
-                  </p>
-                  <p style="margin: 5px 0; font-size: 12px; color: #444;">
-                    <b>Ubicación Exacta:</b> ${ev.lugar || 'No especificado'} <br/>
-                    <b>Referencia:</b> ${ev.referencia || 'Centro de la ciudad'} <br/>
-                    <b>Coordenadas:</b> ${ev.lat}, ${ev.lng}
-                  </p>
-                  <p style="margin-top: 10px; color: #666; font-size: 12px; line-height: 1.4; font-style: italic;">
-                    "${ev.descripcion}"
-                  </p>
+                  <h4 style="margin: 0; color: #1a1a1a; font-size: 17px;">${ev.name.toUpperCase()}</h4>
+                  <p style="margin: 5px 0; color: #059669; font-weight: bold; font-size: 11px;">📍 ${ev.ciudad}, ${ev.provincia}</p>
+                  <p style="margin-top: 8px; color: #666; font-size: 12px; line-height: 1.4; font-style: italic;">"${ev.descripcion}"</p>
                 </div>
               </div>
             `).join('')}
           </div>
         `).join('')}
-        
-        <div style="margin-top: 50px; text-align: center; color: #999; font-size: 10px; border-top: 1px solid #eee; padding-top: 20px;">
-          Generado automáticamente por FestiMap Ecuador • Tu guía cultural definitiva • Sincronizado con MongoDB Engine
+
+        <div style="text-align: center; margin-top: 50px; color: #999; font-size: 10px;">
+          DOCUMENTO GENERADO POR FESTIMAP ECUADOR ENGINE v5.5 • PATRIMONIO DIGITAL
         </div>
       </body>
     </html>`;
 
     try {
       const { uri } = await Print.printToFileAsync({ html });
-      await Sharing.shareAsync(uri, { UTI: '.pdf', mimeType: 'application/pdf' });
-    } catch (e) { 
-      Alert.alert("Error", "No se pudo generar el documento."); 
-    }
+      await Sharing.shareAsync(uri);
+    } catch (e) { Alert.alert("Error PDF", "No se pudo generar el documento."); }
   };
 
-  /** 
-   * FORMATO DÍA CALENDARIO 
-   * Calcula el texto del día (Día 1, Día 2...) junto con su fecha específica.
-   */
-  const getFormattedDateForDay = (index) => {
-    const date = parseLocalDate(fechaInicio);
-    if (!date) return "--";
-    date.setDate(date.getDate() + index);
-    const months = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
-    return `${date.getDate().toString().padStart(2, '0')} ${months[date.getMonth()]}`;
-  };
-
-  /** 
-   * RENDER DE MAPA 
-   * Memoización del HTML para el WebView para evitar re-renderizados innecesarios.
-   */
   const mapHtml = useMemo(() => {
     if (!geoData) return '<html><body style="background:#0f172a"></body></html>';
     return `
@@ -392,36 +419,42 @@ export default function PlanViaje() {
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-        <style>#map { height: 100vh; width: 100vw; background: #0f172a; } body { margin: 0; }</style>
+        <style>
+          #map { height: 100vh; width: 100vw; background: #0f172a; } 
+          body { margin: 0; }
+          .leaflet-tile { filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3) brightness(0.7); }
+        </style>
       </head>
       <body>
         <div id="map"></div>
         <script>
           const map = L.map('map', { zoomControl: false });
-          L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(map);
-          L.geoJSON(${JSON.stringify(geoData.buffer)}, { 
-            style: { color: '#ffb800', weight: 1, fillOpacity: 0.15, dashArray: '5, 5' } 
-          }).addTo(map);
-          L.geoJSON(${JSON.stringify(geoData.route)}, { 
-            style: { color: '#5b21b6', weight: 5, lineCap: 'round' } 
-          }).addTo(map);
-          L.marker([${geoData.points.o.lat}, ${geoData.points.o.lng}]).addTo(map);
-          L.marker([${geoData.points.d.lat}, ${geoData.points.d.lng}]).addTo(map);
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+          
+          const bufferStyle = { color: '#ffb800', weight: 1, fillOpacity: 0.1, dashArray: '5, 5' };
+          const routeStyle = { color: '#8b5cf6', weight: 6, opacity: 0.8 };
+
+          L.geoJSON(${JSON.stringify(geoData.buffer)}, { style: bufferStyle }).addTo(map);
+          L.geoJSON(${JSON.stringify(geoData.route)}, { style: routeStyle }).addTo(map);
+          
+          L.circleMarker([${geoData.points.o.lat}, ${geoData.points.o.lng}], { radius: 8, color: 'white', fillColor: '#10b981', fillOpacity: 1 }).addTo(map);
+          L.circleMarker([${geoData.points.d.lat}, ${geoData.points.d.lng}], { radius: 8, color: 'white', fillColor: '#ffb800', fillOpacity: 1 }).addTo(map);
+          
+          ${sugerencias.map(ev => `L.circleMarker([${ev.lat}, ${ev.lng}], { radius: 6, color: '#d4af37', fillColor: '#fbbf24', fillOpacity: 0.7, weight: 2 }).bindPopup('<b>${ev.name}</b><br>${ev.ciudad}').addTo(map);`).join('\n          ')}
+          
           map.fitBounds(L.geoJSON(${JSON.stringify(geoData.buffer)}).getBounds(), { padding: [30, 30] });
         </script>
       </body>
       </html>
     `;
-  }, [geoData]);
+  }, [geoData, sugerencias]);
 
-  // URL para el mapa estático del Folio
   const staticMapUrl = geoData ? `https://static-maps.yandex.ru/1.x/?lang=es_ES&l=map&size=600,300&bbox=${geoData.points.o.lng},${geoData.points.o.lat}~${geoData.points.d.lng},${geoData.points.d.lat}&pt=${geoData.points.o.lng},${geoData.points.o.lat},pm2rdl~${geoData.points.d.lng},${geoData.points.d.lat},pm2grl` : null;
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="light-content" translucent />
       
-      {/* BARRA DE NOTIFICACIÓN TOAST */}
       <Animated.View style={[styles.notif, { transform: [{ translateY: animNotif }] }, notificacion.type === 'success' && { backgroundColor: COLORS.success }]}>
          <View style={styles.notifContent}>
             <View style={styles.notifBadge}><Text style={styles.notifEmoji}>{notificacion.type === 'success' ? '✅' : '🧭'}</Text></View>
@@ -435,17 +468,21 @@ export default function PlanViaje() {
           <Text style={styles.title}>Diseño de Ruta 🛣️</Text>
         </View>
 
-        {/* FORMULARIO DE RUTA */}
         <View style={styles.cardForm}>
            <View style={styles.routeSection}>
               <View style={styles.routeVisual}>
-                 <View style={styles.routeDotActive} />
-                 <View style={styles.routeLine} />
-                 <View style={styles.routeDotAccent} />
+                <View style={styles.routeDotActive} />
+                <View style={styles.routeLine} />
+                <View style={styles.routeDotAccent} />
               </View>
               <View style={styles.routeInputs}>
                  <View style={styles.inputWrap}>
-                    <Text style={styles.label}>PUNTO DE PARTIDA</Text>
+                    <View style={styles.labelRow}>
+                       <Text style={styles.label}>PUNTO DE PARTIDA</Text>
+                       <TouchableOpacity onPress={handleUseCurrentLocation} style={styles.gpsAutoBtn}>
+                          {loadingGPS ? <ActivityIndicator size="small" color={COLORS.accent} /> : <Text style={styles.gpsAutoText}>🛰️ AUTO GPS</Text>}
+                       </TouchableOpacity>
+                    </View>
                     <TextInput style={styles.input} value={origen} onChangeText={setOrigen} placeholder="Ej: Quito" placeholderTextColor={COLORS.muted} />
                  </View>
                  <View style={styles.inputWrap}>
@@ -455,72 +492,55 @@ export default function PlanViaje() {
               </View>
            </View>
 
-           {/* LOGISTICA: FECHAS Y DÍAS */}
            <View style={[styles.row, {marginTop: 25, alignItems: 'flex-start'}]}>
               <View style={{flex: 1, marginRight: 15}}>
-                 <Text style={styles.label}>FECHA SALIDA (AAAA-MM-DD)</Text>
-                 <TextInput style={styles.input} value={fechaInicio} onChangeText={setFechaInicio} />
-                 <Text style={[styles.dateHelper, !parseLocalDate(fechaInicio) && {color: COLORS.error}]}>
-                    {getFriendlyDate(fechaInicio)}
-                 </Text>
+                <Text style={styles.label}>SALIDA (AAAA-MM-DD)</Text>
+                <TextInput style={styles.input} value={fechaInicio} onChangeText={setFechaInicio} />
+                <Text style={styles.dateHelper}>{getFriendlyDate(fechaInicio)}</Text>
               </View>
-              
               <View style={{width: 80}}>
-                 <Text style={[styles.label, {textAlign: 'center'}]}>DURACIÓN</Text>
-                 <View style={styles.daysInputWrapper}>
-                    <TextInput 
-                        style={styles.daysInput} 
-                        value={dias} 
-                        onChangeText={setDias} 
-                        keyboardType="numeric" 
-                        maxLength={3}
-                        textAlign="center"
-                    />
-                    <Text style={styles.daysLabel}>Días</Text>
-                 </View>
+                <Text style={[styles.label, {textAlign: 'center'}]}>DÍAS</Text>
+                <View style={styles.daysInputWrapper}>
+                  <TextInput style={styles.daysInput} value={dias} onChangeText={setDias} keyboardType="numeric" maxLength={3} textAlign="center" />
+                  <Text style={styles.daysLabel}>Días</Text>
+                </View>
               </View>
            </View>
 
-           {/* CONTROL DE RADIO DE EXPLORACIÓN */}
            <View style={styles.radioBox}>
               <View style={styles.rowBetween}>
-                 <Text style={styles.label}>RADIO DE EXPLORACIÓN</Text>
-                 <Text style={styles.radioValue}>{radio} KM</Text>
+                <Text style={styles.label}>RADIO DE EXPLORACIÓN</Text>
+                <Text style={styles.radioValue}>{radio} KM</Text>
               </View>
               <View style={styles.sliderContainer} {...panResponder.panHandlers}>
-                 <View style={styles.sliderTrack}>
-                    <View style={[styles.sliderFill, { width: `${radio}%` }]} />
-                    <View style={[styles.sliderThumb, { left: `${radio}%` }]}>
-                       <View style={styles.thumbGlow} />
-                    </View>
-                 </View>
+                <View style={styles.sliderTrack}>
+                  <View style={[styles.sliderFill, { width: `${radio}%` }]} />
+                  <View style={[styles.sliderThumb, { left: `${radio}%` }]} />
+                </View>
               </View>
-              <Text style={styles.radioHelp}>Descubrir eventos dentro de este rango de la ruta.</Text>
            </View>
 
            <TouchableOpacity style={styles.mainBtn} onPress={handleGenerarRuta} disabled={loading}>
-              {loading ? <ActivityIndicator color={COLORS.ink} /> : <Text style={styles.mainBtnText}>GENERAR RUTA 🚀</Text>}
+              {loading ? <ActivityIndicator color={COLORS.ink} /> : <Text style={styles.mainBtnText}>GENERAR RUTA INTELIGENTE 🚀</Text>}
            </TouchableOpacity>
         </View>
 
-        {/* MAPA INTERACTIVO */}
         {geoData && (
           <View style={styles.mapContainer}>
-             <WebView originWhitelist={['*']} source={{ html: mapHtml }} style={{ flex: 1 }} scrollEnabled={false} />
+            <WebView originWhitelist={['*']} source={{ html: mapHtml }} style={{ flex: 1 }} scrollEnabled={false} />
           </View>
         )}
 
-        {/* SECCIÓN DE SUGERENCIAS FILTRADAS */}
         {sugerencias.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>PARADAS RECOMENDADAS ({sugerencias.length})</Text>
+            <Text style={styles.sectionTitle}>PARADAS RECOMENDADAS EN RUTA ({sugerencias.length})</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.suggestionTrack}>
               {sugerencias.map(ev => (
-                <TouchableOpacity key={ev._id || ev.id} style={styles.suggestCard} onPress={() => addStop(ev)}>
+                <TouchableOpacity key={ev._id || ev.id} style={styles.suggestCard} onPress={() => addStop(ev)} activeOpacity={0.9}>
                   <Image source={{ uri: ev.imagen }} style={styles.suggestImg} />
                   <View style={styles.suggestFooter}>
-                     <Text style={styles.suggestName} numberOfLines={1}>{ev.name}</Text>
-                     <Text style={styles.suggestLoc}>📍 {ev.ciudad}</Text>
+                    <Text style={styles.suggestName} numberOfLines={1}>{ev.name}</Text>
+                    <Text style={styles.suggestLoc}>📍 {ev.ciudad}</Text>
                   </View>
                   <View style={styles.suggestAddBtn}><Text style={styles.plus}>+</Text></View>
                 </TouchableOpacity>
@@ -529,104 +549,86 @@ export default function PlanViaje() {
           </View>
         )}
 
-        {/* ÁREA DE ITINERARIO (TIMELINE) */}
         <View style={styles.itineraryMain}>
-           <View style={styles.itineraryHeader}>
-              <View>
-                 <Text style={styles.sectionTitle}>MI PLAN PERSONALIZADO</Text>
-                 <Text style={styles.itSub}>Organización de paradas por día</Text>
-              </View>
-           </View>
-
-           {/* BOTONES DE ACCIÓN MONGODB / PDF */}
+           <Text style={styles.sectionTitle}>MI PLAN PERSONALIZADO</Text>
            <View style={styles.actionsBar}>
               <TouchableOpacity style={styles.actionBtnPrimary} onPress={() => setShowSaveModal(true)}>
-                 <Text style={{fontSize: 16, marginRight: 8}}>💾</Text>
-                 <Text style={styles.actionTextPrimary}>GUARDAR</Text>
+                <Text style={{color: COLORS.ink, fontWeight: 'bold'}}>💾 GUARDAR PLAN</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.actionBtnSecondary} onPress={() => setShowFolio(true)}>
-                 <Text style={{fontSize: 16, marginRight: 8}}>📥</Text>
-                 <Text style={styles.actionTextSecondary}>FOLIO PDF</Text>
+                <Text style={{color: 'white', fontWeight: 'bold'}}>📥 FOLIO PDF</Text>
               </TouchableOpacity>
            </View>
 
-           {/* SELECTOR DE DÍAS (SCROLL HORIZONTAL) */}
-           <View style={{ marginBottom: 35 }}>
-             <ScrollView 
-                horizontal 
-                showsHorizontalScrollIndicator={false} 
-                contentContainerStyle={{ paddingRight: 30 }}
-             >
+           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20 }}>
                 {Array.from({length: parseInt(dias) || 1}).map((_, i) => (
                   <TouchableOpacity key={i} style={[styles.dayTab, activeDay === i && styles.dayTabActive]} onPress={() => setActiveDay(i)}>
                     <Text style={[styles.dayTabText, activeDay === i && styles.dayTabTextActive]}>DÍA {i+1}</Text>
                     <Text style={[styles.dayTabSub, activeDay === i && styles.dayTabSubActive]}>{getFormattedDateForDay(i)}</Text>
                   </TouchableOpacity>
                 ))}
-             </ScrollView>
-           </View>
+           </ScrollView>
 
-           {/* LÍNEA DE TIEMPO DEL DÍA ACTIVO */}
            <View style={styles.timeline}>
               {(itinerario[activeDay] || []).length === 0 ? (
-                <View style={styles.emptyPlan}>
-                   <View style={styles.emptyCircle}><Text style={{fontSize: 30}}>🧭</Text></View>
-                   <Text style={styles.emptyTitle}>Día en blanco</Text>
-                   <Text style={styles.emptyText}>Explora las sugerencias arriba para llenar este día de cultura.</Text>
+                <View style={styles.emptyDayBox}>
+                   <Text style={styles.emptyDayEmoji}>🏜️</Text>
+                   <Text style={styles.emptyDayText}>Día en blanco. Agrega paradas desde las sugerencias.</Text>
                 </View>
-              ) : (
-                itinerario[activeDay].map((stop, idx) => (
-                  <View key={stop._id || stop.id} style={styles.timelineItem}>
-                     <View style={styles.timelineGuide}>
-                        <View style={[styles.node, idx === 0 && {backgroundColor: COLORS.accent}]} />
-                        {idx !== itinerario[activeDay].length - 1 && <View style={styles.timelineLine} />}
-                     </View>
-                     <View style={styles.stopCard}>
-                        <Image source={{ uri: stop.imagen }} style={styles.stopImg} />
-                        <View style={{flex: 1, marginLeft: 15}}>
-                           <Text style={styles.stopName}>{stop.name}</Text>
-                           <Text style={styles.stopLoc}>📍 {stop.ciudad}</Text>
-                        </View>
-                        <TouchableOpacity style={styles.deleteStop} onPress={() => {
-                           const next = itinerario[activeDay].filter(s => (s._id || s.id) !== (stop._id || stop.id));
-                           setItinerario({...itinerario, [activeDay]: next});
-                        }}><Text style={{color: COLORS.error, fontWeight: 'bold'}}>✕</Text></TouchableOpacity>
-                     </View>
+              ) : 
+              (itinerario[activeDay].map((stop, idx) => (
+                <View key={stop._id || stop.id} style={styles.timelineItem}>
+                  <View style={styles.stopCard}>
+                    <Image source={{ uri: stop.imagen }} style={styles.stopImg} />
+                    <View style={{flex: 1, marginLeft: 15}}>
+                      <Text style={styles.stopName}>{stop.name}</Text>
+                      <Text style={styles.stopLoc}>📍 {stop.ciudad}</Text>
+                    </View>
+                    <TouchableOpacity onPress={() => {
+                      const n = itinerario[activeDay].filter(s => (s._id || s.id) !== (stop._id || stop.id)); 
+                      setItinerario({...itinerario, [activeDay]: n});
+                    }}>
+                      <View style={styles.removeCircle}><Text style={styles.removeText}>✕</Text></View>
+                    </TouchableOpacity>
                   </View>
-                ))
-              )}
+                </View>
+              )))}
            </View>
         </View>
 
-        <View style={{height: 100}} />
+        <View style={{height: 120}} />
       </ScrollView>
 
-      {/* MODAL PARA ASIGNAR NOMBRE AL PLAN (MONGODB SAVE) */}
+      {/* MODAL DE GUARDADO */}
       <Modal visible={showSaveModal} transparent animationType="fade">
         <View style={styles.modalOverlay}>
-            <View style={styles.saveBox}>
-                <Text style={styles.modalTitle}>Nombre del Viaje ✨</Text>
-                <TextInput style={styles.modalInput} placeholder="Ej: Ruta Ancestral 2026" placeholderTextColor={COLORS.muted} value={nombrePlan} onChangeText={setNombrePlan} />
-                <View style={styles.modalBtns}>
-                   <TouchableOpacity style={styles.mBtnCancel} onPress={() => setShowSaveModal(false)}><Text style={{color: 'white'}}>Cancelar</Text></TouchableOpacity>
-                   <TouchableOpacity style={styles.mBtnConfirm} onPress={handleGuardarPlanFinal}><Text style={{color: COLORS.ink, fontWeight:'bold'}}>GUARDAR</Text></TouchableOpacity>
-                </View>
+          <View style={styles.saveBox}>
+            <Text style={styles.modalTitle}>Nombre del Plan de Viaje</Text>
+            <Text style={styles.modalSub}>Se guardará en tu agenda y en MongoDB.</Text>
+            <TextInput style={styles.modalInput} value={nombrePlan} onChangeText={setNombrePlan} placeholder="Ej: Tour Carnaval 2026" placeholderTextColor={COLORS.muted} />
+            <View style={styles.modalBtns}>
+              <TouchableOpacity onPress={()=>setShowSaveModal(false)} style={styles.mBtnCancel}>
+                <Text style={{color:'white', fontWeight:'bold'}}>Cerrar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleGuardarPlanFinal} style={styles.mBtnConfirm}>
+                <Text style={{fontWeight: 'bold', color: COLORS.ink}}>CONFIRMAR GUARDADO</Text>
+              </TouchableOpacity>
             </View>
+          </View>
         </View>
       </Modal>
 
-      {/* MODAL DE VISTA PREVIA DEL FOLIO PDF */}
+      {/* VISTA PREVIA DEL FOLIO EDITORIAL */}
       <Modal visible={showFolio} animationType="slide" transparent={false}>
         <View style={styles.folioBg}>
            <SafeAreaView style={{flex: 1}}>
               <ScrollView contentContainerStyle={{padding: 25}}>
                 <TouchableOpacity onPress={() => setShowFolio(false)} style={styles.closeFolio}>
-                  <Text style={styles.closeText}>✕ CERRAR</Text>
+                  <Text style={styles.closeText}>✕ CERRAR VISTA PREVIA</Text>
                 </TouchableOpacity>
                 
                 <Text style={styles.folioBrand}>FESTIMAP ECUADOR</Text>
                 <Text style={styles.folioTitle}>{nombrePlan || 'PLAN DE RUTA'}</Text>
-                <View style={styles.folioDivider} />
                 
                 {staticMapUrl && (
                   <View style={styles.folioMapBox}>
@@ -635,36 +637,30 @@ export default function PlanViaje() {
                 )}
 
                 <View style={styles.folioSummary}>
-                  <Text style={styles.folioDataText}><Text style={{fontWeight: 'bold'}}>ORIGEN:</Text> {origen}</Text>
-                  <Text style={styles.folioDataText}><Text style={{fontWeight: 'bold'}}>DESTINO:</Text> {destino}</Text>
-                  <Text style={styles.folioDataText}><Text style={{fontWeight: 'bold'}}>DURACIÓN:</Text> {dias} DÍAS</Text>
+                  <Text style={styles.folioDataText}><Text style={{fontWeight: 'bold', color: COLORS.tropical}}>DE:</Text> {origen}</Text>
+                  <Text style={styles.folioDataText}><Text style={{fontWeight: 'bold', color: COLORS.tropical}}>A:</Text> {destino}</Text>
+                  <Text style={styles.folioDataText}><Text style={{fontWeight: 'bold', color: COLORS.tropical}}>SALIDA:</Text> {getFriendlyDate(fechaInicio)}</Text>
+                  <Text style={styles.folioDataText}><Text style={{fontWeight: 'bold', color: COLORS.tropical}}>RADIO:</Text> {radio} KM a la redonda</Text>
                 </View>
 
-                {Object.keys(itinerario).length === 0 ? (
-                  <Text style={styles.noDataText}>No has seleccionado eventos para tu itinerario aún.</Text>
-                ) : (
-                  Object.keys(itinerario).sort().map(dayIdx => (
-                    <View key={dayIdx} style={styles.folioDayContainer}>
-                      <View style={styles.folioDayHeader}>
-                        <Text style={styles.dayNumText}>DÍA {parseInt(dayIdx) + 1}</Text>
-                        <Text style={styles.dayDateText}>{getFormattedDateForDay(parseInt(dayIdx))}</Text>
-                      </View>
-                      {itinerario[dayIdx].map(ev => (
-                        <View key={ev._id || ev.id} style={styles.folioEventCard}>
-                          <Image source={{ uri: ev.imagen }} style={styles.folioEventImg} />
-                          <View style={{flex: 1}}>
-                            <Text style={styles.folioEventName}>{ev.name.toUpperCase()}</Text>
-                            <Text style={styles.folioEventLoc}>📍 {ev.ciudad}, {ev.provincia}</Text>
-                            <Text style={styles.folioEventDesc} numberOfLines={3}>{ev.descripcion}</Text>
-                          </View>
+                {Object.keys(itinerario).sort().map(dayIdx => (
+                  <View key={dayIdx} style={{marginTop: 30}}>
+                    <Text style={styles.dayNumText}>DÍA {parseInt(dayIdx) + 1} • {getFormattedDateForDay(parseInt(dayIdx))}</Text>
+                    {itinerario[dayIdx].map(ev => (
+                      <View key={ev._id || ev.id} style={styles.folioEventCard}>
+                        <Image source={{ uri: ev.imagen }} style={styles.folioEventImg} />
+                        <View style={{flex:1}}>
+                          <Text style={styles.folioEventName}>{ev.name}</Text>
+                          <Text style={{fontSize: 11, color: COLORS.tropical, fontWeight:'bold'}}>📍 {ev.ciudad}</Text>
+                          <Text style={{fontSize: 10, color: '#666', marginTop: 4}} numberOfLines={2}>{ev.descripcion}</Text>
                         </View>
-                      ))}
-                    </View>
-                  ))
-                )}
+                      </View>
+                    ))}
+                  </View>
+                ))}
 
                 <TouchableOpacity style={styles.folioDownload} onPress={handleDescargarPDF}>
-                  <Text style={styles.folioDownloadText}>DESCARGAR PDF ITINERARIO 📥</Text>
+                  <Text style={{color:'white', fontWeight:'bold', fontSize: 16}}>GENERAR PDF OFICIAL 📥</Text>
                 </TouchableOpacity>
                 <View style={{height: 50}} />
               </ScrollView>
@@ -682,7 +678,7 @@ const styles = StyleSheet.create({
   notifBadge: { width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
   notifEmoji: { fontSize: 16 },
   notifText: { color: 'white', fontWeight: 'bold', fontSize: 13, flex: 1 },
-  header: { paddingHorizontal: 30, paddingTop: Platform.OS === 'android' ? 55 : 20, marginBottom: 10 },
+  header: { paddingHorizontal: 30, paddingTop: Platform.OS === 'ios' ? 20 : 60, marginBottom: 10 },
   preTitle: { color: COLORS.accent, fontSize: 10, fontWeight: '900', letterSpacing: 3 },
   title: { color: 'white', fontSize: 34, fontWeight: '900', marginTop: 5 },
   cardForm: { margin: 20, padding: 30, backgroundColor: COLORS.glass, borderRadius: 40, borderWidth: 1, borderColor: COLORS.glassBorder },
@@ -693,7 +689,10 @@ const styles = StyleSheet.create({
   routeLine: { width: 2, flex: 1, backgroundColor: 'rgba(255,255,255,0.06)', marginVertical: 5, borderStyle: 'dashed' },
   routeInputs: { flex: 1, gap: 25 },
   inputWrap: { flex: 1 },
-  label: { color: COLORS.accent, fontSize: 9, fontWeight: '900', marginBottom: 10, letterSpacing: 2 },
+  labelRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
+  gpsAutoBtn: { backgroundColor: 'rgba(255,184,0,0.1)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10, borderWidth: 1, borderColor: 'rgba(255,184,0,0.3)' },
+  gpsAutoText: { color: COLORS.accent, fontSize: 8, fontWeight: '900' },
+  label: { color: COLORS.accent, fontSize: 9, fontWeight: '900', letterSpacing: 2 },
   input: { backgroundColor: 'rgba(255,255,255,0.03)', padding: 18, borderRadius: 18, color: 'white', borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)', fontSize: 14 },
   daysInputWrapper: { backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 18, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)', alignItems: 'center', justifyContent: 'center', paddingVertical: 10 },
   daysInput: { color: 'white', fontSize: 22, fontWeight: 'bold', width: '100%', textAlign: 'center', padding: 0 },
@@ -706,15 +705,13 @@ const styles = StyleSheet.create({
   sliderContainer: { height: 45, justifyContent: 'center', marginVertical: 12 },
   sliderTrack: { height: 8, backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 4, position: 'relative' },
   sliderFill: { position: 'absolute', height: '100%', backgroundColor: COLORS.accent, borderRadius: 4 },
-  sliderThumb: { position: 'absolute', top: -11, width: 30, height: 30, borderRadius: 15, backgroundColor: COLORS.accent, marginLeft: -15, elevation: 10, justifyContent: 'center', alignItems: 'center' },
-  thumbGlow: { width: 12, height: 12, borderRadius: 6, backgroundColor: COLORS.ink },
-  radioHelp: { color: COLORS.muted, fontSize: 10, fontStyle: 'italic', textAlign: 'center', marginTop: 5 },
-  mainBtn: { backgroundColor: COLORS.accent, padding: 22, borderRadius: 25, alignItems: 'center', marginTop: 35, elevation: 5 },
+  sliderThumb: { position: 'absolute', top: -11, width: 30, height: 30, borderRadius: 15, backgroundColor: COLORS.accent, marginLeft: -15, elevation: 10 },
+  mainBtn: { backgroundColor: COLORS.accent, padding: 22, borderRadius: 25, alignItems: 'center', marginTop: 35 },
   mainBtnText: { color: COLORS.ink, fontWeight: '900', fontSize: 12, letterSpacing: 1 },
-  mapContainer: { height: 220, marginHorizontal: 20, borderRadius: 35, overflow: 'hidden', borderWidth: 1, borderColor: COLORS.glassBorder, marginBottom: 40, elevation: 15 },
+  mapContainer: { height: 220, marginHorizontal: 20, borderRadius: 35, overflow: 'hidden', borderWidth: 1, borderColor: COLORS.glassBorder, marginBottom: 40 },
   section: { marginBottom: 45 },
   sectionTitle: { color: COLORS.muted, fontSize: 10, fontWeight: '900', letterSpacing: 2, marginLeft: 30, marginBottom: 20 },
-  suggestionTrack: { paddingLeft: 30, gap: 18, paddingRight: 30 },
+  suggestionTrack: { paddingLeft: 30, gap: 18 },
   suggestCard: { width: 220, backgroundColor: COLORS.card, borderRadius: 30, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' },
   suggestImg: { width: '100%', height: 130 },
   suggestFooter: { padding: 18 },
@@ -723,60 +720,45 @@ const styles = StyleSheet.create({
   suggestAddBtn: { position: 'absolute', top: 12, right: 12, width: 30, height: 30, borderRadius: 15, backgroundColor: COLORS.accent, alignItems: 'center', justifyContent: 'center' },
   plus: { color: COLORS.ink, fontWeight: '900', fontSize: 18 },
   itineraryMain: { paddingHorizontal: 30 },
-  itineraryHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
-  itSub: { color: COLORS.muted, fontSize: 11, marginTop: 4 },
   actionsBar: { flexDirection: 'row', gap: 12, marginBottom: 25 },
-  actionBtnPrimary: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.accent, padding: 15, borderRadius: 18 },
-  actionTextPrimary: { color: COLORS.ink, fontWeight: '900', fontSize: 12, letterSpacing: 1 },
-  actionBtnSecondary: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.1)', padding: 15, borderRadius: 18, borderWidth: 1, borderColor: COLORS.glassBorder },
-  actionTextSecondary: { color: COLORS.white, fontWeight: '900', fontSize: 12, letterSpacing: 1 },
+  actionBtnPrimary: { flex: 1, backgroundColor: COLORS.accent, padding: 15, borderRadius: 18, alignItems:'center' },
+  actionBtnSecondary: { flex: 1, backgroundColor: 'rgba(255,255,255,0.1)', padding: 15, borderRadius: 18, alignItems:'center' },
   dayTab: { paddingHorizontal: 22, paddingVertical: 18, borderRadius: 22, marginRight: 12, backgroundColor: COLORS.glass, alignItems: 'center', minWidth: 100 },
   dayTabActive: { backgroundColor: COLORS.accent },
   dayTabText: { color: COLORS.muted, fontWeight: 'bold', fontSize: 13 },
   dayTabTextActive: { color: COLORS.ink },
-  dayTabSub: { color: COLORS.muted, fontSize: 9, marginTop: 4 },
-  dayTabSubActive: { color: 'rgba(15,23,42,0.6)' },
-  timeline: { paddingLeft: 10 },
-  timelineItem: { flexDirection: 'row', marginBottom: 25 },
-  timelineGuide: { alignItems: 'center', marginRight: 20, width: 14 },
-  node: { width: 14, height: 14, borderRadius: 7, backgroundColor: 'rgba(255,255,255,0.1)', marginTop: 25, borderWidth: 2, borderColor: COLORS.ink },
-  timelineLine: { width: 2, flex: 1, backgroundColor: 'rgba(255,255,255,0.05)', marginVertical: 8 },
-  stopCard: { flex: 1, backgroundColor: COLORS.card, padding: 18, borderRadius: 28, flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)', elevation: 4 },
+  dayTabSub: { color: COLORS.muted, fontSize: 9 },
+  dayTabSubActive: { color: 'rgba(0,0,0,0.5)' },
+  timelineItem: { marginBottom: 15 },
+  stopCard: { backgroundColor: COLORS.card, padding: 18, borderRadius: 28, flexDirection: 'row', alignItems: 'center' },
   stopImg: { width: 60, height: 60, borderRadius: 18 },
   stopName: { color: 'white', fontWeight: 'bold', fontSize: 16 },
-  stopLoc: { color: COLORS.accent, fontSize: 11, fontWeight: '600', marginTop: 4 },
-  deleteStop: { padding: 10 },
-  emptyPlan: { padding: 50, alignItems: 'center', backgroundColor: COLORS.glass, borderRadius: 40, borderStyle: 'dashed', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
-  emptyCircle: { width: 80, height: 80, borderRadius: 40, backgroundColor: 'rgba(255,255,255,0.03)', alignItems: 'center', justifyContent: 'center', marginBottom: 20 },
-  emptyTitle: { color: 'white', fontSize: 18, fontWeight: '900' },
-  emptyText: { color: COLORS.muted, textAlign: 'center', fontSize: 13, marginTop: 10, lineHeight: 22 },
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(15,23,42,0.96)', justifyContent: 'center', padding: 40 },
-  saveBox: { backgroundColor: COLORS.card, padding: 35, borderRadius: 40, borderWidth: 1, borderColor: COLORS.accent },
-  modalTitle: { color: 'white', fontSize: 20, fontWeight: 'bold', marginBottom: 25, textAlign: 'center' },
-  modalInput: { backgroundColor: 'rgba(255,255,255,0.04)', padding: 20, borderRadius: 20, color: 'white', marginBottom: 30, borderWidth: 1, borderColor: COLORS.glassBorder },
-  modalBtns: { flexDirection: 'row', gap: 15 },
-  mBtnCancel: { flex: 1, alignItems: 'center', padding: 15 },
-  mBtnConfirm: { flex: 1, backgroundColor: COLORS.accent, padding: 18, borderRadius: 18, alignItems: 'center' },
+  stopLoc: { color: COLORS.accent, fontSize: 11 },
+  removeCircle: { width: 30, height: 30, borderRadius: 15, backgroundColor: 'rgba(239, 68, 68, 0.1)', alignItems: 'center', justifyContent: 'center' },
+  removeText: { color: COLORS.error, fontWeight: 'bold' },
+  emptyDayBox: { alignItems: 'center', marginTop: 30, padding: 30, backgroundColor: COLORS.glass, borderRadius: 25, borderStyle: 'dashed', borderWidth: 1, borderColor: COLORS.glassBorder },
+  emptyDayEmoji: { fontSize: 40, marginBottom: 10 },
+  emptyDayText: { color: COLORS.muted, textAlign: 'center', fontSize: 12, lineHeight: 18 },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.9)', justifyContent: 'center', padding: 40 },
+  saveBox: { backgroundColor: COLORS.card, padding: 35, borderRadius: 40, borderWidth: 1, borderColor: COLORS.glassBorder },
+  modalTitle: { color: 'white', fontSize: 20, fontWeight: 'bold', marginBottom: 5 },
+  modalSub: { color: COLORS.muted, fontSize: 12, marginBottom: 25 },
+  modalInput: { backgroundColor: 'rgba(255,255,255,0.05)', padding: 18, borderRadius: 18, color: 'white', marginBottom: 25, borderWidth: 1, borderColor: COLORS.glassBorder },
+  modalBtns: { flexDirection: 'row', justifyContent: 'space-between', gap: 10 },
+  mBtnCancel: { flex: 1, padding: 15, alignItems: 'center' },
+  mBtnConfirm: { flex: 2, backgroundColor: COLORS.accent, padding: 15, borderRadius: 15, alignItems: 'center' },
   folioBg: { flex: 1, backgroundColor: COLORS.sand },
-  closeFolio: { alignSelf: 'flex-end', padding: 10 },
-  closeText: { color: COLORS.tropical, fontWeight: '900', fontSize: 12 },
-  folioBrand: { fontSize: 14, fontWeight: '900', color: COLORS.tropical, textAlign: 'center', letterSpacing: 6, marginTop: 10 },
-  folioTitle: { fontSize: 36, fontWeight: '800', textAlign: 'center', color: '#1a1a1a', marginTop: 15 },
-  folioDivider: { height: 2, backgroundColor: COLORS.gold, width: 60, alignSelf: 'center', marginVertical: 30 },
-  folioMapBox: { height: 200, borderRadius: 30, overflow: 'hidden', borderWidth: 1, borderColor: COLORS.gold, marginBottom: 35 },
+  closeFolio: { alignSelf: 'flex-end', padding: 10, marginBottom: 10 },
+  closeText: { color: COLORS.tropical, fontWeight: '900', fontSize: 11 },
+  folioBrand: { fontSize: 14, fontWeight: '900', color: COLORS.tropical, textAlign: 'center', letterSpacing: 5 },
+  folioTitle: { fontSize: 32, fontWeight: '800', textAlign: 'center', marginTop: 10, color: '#1a1a1a', letterSpacing: -1 },
+  folioMapBox: { height: 180, borderRadius: 25, overflow: 'hidden', marginVertical: 25, borderWidth: 1, borderColor: COLORS.gold, elevation: 5 },
   folioImg: { width: '100%', height: '100%' },
-  folioSummary: { backgroundColor: 'white', padding: 25, borderRadius: 25, marginBottom: 35, elevation: 2 },
-  folioDataText: { fontSize: 13, marginBottom: 8, color: '#333' },
-  folioDownload: { backgroundColor: COLORS.tropical, padding: 22, borderRadius: 25, alignItems: 'center' },
-  folioDownloadText: { color: 'white', fontWeight: 'bold', fontSize: 14 },
-  noDataText: { textAlign: 'center', color: '#999', marginVertical: 30 },
-  folioDayContainer: { marginBottom: 40 },
-  folioDayHeader: { flexDirection: 'row', alignItems: 'center', gap: 15, marginBottom: 20, borderBottomWidth: 1, borderBottomColor: COLORS.gold, paddingBottom: 10 },
-  dayNumText: { color: COLORS.tropical, fontSize: 22, fontWeight: '900' },
-  dayDateText: { color: COLORS.gold, fontSize: 12, fontWeight: 'bold' },
-  folioEventCard: { flexDirection: 'row', gap: 15, backgroundColor: 'white', padding: 15, borderRadius: 15, marginBottom: 15, elevation: 2 },
-  folioEventImg: { width: 80, height: 80, borderRadius: 10 },
-  folioEventName: { fontSize: 14, fontWeight: '900', color: '#1a1a1a' },
-  folioEventLoc: { fontSize: 11, color: COLORS.tropical, fontWeight: 'bold', marginVertical: 4 },
-  folioEventDesc: { fontSize: 11, color: '#666', lineHeight: 16 }
+  folioSummary: { backgroundColor: 'white', padding: 25, borderRadius: 25, elevation: 3, borderLeftWidth: 6, borderLeftColor: COLORS.gold },
+  folioDataText: { fontSize: 13, marginBottom: 8, color: '#444' },
+  dayNumText: { color: COLORS.tropical, fontSize: 18, fontWeight: '900', marginTop: 35, borderBottomWidth: 1, borderBottomColor: COLORS.gold, paddingBottom: 10 },
+  folioEventCard: { flexDirection: 'row', gap: 15, backgroundColor: 'white', padding: 18, borderRadius: 20, marginTop: 15, elevation: 2, borderWidth: 1, borderColor: '#eee' },
+  folioEventImg: { width: 70, height: 70, borderRadius: 12 },
+  folioEventName: { fontWeight: '900', fontSize: 14, color: '#1a1a1a' },
+  folioDownload: { backgroundColor: COLORS.tropical, padding: 22, borderRadius: 22, alignItems: 'center', marginTop: 40, elevation: 5 }
 });

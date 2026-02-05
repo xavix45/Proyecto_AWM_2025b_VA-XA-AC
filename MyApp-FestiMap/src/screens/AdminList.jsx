@@ -17,6 +17,7 @@ import {
 } from 'react-native';
 import axios from 'axios';
 import { ENDPOINTS } from '../config/api.js';
+import { useUser } from '../context/UserContext.jsx';
 
 const COLORS = {
   accent: '#ffb800',
@@ -32,6 +33,7 @@ const COLORS = {
 };
 
 export default function AdminList({ navigation }) {
+  const { token } = useUser();
   const [eventos, setEventos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modalComentarios, setModalComentarios] = useState({ show: false, event: null });
@@ -39,10 +41,14 @@ export default function AdminList({ navigation }) {
 
   const fetchEventos = async () => {
     try {
-      const res = await axios.get(ENDPOINTS.eventos);
+      const config = token ? { headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } } : {};
+      const res = await axios.get(ENDPOINTS.eventos, config);
       setEventos(res.data);
+      console.log("✅ Eventos cargados:", res.data.length);
     } catch (e) { 
-      Alert.alert("Error", "No se pudo sincronizar el inventario.");
+      console.error("❌ Error en fetchEventos:", e.message);
+      Alert.alert("Error de Conexión", "No se pudo sincronizar el inventario. Asegúrate que el servidor esté corriendo.");
+      setEventos([]);
     } finally { 
       setLoading(false); 
     }
@@ -62,12 +68,34 @@ export default function AdminList({ navigation }) {
 
   const quickToggleStatus = async (id, currentStatus) => {
     const nextStatus = currentStatus === 'approved' ? 'unpublished' : 'approved';
+    const actionText = nextStatus === 'approved' ? 'ACTIVAR' : 'OCULTAR';
+    
     try {
       setLoading(true);
-      await axios.put(`${ENDPOINTS.eventos}/${id}`, { status: nextStatus });
-      fetchEventos();
+      const config = { 
+        headers: { 
+          'Authorization': `Bearer ${token}`, 
+          'Content-Type': 'application/json' 
+        } 
+      };
+      
+      // Obtener el evento completo
+      const eventRes = await axios.get(`${ENDPOINTS.eventos}/${id}`);
+      const eventoCompleto = eventRes.data;
+      
+      // Actualizar con todos los datos + nuevo status
+      await axios.put(`${ENDPOINTS.eventos}/${id}`, {
+        ...eventoCompleto,
+        status: nextStatus
+      }, config);
+      
+      console.log(`✅ Estado cambiado a: ${nextStatus}`);
+      Alert.alert("✅ Éxito", `Evento ${nextStatus === 'approved' ? 'ACTIVADO' : 'OCULTO'} correctamente.`);
+      
+      await fetchEventos();
     } catch (e) {
-      Alert.alert("Error", "No se pudo cambiar el estado.");
+      console.error("❌ Error al cambiar estado:", e.response?.data || e.message);
+      Alert.alert("❌ Error", e.response?.data?.message || "No se pudo cambiar el estado.");
     } finally {
       setLoading(false);
     }
@@ -82,7 +110,8 @@ export default function AdminList({ navigation }) {
         { text: "ELIMINAR", style: "destructive", onPress: async () => {
           setLoading(true);
           try {
-            await axios.delete(`${ENDPOINTS.eventos}/${id}`);
+            const config = { headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } };
+            await axios.delete(`${ENDPOINTS.eventos}/${id}`, config);
             fetchEventos();
           } catch (e) { Alert.alert("Error", "No se pudo eliminar."); }
           finally { setLoading(false); }

@@ -1,3 +1,4 @@
+
 {
   "expo": {
     "name": "MyApp-FestiMap",
@@ -13,14 +14,24 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "FestiMap necesita tu ubicación para mostrarte las festividades y desfiles más cercanos a ti en tiempo real.",
+        "NSLocationAlwaysUsageDescription": "FestiMap utiliza tu ubicación para guiarte en las rutas culturales incluso con la pantalla bloqueada."
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "FOREGROUND_SERVICE",
+        "FOREGROUND_SERVICE_LOCATION"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"

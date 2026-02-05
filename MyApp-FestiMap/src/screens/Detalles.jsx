@@ -77,12 +77,62 @@ export default function Detalles({ route, navigation }) {
 
   const handleCheckIn = async () => {
     if (checkedIn) return;
+    
+    if (!user || !token) {
+      setModal({ 
+        show: true, 
+        title: '🔐 Inicia Sesión', 
+        message: 'Debes estar registrado para marcar tu asistencia.', 
+        type: 'error' 
+      });
+      return;
+    }
+
     setLoadingAction(true);
     try {
-      // Endpoint que incrementa el contador de asistencias en MongoDB
-      await axios.patch(`${ENDPOINTS.eventos}/${eventId}`, { 
-        asistencias: (evento.asistencias || 0) + 1 
-      });
+      const config = {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      };
+
+      // Obtener datos actuales del evento
+      const currentEvento = await axios.get(`${ENDPOINTS.eventos}/${eventId}`);
+      const asistenciasActuales = currentEvento.data.asistencias || 0;
+      const asistentesActuales = currentEvento.data.asistentes || [];
+
+      // Verificar si ya hizo check-in
+      const yaRegistrado = asistentesActuales.some(
+        a => a.userId === (user.id || user._id)
+      );
+
+      if (yaRegistrado) {
+        setModal({ 
+          show: true, 
+          title: '⚠️ Ya Registrado', 
+          message: 'Ya registraste tu asistencia a este evento anteriormente.', 
+          type: 'error' 
+        });
+        setCheckedIn(true);
+        setLoadingAction(false);
+        return;
+      }
+
+      // Crear nuevo registro de asistente
+      const nuevoAsistente = {
+        userId: user.id || user._id,
+        userName: user.name || user.email,
+        timestamp: new Date().toISOString()
+      };
+
+      // Actualizar evento con nueva asistencia
+      await axios.put(`${ENDPOINTS.eventos}/${eventId}`, {
+        ...currentEvento.data,
+        asistencias: asistenciasActuales + 1,
+        asistentes: [...asistentesActuales, nuevoAsistente]
+      }, config);
+
       setCheckedIn(true);
       setModal({ 
         show: true, 
@@ -90,9 +140,18 @@ export default function Detalles({ route, navigation }) {
         message: 'Gracias por fortalecer la cultura. Tu visita ahora es parte de las estadísticas oficiales.', 
         type: 'success' 
       });
-      fetchEventoData();
+      
+      // Refrescar datos del evento
+      await fetchEventoData();
+      
     } catch (e) {
-      setModal({ show: true, title: '❌ Ups', message: 'No pudimos registrar tu check-in.', type: 'error' });
+      console.error("Error en check-in:", e.response?.data || e.message);
+      setModal({ 
+        show: true, 
+        title: '❌ Ups', 
+        message: e.response?.data?.message || 'No pudimos registrar tu check-in. Verifica tu conexión.', 
+        type: 'error' 
+      });
     } finally {
       setLoadingAction(false);
     }
@@ -110,24 +169,73 @@ export default function Detalles({ route, navigation }) {
 
   const handleSubmitOpinion = async () => {
     if (!comentario.trim() || rating === 0) {
-      setModal({ show: true, title: '⚠️ Faltan datos', message: 'Selecciona una calificación y escribe tu experiencia.', type: 'warning' });
+      setModal({ 
+        show: true, 
+        title: '⚠️ Faltan datos', 
+        message: 'Selecciona una calificación y escribe tu experiencia.', 
+        type: 'warning' 
+      });
       return;
     }
+
+    if (!user) {
+      setModal({ 
+        show: true, 
+        title: '🔐 Inicia Sesión', 
+        message: 'Debes estar registrado para comentar.', 
+        type: 'error' 
+      });
+      return;
+    }
+
     setLoadingAction(true);
     try {
-      const res = await axios.post(ENDPOINTS.comentarios(eventId), {
-        usuario: user?.nombre || "Explorador",
+      const config = token ? {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      } : {};
+
+      // Obtener datos actuales del evento
+      const currentEvento = await axios.get(`${ENDPOINTS.eventos}/${eventId}`);
+      const comentariosActuales = currentEvento.data.comentarios || [];
+
+      // Crear nuevo comentario
+      const nuevoComentario = {
+        id: comentariosActuales.length + 1,
+        usuario: user?.name || user?.nombre || user?.email || "Explorador",
         rating: rating,
-        comentario: comentario
+        comentario: comentario.trim(),
+        fecha: new Date().toISOString().split('T')[0]
+      };
+
+      // Actualizar evento con nuevo comentario
+      await axios.put(`${ENDPOINTS.eventos}/${eventId}`, {
+        ...currentEvento.data,
+        comentarios: [...comentariosActuales, nuevoComentario]
+      }, config);
+
+      await fetchEventoData();
+      
+      setModal({ 
+        show: true, 
+        title: '🚀 ¡Opinión Guardada!', 
+        message: 'Tu reseña se ha sincronizado con MongoDB.', 
+        type: 'success' 
       });
-      if (res.status === 201) {
-        await fetchEventoData();
-        setModal({ show: true, title: '🚀 ¡Opinión Guardada!', message: 'Tu reseña se ha sincronizado con MongoDB.', type: 'success' });
-        setComentario("");
-        setRating(0);
-      }
+      
+      setComentario("");
+      setRating(0);
+      
     } catch (e) {
-      setModal({ show: true, title: '❌ Error', message: 'No pudimos guardar tu reseña.', type: 'error' });
+      console.error("Error al guardar comentario:", e.response?.data || e.message);
+      setModal({ 
+        show: true, 
+        title: '❌ Error', 
+        message: e.response?.data?.message || 'No pudimos guardar tu reseña.', 
+        type: 'error' 
+      });
     } finally {
       setLoadingAction(false);
     }

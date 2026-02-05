@@ -17,8 +17,10 @@ import {
   SafeAreaView,
   StatusBar
 } from 'react-native';
+import * as Location from 'expo-location';
 import axios from 'axios';
 import { ENDPOINTS } from '../config/api.js';
+import { useUser } from '../context/UserContext.jsx';
 
 const { width } = Dimensions.get('window');
 
@@ -43,13 +45,15 @@ const REGIONES_DATA = {
 };
 
 const CATEGORIAS = ["Entretenimiento", "Tecnología", "Educativo", "Cultural", "Musical", "Deportes", "Gastronomía", "Ancestral", "Tradición"];
-const TIPOS = ["festiva", "académico", "show", "feria", "vida nocturna", "concierto", "recreativo", "competencia", "mercado"];
+const TIPOS = ["festiva", "académico", "show", "feria", "vida nocturna", "concierto", "recreativo", "competencia", "mercado", "festival"];
 const REPETICIONES = ["Anual", "Mensual", "Semanal", "Diario", "Sábados", "No se repite"];
 const ESTADOS = ["approved", "pending", "unpublished", "rejected"];
 
 export default function AdminForm({ route, navigation }) {
   const editData = route.params?.evento;
+  const { user, token } = useUser();
   const [loading, setLoading] = useState(false);
+  const [loadingGPS, setLoadingGPS] = useState(false); 
   
   const [form, setForm] = useState({
     name: '',
@@ -102,14 +106,72 @@ export default function AdminForm({ route, navigation }) {
   };
 
   /**
-   * JUSTIFICACIÓN TEÓRICA (PREGUNTA 2 - INTEGRACIÓN):
-   * Implementamos validación síncrona en el cliente y asíncrona en el servidor.
-   * Realizamos un parseo de tipos (lat/lng/durMin) antes del envío para asegurar la
-   * compatibilidad con los tipos de datos definidos en el Mongoose Schema.
+   * CAPTURA GPS CON EXPO-LOCATION (Funciona en emulador y dispositivos reales)
    */
+  const handleAutoLocation = async () => {
+    setLoadingGPS(true);
+    
+    try {
+      // 1. Verificar si el servicio GPS está disponible
+      const available = await Location.hasServicesEnabledAsync();
+      if (!available) {
+        Alert.alert(
+          "⚠️ GPS Deshabilitado", 
+          "Por favor activa el GPS en la configuración de tu dispositivo."
+        );
+        setLoadingGPS(false);
+        return;
+      }
+
+      // 2. Solicitar permisos de ubicación
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert(
+          "❌ Permiso Denegado", 
+          "Necesitas otorgar permisos de ubicación para usar esta función."
+        );
+        setLoadingGPS(false);
+        return;
+      }
+
+      // 3. Obtener ubicación actual con alta precisión
+      const location = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.High,
+        timeInterval: 5000,
+        distanceInterval: 0
+      });
+
+      const { latitude, longitude } = location.coords;
+      
+      setForm(prev => ({
+        ...prev,
+        lat: latitude.toFixed(6),
+        lng: longitude.toFixed(6)
+      }));
+
+      Alert.alert(
+        "✅ Ubicación Capturada", 
+        `Lat: ${latitude.toFixed(6)}\nLng: ${longitude.toFixed(6)}`
+      );
+      
+    } catch (error) {
+      console.error("Error GPS:", error);
+      Alert.alert(
+        "❌ Error GPS", 
+        error.message || "No se pudo obtener la ubicación. Verifica que el GPS esté activo."
+      );
+    } finally {
+      setLoadingGPS(false);
+    }
+  };
+
   const handleSave = async () => {
     if (!form.name || !form.ciudad || !form.lat || !form.lng || !form.fecha) {
       return Alert.alert("⚠️ Campos Críticos", "Nombre, Ciudad, Fecha y Coordenadas GPS son obligatorios.");
+    }
+
+    if (!token) {
+      return Alert.alert("🚫 Sesión Requerida", "Por favor inicia sesión como administrador para crear eventos.");
     }
 
     setLoading(true);
@@ -124,17 +186,26 @@ export default function AdminForm({ route, navigation }) {
         comentarios: editData?.comentarios || []
       };
 
+      const config = {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      };
+
       if (editData) {
         const targetId = editData._id || editData.id;
-        await axios.put(`${ENDPOINTS.eventos}/${targetId}`, payload);
-        Alert.alert("✅ Sincronizado", "Registro actualizado en el inventario nacional.");
+        await axios.put(`${ENDPOINTS.eventos}/${targetId}`, payload, config);
+        Alert.alert("✅ Actualizado", "Registro sincronizado en MongoDB.");
       } else {
-        await axios.post(ENDPOINTS.eventos, payload);
-        Alert.alert("✅ Publicado", "Nueva festividad añadida exitosamente al mapa.");
+        await axios.post(ENDPOINTS.eventos, payload, config);
+        Alert.alert("✅ Publicado", "Nuevo registro cultural añadido.");
       }
       navigation.goBack();
     } catch (err) {
-      Alert.alert("❌ Error de Red", "No se pudo conectar con el servidor MongoDB.");
+      console.error("Error detallado:", err.response?.data || err.message);
+      const errorMsg = err.response?.data?.message || err.message;
+      Alert.alert("❌ Error de Servidor", `No se pudo guardar: ${errorMsg}`);
     } finally {
       setLoading(false);
     }
@@ -154,7 +225,7 @@ export default function AdminForm({ route, navigation }) {
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
           
           <Text style={styles.title}>{editData ? 'Editor de Patrimonio' : 'Nuevo Registro'}</Text>
-          <Text style={styles.subtitle}>Configuración técnica y logística del evento en MongoDB.</Text>
+          <Text style={styles.subtitle}>Gestión de datos en el motor MongoDB de FestiMap.</Text>
 
           <View style={styles.previewContainer}>
             <Image 
@@ -162,7 +233,7 @@ export default function AdminForm({ route, navigation }) {
               style={styles.previewImg} 
             />
             <View style={styles.previewOverlay}>
-               <Text style={styles.previewLabel}>VISTA PREVIA DE PORTADA</Text>
+               <Text style={styles.previewLabel}>VISTA PREVIA DEL RECURSO</Text>
             </View>
           </View>
 
@@ -176,7 +247,41 @@ export default function AdminForm({ route, navigation }) {
 
             <Text style={styles.label}>DESCRIPCIÓN EXTENDIDA*</Text>
             <TextInput style={[styles.input, styles.area]} multiline value={form.descripcion} onChangeText={t => setForm({...form, descripcion: t})} placeholder="Detalles históricos..." placeholderTextColor={COLORS.muted} />
+          </View>
+
+          <SectionTitle title="Geolocalización" icon="📍" />
+          <View style={styles.card}>
             
+            <TouchableOpacity 
+              style={[styles.gpsQuickBtn, loadingGPS && { opacity: 0.7 }]} 
+              onPress={handleAutoLocation}
+              disabled={loadingGPS}
+            >
+              {loadingGPS ? (
+                <ActivityIndicator color={COLORS.accent} size="small" />
+              ) : (
+                <Text style={styles.gpsQuickText}>🛰️ CAPTURAR COORDENADAS CON GPS NATIVO</Text>
+              )}
+            </TouchableOpacity>
+
+            <Text style={styles.label}>REFERENCIA / PUNTO CLAVE</Text>
+            <TextInput style={styles.input} value={form.referencia} onChangeText={t => setForm({...form, referencia: t})} placeholder="Ej: Faldas del Ruco Pichincha" placeholderTextColor={COLORS.muted} />
+
+            <View style={styles.row}>
+               <View style={{flex: 1}}>
+                  <Text style={styles.label}>LATITUD*</Text>
+                  <TextInput style={styles.input} value={form.lat} onChangeText={t => setForm({...form, lat: t})} keyboardType="numeric" placeholder="-0.123" placeholderTextColor={COLORS.muted} />
+               </View>
+               <View style={{width: 15}} />
+               <View style={{flex: 1}}>
+                  <Text style={styles.label}>LONGITUD*</Text>
+                  <TextInput style={styles.input} value={form.lng} onChangeText={t => setForm({...form, lng: t})} keyboardType="numeric" placeholder="-78.456" placeholderTextColor={COLORS.muted} />
+               </View>
+            </View>
+          </View>
+
+          <SectionTitle title="Clasificación y Tags" icon="🏷️" />
+          <View style={styles.card}>
             <View style={styles.rowInputs}>
               <View style={{flex: 1}}>
                  <Text style={styles.label}>CATEGORÍA PRINCIPAL</Text>
@@ -204,10 +309,10 @@ export default function AdminForm({ route, navigation }) {
             </View>
 
             <Text style={styles.label}>ETIQUETAS (SEPARADAS POR COMA)</Text>
-            <TextInput style={styles.input} value={form.tags} onChangeText={t => setForm({...form, tags: t})} placeholder="tradicion, baile, quito" placeholderTextColor={COLORS.muted} />
+            <TextInput style={styles.input} value={form.tags} onChangeText={t => setForm({...form, tags: t})} placeholder="tradición, baile, quito" placeholderTextColor={COLORS.muted} />
           </View>
 
-          <SectionTitle title="Ubicación y Geografía" icon="📍" />
+          <SectionTitle title="Ubicación Geográfica" icon="🗺️" />
           <View style={styles.card}>
             <Text style={styles.label}>REGIÓN POLÍTICA</Text>
             <View style={styles.row}>
@@ -229,7 +334,7 @@ export default function AdminForm({ route, navigation }) {
 
             <View style={styles.row}>
                <View style={{flex: 1}}>
-                  <Text style={styles.label}>CIUDAD / CANTÓN</Text>
+                  <Text style={styles.label}>CIUDAD / CANTÓN*</Text>
                   <TextInput style={styles.input} value={form.ciudad} onChangeText={t => setForm({...form, ciudad: t})} placeholder="Latacunga" placeholderTextColor={COLORS.muted} />
                </View>
                <View style={{width: 15}} />
@@ -238,21 +343,9 @@ export default function AdminForm({ route, navigation }) {
                   <TextInput style={styles.input} value={form.lugar} onChangeText={t => setForm({...form, lugar: t})} placeholder="Centro Histórico" placeholderTextColor={COLORS.muted} />
                </View>
             </View>
-
-            <View style={styles.row}>
-               <View style={{flex: 1}}>
-                  <Text style={styles.label}>LATITUD (GPS)*</Text>
-                  <TextInput style={styles.input} value={form.lat} onChangeText={t => setForm({...form, lat: t})} keyboardType="numeric" placeholder="-0.123" placeholderTextColor={COLORS.muted} />
-               </View>
-               <View style={{width: 15}} />
-               <View style={{flex: 1}}>
-                  <Text style={styles.label}>LONGITUD (GPS)*</Text>
-                  <TextInput style={styles.input} value={form.lng} onChangeText={t => setForm({...form, lng: t})} keyboardType="numeric" placeholder="-78.456" placeholderTextColor={COLORS.muted} />
-               </View>
-            </View>
           </View>
 
-          <SectionTitle title="Cronograma y Contacto" icon="📅" />
+          <SectionTitle title="Cronograma y Duración" icon="📅" />
           <View style={styles.card}>
             <View style={styles.row}>
                <View style={{flex: 1}}>
@@ -261,42 +354,75 @@ export default function AdminForm({ route, navigation }) {
                </View>
                <View style={{width: 15}} />
                <View style={{flex: 1}}>
-                  <Text style={styles.label}>DURACIÓN (MIN)</Text>
-                  <TextInput style={styles.input} value={form.durMin} onChangeText={t => setForm({...form, durMin: t})} keyboardType="numeric" />
+                  <Text style={styles.label}>FECHA FIN</Text>
+                  <TextInput style={styles.input} value={form.fecha_fin} onChangeText={t => setForm({...form, fecha_fin: t})} placeholder="2026-01-02" placeholderTextColor={COLORS.muted} />
                </View>
             </View>
+
+            <Text style={styles.label}>HORARIO DEL EVENTO</Text>
+            <TextInput style={styles.input} value={form.horario} onChangeText={t => setForm({...form, horario: t})} placeholder="09:00 - 18:00" placeholderTextColor={COLORS.muted} />
 
             <View style={styles.row}>
                <View style={{flex: 1}}>
-                  <Text style={styles.label}>PRECIO / ENTRADA</Text>
-                  <TextInput style={styles.input} value={form.precio} onChangeText={t => setForm({...form, precio: t})} placeholder="Gratis" placeholderTextColor={COLORS.muted} />
+                  <Text style={styles.label}>DURACIÓN (MINUTOS)</Text>
+                  <TextInput style={styles.input} value={form.durMin} onChangeText={t => setForm({...form, durMin: t})} keyboardType="numeric" placeholder="60" placeholderTextColor={COLORS.muted} />
                </View>
                <View style={{width: 15}} />
                <View style={{flex: 1}}>
-                  <Text style={styles.label}>TELÉFONO ORGANIZADOR</Text>
-                  <TextInput style={styles.input} value={form.telefono} onChangeText={t => setForm({...form, telefono: t})} keyboardType="phone-pad" />
+                  <Text style={styles.label}>REPETICIÓN</Text>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                    <View style={{flexDirection: 'row'}}>
+                      {REPETICIONES.map((rep, idx) => (
+                        <TouchableOpacity key={rep} style={[styles.chip, form.repeticion === rep && styles.chipActive, {marginRight: idx === REPETICIONES.length - 1 ? 0 : 10}]} onPress={() => setForm({...form, repeticion: rep})}>
+                          <Text style={[styles.chipText, form.repeticion === rep && styles.chipTextActive]}>{rep}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  </ScrollView>
                </View>
             </View>
-
-            <Text style={styles.label}>NOMBRE DEL ORGANIZADOR</Text>
-            <TextInput style={styles.input} value={form.organizador} onChangeText={t => setForm({...form, organizador: t})} />
-
-            <Text style={styles.label}>URL WEB OFICIAL</Text>
-            <TextInput style={styles.input} value={form.url} onChangeText={t => setForm({...form, url: t})} placeholder="https://..." placeholderTextColor={COLORS.muted} />
           </View>
 
-          <SectionTitle title="Ajustes de Interacción" icon="⚙️" />
+          <SectionTitle title="Información de Contacto" icon="📞" />
+          <View style={styles.card}>
+            <Text style={styles.label}>NOMBRE DEL ORGANIZADOR</Text>
+            <TextInput style={styles.input} value={form.organizador} onChangeText={t => setForm({...form, organizador: t})} placeholder="Ej: TelefériQo Quito" placeholderTextColor={COLORS.muted} />
+
+            <Text style={styles.label}>TELÉFONO CONTACTO</Text>
+            <TextInput style={styles.input} value={form.telefono} onChangeText={t => setForm({...form, telefono: t})} keyboardType="phone-pad" placeholder="02-222-2951" placeholderTextColor={COLORS.muted} />
+
+            <Text style={styles.label}>URL / SITIO WEB OFICIAL</Text>
+            <TextInput style={styles.input} value={form.url} onChangeText={t => setForm({...form, url: t})} placeholder="https://..." placeholderTextColor={COLORS.muted} />
+
+            <Text style={styles.label}>PRECIO / ENTRADA</Text>
+            <TextInput style={styles.input} value={form.precio} onChangeText={t => setForm({...form, precio: t})} placeholder="Gratuito o $XX" placeholderTextColor={COLORS.muted} />
+          </View>
+
+          <SectionTitle title="Configuración Avanzada" icon="⚙️" />
           <View style={styles.card}>
             <View style={styles.switchRow}>
               <View>
-                 <Text style={styles.switchLabel}>COMENTARIOS PÚBLICOS</Text>
-                 <Text style={styles.switchSub}>Permitir que viajeros califiquen.</Text>
+                 <Text style={styles.switchLabel}>PERMITIR COMENTARIOS</Text>
+                 <Text style={styles.switchSub}>Viajeros pueden dejar opiniones.</Text>
               </View>
               <Switch 
                 value={form.allowComments} 
                 onValueChange={v => setForm({...form, allowComments: v})} 
                 trackColor={{ false: '#334155', true: COLORS.violet }}
                 thumbColor={form.allowComments ? COLORS.accent : '#94a3b8'}
+              />
+            </View>
+
+            <View style={styles.switchRow}>
+              <View>
+                 <Text style={styles.switchLabel}>REQUIERE APROBACIÓN</Text>
+                 <Text style={styles.switchSub}>Admin debe revisar antes de publicar.</Text>
+              </View>
+              <Switch 
+                value={form.requireApproval} 
+                onValueChange={v => setForm({...form, requireApproval: v})} 
+                trackColor={{ false: '#334155', true: COLORS.violet }}
+                thumbColor={form.requireApproval ? COLORS.accent : '#94a3b8'}
               />
             </View>
 
@@ -308,6 +434,13 @@ export default function AdminForm({ route, navigation }) {
                 </TouchableOpacity>
               ))}
             </ScrollView>
+
+            {form.status === 'rejected' && (
+              <>
+                <Text style={styles.label}>MOTIVO DEL RECHAZO</Text>
+                <TextInput style={[styles.input, styles.area]} multiline value={form.rejectReason} onChangeText={t => setForm({...form, rejectReason: t})} placeholder="Explica por qué se rechazó..." placeholderTextColor={COLORS.muted} />
+              </>
+            )}
           </View>
 
           <TouchableOpacity 
@@ -338,23 +471,25 @@ const styles = StyleSheet.create({
   sectionIcon: { fontSize: 18 },
   sectionLabel: { color: COLORS.muted, fontSize: 10, fontWeight: '900', letterSpacing: 2 },
   card: { backgroundColor: COLORS.glass, borderRadius: 30, padding: 25, marginBottom: 30, borderWidth: 1, borderColor: COLORS.glassBorder },
+  gpsQuickBtn: { backgroundColor: 'rgba(255, 184, 0, 0.08)', padding: 15, borderRadius: 15, marginBottom: 25, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255, 184, 0, 0.3)' },
+  gpsQuickText: { color: COLORS.accent, fontWeight: '900', fontSize: 10, letterSpacing: 1 },
   label: { color: 'rgba(255,255,255,0.3)', fontSize: 9, fontWeight: '900', marginBottom: 12, letterSpacing: 1.5 },
   input: { backgroundColor: 'rgba(0,0,0,0.2)', borderRadius: 18, padding: 18, color: COLORS.white, fontSize: 14, borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)', marginBottom: 20 },
   area: { height: 120, textAlignVertical: 'top' },
   row: { flexDirection: 'row', gap: 10, marginBottom: 10 },
   rowInputs: { marginBottom: 20 },
-  chipsRow: { flexDirection: 'row', marginBottom: 5 },
+  chipsRow: { flexDirection: 'row', marginBottom: 20 },
   chip: { backgroundColor: 'rgba(255,255,255,0.03)', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 14, marginRight: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
   chipActive: { backgroundColor: COLORS.violet, borderColor: COLORS.accent },
   chipText: { color: COLORS.muted, fontSize: 10, fontWeight: 'bold' },
   chipTextActive: { color: COLORS.white },
-  regBtn: { flex: 1, backgroundColor: 'rgba(0,0,0,0.3)', paddingVertical: 14, borderRadius: 15, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
+  regBtn: { flex: 1, backgroundColor: 'rgba(0,0,0,0.3)', paddingVertical: 14, borderRadius: 15, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)', marginRight: 8 },
   regBtnActive: { backgroundColor: COLORS.accent, borderColor: COLORS.accent },
   regText: { color: COLORS.muted, fontSize: 9, fontWeight: '900' },
   regTextActive: { color: COLORS.ink },
-  switchRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 25 },
+  switchRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 25, paddingBottom: 20, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.05)' },
   switchLabel: { color: 'white', fontSize: 12, fontWeight: 'bold' },
   switchSub: { color: COLORS.muted, fontSize: 10, marginTop: 2 },
-  saveBtn: { backgroundColor: COLORS.accent, padding: 22, borderRadius: 25, alignItems: 'center', elevation: 15 },
+  saveBtn: { backgroundColor: COLORS.accent, padding: 22, borderRadius: 25, alignItems: 'center', elevation: 15, marginBottom: 20 },
   saveText: { color: COLORS.ink, fontWeight: '900', fontSize: 13, letterSpacing: 1.5 }
 });
