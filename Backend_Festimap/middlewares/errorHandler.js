@@ -1,15 +1,16 @@
-class AppError extends Error {
+class AppError extends Error { //hereda de Error
   constructor(message, statusCode = 500, details = null) {
-    super(message);
-    this.statusCode = statusCode;
-    this.details = details;
+    super(message);// viene de la clase Error
+    this.statusCode = statusCode; //inicializa el código de estado HTTP
+    this.details = details; //inicializa detalles adicionales del error
   }
 }
-
-const errorHandler = (err, req, res, next) => {
+//middleware de manejo de errores, funcion anónima con 4 parámetros
+const errorHandler = (err, req, res, next) => { 
   console.error("🔥 Error detectado:", err);
 
   if (err?.name === "ValidationError") {
+    //extrae mensajes de error de cada validación de Mongoose
     const errors = Object.values(err.errors).map((e) => e.message);
     return res
       .status(400)
