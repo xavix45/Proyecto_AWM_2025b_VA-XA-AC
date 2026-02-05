@@ -46,6 +46,7 @@ module.exports.obtenerEventoPorId = async (req, res, next) => {
   }
 };
 
+// BACKEND: Crear evento (POST /api/eventos) - solo admin
 module.exports.crearEvento = async (req, res, next) => {
   try {
     const datos = {
@@ -68,6 +69,7 @@ module.exports.crearEvento = async (req, res, next) => {
   }
 };
 
+// BACKEND: Actualizar evento (PUT /api/eventos/:id) - solo admin
 module.exports.actualizarEvento = async (req, res, next) => {
   try {
     if (req.body.lat && req.body.lng) {
@@ -89,6 +91,7 @@ module.exports.actualizarEvento = async (req, res, next) => {
   }
 };
 
+// BACKEND: Eliminar evento (DELETE /api/eventos/:id) - solo admin
 module.exports.eliminarEvento = async (req, res, next) => {
   try {
     const eliminado = await Evento.findByIdAndDelete(req.params.id);
