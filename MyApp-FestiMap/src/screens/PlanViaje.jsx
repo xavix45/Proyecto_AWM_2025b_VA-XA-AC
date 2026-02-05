@@ -23,7 +23,6 @@ import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import * as Location from 'expo-location';
 import axios from 'axios';
-import * as turf from '@turf/turf';
 import { useUser } from '../context/UserContext.jsx';
 import { useAgenda } from '../context/AgendaContext.jsx';
 import { ENDPOINTS } from '../config/api.js';
@@ -48,13 +47,6 @@ const COLORS = {
   tropical: '#059669',
   gold: '#d4af37',
   sand: '#fdfcf0'
-};
-
-const LOCAL_PLACES = {
-  "quito": { lat: -0.2201, lng: -78.5126 },
-  "guayaquil": { lat: -2.1708, lng: -79.9224 },
-  "cuenca": { lat: -2.9001, lng: -79.0059 },
-  "otavalo": { lat: 0.233, lng: -78.262 },
 };
 
 export default function PlanViaje({ route, navigation }) {
@@ -217,10 +209,10 @@ export default function PlanViaje({ route, navigation }) {
       const { latitude, longitude } = location.coords;
       
       // 4. Obtener nombre de ciudad (Geocoding Inverso)
-      const res = await axios.get(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`, {
-         headers: { 'User-Agent': 'FestiMapEcuador/2.0' }
+      const res = await axios.post(ENDPOINTS.rutasReverse, { lat: latitude, lng: longitude }, {
+        headers: { Authorization: `Bearer ${token}` }
       });
-      const city = res.data.address.city || res.data.address.town || res.data.address.village || res.data.address.county || "Mi ubicación";
+      const city = res.data?.city || "Mi ubicación";
       setOrigen(city);
       triggerNotif("Punto de partida detectado 🛰️", "success");
 
@@ -232,20 +224,8 @@ export default function PlanViaje({ route, navigation }) {
     }
   };
 
-  const geocode = async (q) => {
-    if (!q) return null;
-    const raw = q.toLowerCase().trim();
-    if (LOCAL_PLACES[raw]) return LOCAL_PLACES[raw];
-    try {
-      const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(raw)}&limit=1`;
-      const res = await axios.get(url, { headers: { 'User-Agent': 'FestiMapGeocode/1.0' } });
-      if (res.data[0]) return { lat: parseFloat(res.data[0].lat), lng: parseFloat(res.data[0].lon) };
-    } catch (e) { return null; }
-    return null;
-  };
-
   /**
-   * MOTOR DE GENERACIÓN DE RUTA (OSRM + TURF.JS)
+   * MOTOR DE GENERACIÓN DE RUTA (BACKEND)
    */
   const handleGenerarRuta = async () => {
     const start = parseLocalDate(fechaInicio);
@@ -254,36 +234,22 @@ export default function PlanViaje({ route, navigation }) {
     setLoading(true);
     setSugerencias([]); 
 
-    const o = await geocode(origen);
-    const d = await geocode(destino);
-
-    if (!o || !d) {
-      setLoading(false);
-      return Alert.alert("Lugar no encontrado", "Intenta con nombres de ciudades principales de Ecuador.");
-    }
-
     try {
-      const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${o.lng},${o.lat};${d.lng},${d.lat}?overview=full&geometries=geojson`;
-      const res = await axios.get(osrmUrl);
-      const routeGeometry = res.data.routes[0].geometry;
-      
-      const line = turf.lineString(routeGeometry.coordinates);
-      const buffer = turf.buffer(line, radio, { units: 'kilometers' });
+      const res = await axios.post(ENDPOINTS.rutasGenerar, {
+        origen,
+        destino,
+        fechaInicio,
+        dias,
+        radio
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
 
-      const end = new Date(start);
-      end.setDate(start.getDate() + (parseInt(dias) || 1));
-
-      const pts = turf.featureCollection(eventosBase.map(e => turf.point([e.lng, e.lat], { ...e })));
-      const dentro = turf.pointsWithinPolygon(pts, buffer).features
-        .map(f => f.properties)
-        .filter(ev => {
-          const evDate = parseLocalDate(ev.fecha);
-          if (!evDate) return false;
-          return evDate.getTime() >= start.getTime() && evDate.getTime() < end.getTime();
-        });
+      const dentro = res.data?.sugerencias || [];
+      const geo = res.data?.geoData || null;
 
       setSugerencias(dentro);
-      setGeoData({ route: line, buffer: buffer, points: { o, d } });
+      setGeoData(geo);
 
       if (dentro.length === 0) {
         triggerNotif("Ruta Despejada: No hay eventos en este rango.", "info");
@@ -412,6 +378,10 @@ export default function PlanViaje({ route, navigation }) {
 
   const mapHtml = useMemo(() => {
     if (!geoData) return '<html><body style="background:#0f172a"></body></html>';
+
+    const routeCoords = geoData.route?.coordinates || geoData.route?.geometry?.coordinates;
+    const bufferCoords = geoData.buffer?.coordinates || geoData.buffer?.geometry?.coordinates;
+
     return `
       <!DOCTYPE html>
       <html>
@@ -428,26 +398,127 @@ export default function PlanViaje({ route, navigation }) {
       <body>
         <div id="map"></div>
         <script>
-          const map = L.map('map', { zoomControl: false });
-          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-          
-          const bufferStyle = { color: '#ffb800', weight: 1, fillOpacity: 0.1, dashArray: '5, 5' };
-          const routeStyle = { color: '#8b5cf6', weight: 6, opacity: 0.8 };
+          try {
+            const map = L.map('map', { zoomControl: false });
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+              attribution: '© OpenStreetMap'
+            }).addTo(map);
+            
+            const bufferStyle = { 
+              color: '#ffb800', 
+              weight: 2, 
+              fillColor: '#ffb800',
+              fillOpacity: 0.12, 
+              dashArray: '5, 5' 
+            };
+            
+            const routeStyle = { 
+              color: '#8b5cf6', 
+              weight: 6, 
+              opacity: 0.85, 
+              lineCap: 'round',
+              lineJoin: 'round'
+            };
 
-          L.geoJSON(${JSON.stringify(geoData.buffer)}, { style: bufferStyle }).addTo(map);
-          L.geoJSON(${JSON.stringify(geoData.route)}, { style: routeStyle }).addTo(map);
-          
-          L.circleMarker([${geoData.points.o.lat}, ${geoData.points.o.lng}], { radius: 8, color: 'white', fillColor: '#10b981', fillOpacity: 1 }).addTo(map);
-          L.circleMarker([${geoData.points.d.lat}, ${geoData.points.d.lng}], { radius: 8, color: 'white', fillColor: '#ffb800', fillOpacity: 1 }).addTo(map);
-          
-          ${sugerencias.map(ev => `L.circleMarker([${ev.lat}, ${ev.lng}], { radius: 6, color: '#d4af37', fillColor: '#fbbf24', fillOpacity: 0.7, weight: 2 }).bindPopup('<b>${ev.name}</b><br>${ev.ciudad}').addTo(map);`).join('\n          ')}
-          
-          map.fitBounds(L.geoJSON(${JSON.stringify(geoData.buffer)}).getBounds(), { padding: [30, 30] });
+            let bounds = L.latLngBounds();
+            
+            const o = [${geoData.points.o.lat}, ${geoData.points.o.lng}];
+            const d = [${geoData.points.d.lat}, ${geoData.points.d.lng}];
+            
+            L.circleMarker(o, { 
+              radius: 10, 
+              color: 'white', 
+              fillColor: '#10b981', 
+              fillOpacity: 1,
+              weight: 3
+            }).bindPopup('<b>Origen</b><br>${origen}').addTo(map);
+            
+            L.circleMarker(d, { 
+              radius: 10, 
+              color: 'white', 
+              fillColor: '#ffb800', 
+              fillOpacity: 1,
+              weight: 3
+            }).bindPopup('<b>Destino</b><br>${destino}').addTo(map);
+            
+            bounds.extend(o);
+            bounds.extend(d);
+
+            const bufferCoords = ${JSON.stringify(bufferCoords)};
+            if (bufferCoords && Array.isArray(bufferCoords)) {
+              let bufferGeoJSON;
+              if (bufferCoords[0] && Array.isArray(bufferCoords[0][0]) && Array.isArray(bufferCoords[0][0][0])) {
+                bufferGeoJSON = {
+                  type: 'Feature',
+                  geometry: {
+                    type: 'MultiPolygon',
+                    coordinates: bufferCoords
+                  }
+                };
+              } else if (bufferCoords[0] && Array.isArray(bufferCoords[0][0])) {
+                bufferGeoJSON = {
+                  type: 'Feature',
+                  geometry: {
+                    type: 'Polygon',
+                    coordinates: bufferCoords
+                  }
+                };
+              }
+              if (bufferGeoJSON) {
+                const bufferLayer = L.geoJSON(bufferGeoJSON, { 
+                  style: bufferStyle 
+                }).addTo(map);
+                bounds.extend(bufferLayer.getBounds());
+              }
+            }
+
+            const routeCoords = ${JSON.stringify(routeCoords)};
+            if (routeCoords && Array.isArray(routeCoords)) {
+              let routeGeoJSON;
+              if (routeCoords[0] && Array.isArray(routeCoords[0])) {
+                routeGeoJSON = {
+                  type: 'Feature',
+                  geometry: {
+                    type: 'LineString',
+                    coordinates: routeCoords
+                  }
+                };
+              }
+              if (routeGeoJSON) {
+                const routeLayer = L.geoJSON(routeGeoJSON, { 
+                  style: routeStyle 
+                }).addTo(map);
+                bounds.extend(routeLayer.getBounds());
+              }
+            }
+
+            ${sugerencias.map(ev => `
+              L.circleMarker([${ev.lat}, ${ev.lng}], { 
+                radius: 7, 
+                color: '#d4af37', 
+                fillColor: '#fbbf24', 
+                fillOpacity: 0.8, 
+                weight: 2 
+              }).bindPopup('<b>${String(ev.name || '').replace(/'/g, "\\'")}</b><br>📍 ${ev.ciudad}').addTo(map);
+              bounds.extend([${ev.lat}, ${ev.lng}]);
+            `).join('\n')}
+
+            if (bounds.isValid()) {
+              map.fitBounds(bounds, { padding: [40, 40] });
+            } else {
+              const center = [(o[0] + d[0]) / 2, (o[1] + d[1]) / 2];
+              map.setView(center, 10);
+            }
+
+            setTimeout(() => map.invalidateSize(true), 200);
+          } catch (error) {
+            document.body.innerHTML = '<div style="color:white;padding:20px;">Error: ' + error.message + '</div>';
+          }
         </script>
       </body>
       </html>
     `;
-  }, [geoData, sugerencias]);
+  }, [geoData, sugerencias, origen, destino]);
 
   const staticMapUrl = geoData ? `https://static-maps.yandex.ru/1.x/?lang=es_ES&l=map&size=600,300&bbox=${geoData.points.o.lng},${geoData.points.o.lat}~${geoData.points.d.lng},${geoData.points.d.lat}&pt=${geoData.points.o.lng},${geoData.points.o.lat},pm2rdl~${geoData.points.d.lng},${geoData.points.d.lat},pm2grl` : null;
 
@@ -527,7 +598,13 @@ export default function PlanViaje({ route, navigation }) {
 
         {geoData && (
           <View style={styles.mapContainer}>
-            <WebView originWhitelist={['*']} source={{ html: mapHtml }} style={{ flex: 1 }} scrollEnabled={false} />
+            <WebView
+              key={geoData ? JSON.stringify(geoData.points) : 'map'}
+              originWhitelist={['*']}
+              source={{ html: mapHtml }}
+              style={{ flex: 1 }}
+              scrollEnabled={false}
+            />
           </View>
         )}
 
