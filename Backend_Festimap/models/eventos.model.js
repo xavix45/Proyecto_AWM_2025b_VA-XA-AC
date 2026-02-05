@@ -49,7 +49,31 @@ const EventoSchema = new mongoose.Schema({
   asistencias: { type: Number, default: 0 }
 }, { timestamps: true });
 
-// CRÍTICO PARA EXPOSICIÓN: Índice espacial para que el servidor calcule distancias
+// ====================================================================
+// ÍNDICE GEOESPACIAL: Permite buscar eventos por ubicación GPS
+// ====================================================================
+// "2dsphere" = MongoDB tratará las coordenadas como puntos en una esfera (la Tierra)
+// 
+// EJEMPLO DE USO en eventos.controller.js:
+//   Evento.find({ 
+//     location: { 
+//       $near: { 
+//         $geometry: { type: "Point", coordinates: [-78.4678, -0.1807] }, // Quito
+//         $maxDistance: 15000 // 15km en metros
+//       } 
+//     } 
+//   })
+//
+// Sin este índice, MongoDB NO podría:
+//   ❌ Calcular distancias entre eventos y el usuario
+//   ❌ Encontrar eventos dentro de un radio
+//   ❌ Ordenar por cercanía
+//
+// Con este índice, MongoDB SÍ puede:
+//   ✅ Responder "¿qué eventos hay cerca de mí?"
+//   ✅ Calcular distancias reales en kilómetros
+//   ✅ Filtrar por radio (5km, 10km, 50km, etc.)
+// ====================================================================
 EventoSchema.index({ location: "2dsphere" });
 
 module.exports = mongoose.model('Evento', EventoSchema);

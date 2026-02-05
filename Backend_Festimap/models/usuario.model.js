@@ -26,7 +26,7 @@ const UsuarioSchema = new mongoose.Schema({
   },
   tipoViajero: { 
     type: String, 
-    enum: ['turista', 'estudiante', 'administrador'], 
+    enum: ['turista', 'estudiante'], 
     default: 'turista' 
   },
   rol: { 
@@ -44,5 +44,4 @@ const UsuarioSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
-// El tercer parámetro 'usuarios' es CLAVE: obliga a conectar con la colección de tu captura
 module.exports = mongoose.model('Usuario', UsuarioSchema, 'usuarios');
