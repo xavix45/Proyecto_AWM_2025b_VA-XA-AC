@@ -16,6 +16,7 @@ app.use(express.urlencoded({ extended: true }));
 require("./routes/evento.routes")(app);
 require("./routes/user.routes")(app);
 require("./routes/planes.routes")(app);
+require("./routes/rutas.routes")(app);
 
 // Manejo de errores (Siempre al final)
 const { errorHandler } = require("./middlewares/errorHandler");
