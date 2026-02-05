@@ -1,3 +1,4 @@
+// === SECCIÓN 1: IMPORTS (herramientas y librerías) ===
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { 
   View, 
@@ -18,13 +19,19 @@ import {
   PanResponder,
   Modal 
 } from 'react-native';
+// WebView: para renderizar el mapa Leaflet dentro de la app
 import { WebView } from 'react-native-webview'; 
+// PDF y compartir
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
+// GPS y permisos de ubicación
 import * as Location from 'expo-location';
+// HTTP para llamar al backend
 import axios from 'axios';
+// Contextos globales (usuario y agenda)
 import { useUser } from '../context/UserContext.jsx';
 import { useAgenda } from '../context/AgendaContext.jsx';
+// Endpoints del backend
 import { ENDPOINTS } from '../config/api.js';
 
 const { width, height } = Dimensions.get('window');
@@ -49,12 +56,18 @@ const COLORS = {
   sand: '#fdfcf0'
 };
 
+// === SECCIÓN 2: COMPONENTE PRINCIPAL ===
 export default function PlanViaje({ route, navigation }) {
-  // HOOKS DE CONTEXTO
+  // HOOKS DE CONTEXTO (datos globales)
+  // useAgenda = lógica de la agenda del usuario (agregarEvento, guardarPlan)
   const { agregarEvento, guardarPlan, planes } = useAgenda();
   const { user, token } = useUser();
 
-  // ESTADOS DE CONFIGURACIÓN DE VIAJE
+  // ==========================================================
+  // SECCIÓN: FORMULARIO PRINCIPAL (inputs del usuario)
+  // ==========================================================
+
+  // ESTADOS DE CONFIGURACIÓN DE VIAJE (inputs del usuario)
   const [origen, setOrigen] = useState("Quito");
   const [destino, setDestino] = useState("Otavalo");
   const [fechaInicio, setFechaInicio] = useState("2026-01-02");
@@ -62,7 +75,7 @@ export default function PlanViaje({ route, navigation }) {
   const [radio, setRadio] = useState(15); 
   const [activeDay, setActiveDay] = useState(0);
 
-  // ESTADOS DE DATOS Y CARGA
+  // ESTADOS DE DATOS Y CARGA (datos del backend + UI)
   const [loading, setLoading] = useState(false);
   const [loadingGPS, setLoadingGPS] = useState(false);
   const [eventosBase, setEventosBase] = useState([]);
@@ -74,17 +87,18 @@ export default function PlanViaje({ route, navigation }) {
   const [nombrePlan, setNombrePlan] = useState("");
   const [showSaveModal, setShowSaveModal] = useState(false);
 
-  // REFS Y ANIMACIONES
+  // REFS Y ANIMACIONES (notificaciones y slider)
   const animNotif = useRef(new Animated.Value(-120)).current;
   const sliderWidth = width - 100;
 
   /**
-   * EFECTO 1: Carga de Inventario desde MongoDB
-   * Recupera todos los eventos culturales para el filtrado espacial.
+   * EFECTO 1 (BACKEND): Cargar eventos desde MongoDB
+   * Se consulta GET /api/eventos y se filtra solo 'approved'.
    */
   useEffect(() => {
     const fetchEventos = async () => {
       try {
+        // BACKEND: GET /api/eventos (lista general de eventos)
         const res = await axios.get(ENDPOINTS.eventos);
         // FILTRAR: Solo eventos aprobados
         const eventosAprobados = res.data.filter(e => e.status === 'approved');
@@ -98,12 +112,13 @@ export default function PlanViaje({ route, navigation }) {
   }, []);
 
   /**
-   * EFECTO 2: Carga de Plan Existente (Si viene de Agenda)
+   * EFECTO 2: Cargar un plan existente (si se abre desde Agenda)
    */
   useEffect(() => {
     if (route.params?.planId && planes.length > 0) {
       const planEncontrado = planes.find(p => p._id === route.params.planId);
       if (planEncontrado) {
+        // Cargar datos del plan existente en el formulario
         cargarPlanAFormulario(planEncontrado);
       }
     }
@@ -177,8 +192,11 @@ export default function PlanViaje({ route, navigation }) {
   };
 
   /**
-   * MOTOR DE UBICACIÓN EXPO-LOCATION (ROBUSTO Y DISCIPLINADO)
-   * Dispara el permiso nativo del celular y DEPENDE de los ajustes del sistema.
+   * MOTOR GPS (PERMISOS + UBICACIÓN)
+   * 1) Verifica si GPS está activo
+   * 2) Pide permiso al sistema
+   * 3) Obtiene lat/lng
+   * 4) Envía lat/lng al backend (POST /api/rutas/reverse)
    */
   const handleUseCurrentLocation = async () => {
     setLoadingGPS(true);
@@ -209,6 +227,7 @@ export default function PlanViaje({ route, navigation }) {
       const { latitude, longitude } = location.coords;
       
       // 4. Obtener nombre de ciudad (Geocoding Inverso)
+      // BACKEND: POST /api/rutas/reverse  (lat/lng -> ciudad)
       const res = await axios.post(ENDPOINTS.rutasReverse, { lat: latitude, lng: longitude }, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -225,7 +244,9 @@ export default function PlanViaje({ route, navigation }) {
   };
 
   /**
-   * MOTOR DE GENERACIÓN DE RUTA (BACKEND)
+   * MOTOR DE RUTA (BACKEND)
+   * Envía origen/destino/fecha/días/radio a POST /api/rutas/generar
+   * Backend devuelve geoData + sugerencias
    */
   const handleGenerarRuta = async () => {
     const start = parseLocalDate(fechaInicio);
@@ -235,6 +256,8 @@ export default function PlanViaje({ route, navigation }) {
     setSugerencias([]); 
 
     try {
+      // BACKEND: POST /api/rutas/generar
+      // Envía datos del plan y recibe ruta + buffer + eventos sugeridos
       const res = await axios.post(ENDPOINTS.rutasGenerar, {
         origen,
         destino,
@@ -263,7 +286,9 @@ export default function PlanViaje({ route, navigation }) {
     }
   };
 
+  // Agrega un evento al día correcto del itinerario
   const addStop = (ev) => {
+    // Determina en qué día cae el evento según fechaInicio
     const start = parseLocalDate(fechaInicio);
     const evDate = parseLocalDate(ev.fecha);
     const diffTime = evDate.getTime() - start.getTime();
@@ -280,12 +305,14 @@ export default function PlanViaje({ route, navigation }) {
         return;
     }
     
+    // Agrega el evento al día correspondiente
     setItinerario({ ...itinerario, [dayIndex]: [...currentDayStops, ev] });
     agregarEvento(ev);
     setActiveDay(dayIndex);
     triggerNotif(`Agregado al Día ${dayIndex + 1} ✅`, "success");
   };
 
+  // Guarda el plan en MongoDB (POST /api/planes)
   const handleGuardarPlanFinal = async () => {
     if (!nombrePlan.trim()) return Alert.alert("Atención", "Escribe un nombre para el plan.");
     
@@ -294,6 +321,7 @@ export default function PlanViaje({ route, navigation }) {
         itinerarioIds[day] = itinerario[day].map(ev => ev._id || ev.id);
     });
 
+    // BACKEND: POST /api/planes (guarda el plan del usuario)
     const success = await guardarPlan({
       nombre: nombrePlan,
       origen, destino, fechaInicio, dias: parseInt(dias),
@@ -322,7 +350,8 @@ export default function PlanViaje({ route, navigation }) {
   };
 
   /**
-   * GENERADOR DE PDF PREMIUM
+   * GENERADOR DE PDF
+   * Convierte el plan en un PDF y lo comparte.
    */
   const handleDescargarPDF = async () => {
     const html = `
@@ -376,7 +405,9 @@ export default function PlanViaje({ route, navigation }) {
     } catch (e) { Alert.alert("Error PDF", "No se pudo generar el documento."); }
   };
 
+  // MAPA (Leaflet en WebView) dibuja ruta + buffer + puntos
   const mapHtml = useMemo(() => {
+    // Este HTML se renderiza en un WebView (Leaflet)
     if (!geoData) return '<html><body style="background:#0f172a"></body></html>';
 
     const routeCoords = geoData.route?.coordinates || geoData.route?.geometry?.coordinates;
@@ -399,6 +430,7 @@ export default function PlanViaje({ route, navigation }) {
         <div id="map"></div>
         <script>
           try {
+            // Crear mapa base
             const map = L.map('map', { zoomControl: false });
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
               attribution: '© OpenStreetMap'
@@ -422,6 +454,7 @@ export default function PlanViaje({ route, navigation }) {
 
             let bounds = L.latLngBounds();
             
+            // Origen y destino (puntos principales)
             const o = [${geoData.points.o.lat}, ${geoData.points.o.lng}];
             const d = [${geoData.points.d.lat}, ${geoData.points.d.lng}];
             
@@ -444,6 +477,7 @@ export default function PlanViaje({ route, navigation }) {
             bounds.extend(o);
             bounds.extend(d);
 
+            // BUFFER: área de búsqueda alrededor de la ruta
             const bufferCoords = ${JSON.stringify(bufferCoords)};
             if (bufferCoords && Array.isArray(bufferCoords)) {
               let bufferGeoJSON;
@@ -472,6 +506,7 @@ export default function PlanViaje({ route, navigation }) {
               }
             }
 
+            // RUTA: línea principal entre origen y destino
             const routeCoords = ${JSON.stringify(routeCoords)};
             if (routeCoords && Array.isArray(routeCoords)) {
               let routeGeoJSON;

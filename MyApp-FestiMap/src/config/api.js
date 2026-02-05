@@ -1,7 +1,8 @@
 // src/config/api.js
 import { GROQ_API_KEY as GROQ_KEY, GEMINI_API_KEY as GEMINI_KEY, YOUR_COMPUTER_IP as IP } from '@env';
-
+// es la dirección IP de tu computadora donde corre el backend
 export const YOUR_COMPUTER_IP = IP || '172.29.45.11'; 
+// el a direccion IP de tu computadora donde corre el backend
 export const API_BASE_URL = `http://${YOUR_COMPUTER_IP}:8000/api`; 
 
 export const ENDPOINTS = {

@@ -1,0 +1,112 @@
+{\rtf1\ansi\deff0
+{\fonttbl{\f0 Arial;}}
+\fs22
+\b DOCUMENTACION DE API – FESTIMAP\b0\par
+\par
+\b Base URL:\b0  http://<TU_IP>:8000/api\par
+\b Auth:\b0  Authorization: Bearer <TOKEN>\par
+\par
+\b 1) AUTENTICACION\b0\par
+\par
+\b POST /login\b0\par
+Descripcion: Inicia sesion\par
+Auth: No\par
+Body: email (string), password (string)\par
+Respuesta (200): token (string), user (objeto)\par
+\par
+\b POST /register\b0\par
+Descripcion: Registro de usuario\par
+Auth: No\par
+Body: nombre, email, password, tipoViajero (opcional)\par
+Respuesta (201): user (objeto creado)\par
+\par
+\b 2) EVENTOS\b0\par
+\par
+\b GET /eventos\b0\par
+Descripcion: Lista eventos\par
+Auth: No\par
+Respuesta (200): array de eventos\par
+\par
+\b GET /eventos/:id\b0\par
+Descripcion: Evento por ID\par
+Auth: No\par
+Respuesta (200): objeto evento\par
+\par
+\b POST /eventos (ADMIN)\b0\par
+Descripcion: Crear evento\par
+Auth: Si (admin)\par
+Body: datos completos del evento\par
+Respuesta (201): evento creado\par
+\par
+\b PUT /eventos/:id (ADMIN)\b0\par
+Descripcion: Actualizar evento\par
+Auth: Si (admin)\par
+Body: campos a actualizar\par
+Respuesta (200): evento actualizado\par
+\par
+\b DELETE /eventos/:id (ADMIN)\b0\par
+Descripcion: Eliminar evento\par
+Auth: Si (admin)\par
+Respuesta (200): mensaje\par
+\par
+\b POST /eventos/:id/comentarios\b0\par
+Descripcion: Agregar comentario\par
+Auth: Si (usuario)\par
+Body: usuario, rating, comentario\par
+Respuesta (201): comentario guardado\par
+\par
+\b 3) PLANES DE VIAJE\b0\par
+\par
+\b POST /planes\b0\par
+Descripcion: Guardar plan\par
+Auth: Si (usuario)\par
+Body: usuarioId, nombrePlan, origen, destino, fechaInicio, dias, radio, itinerario, eventosIds, geoData\par
+Respuesta (201): plan creado (con eventos poblados)\par
+\par
+\b GET /planes/usuario/:usuarioId\b0\par
+Descripcion: Listar planes del usuario\par
+Auth: Si (usuario)\par
+Respuesta (200): array de planes\par
+\par
+\b GET /planes/:id\b0\par
+Descripcion: Plan por ID\par
+Auth: Si (usuario)\par
+Respuesta (200): plan completo\par
+\par
+\b DELETE /planes/:id\b0\par
+Descripcion: Eliminar plan\par
+Auth: Si (usuario)\par
+Respuesta (200): mensaje\par
+\par
+\b 4) RUTAS (BACKEND)\b0\par
+\par
+\b POST /rutas/geocode\b0\par
+Descripcion: Ciudad → coordenadas\par
+Auth: Si (usuario)\par
+Body: { query: "Quito" }\par
+Respuesta (200): { lat, lng }\par
+\par
+\b POST /rutas/reverse\b0\par
+Descripcion: Coordenadas → ciudad\par
+Auth: Si (usuario)\par
+Body: { lat, lng }\par
+Respuesta (200): { city }\par
+\par
+\b POST /rutas/generar\b0\par
+Descripcion: Generar ruta + buffer + eventos\par
+Auth: Si (usuario)\par
+Body: { origen, destino, fechaInicio, dias, radio }\par
+Respuesta (200): geoData.route, geoData.buffer, geoData.points, sugerencias\par
+\par
+\b 5) ADMIN\b0\par
+\par
+\b GET /admin/stats/global (ADMIN)\b0\par
+Descripcion: Metricas globales\par
+Auth: Si (admin)\par
+Respuesta (200): estadisticas agregadas\par
+\par
+\b GET /admin/logs (ADMIN)\b0\par
+Descripcion: Ultimos logs\par
+Auth: Si (admin)\par
+Respuesta (200): array de logs\par
+}

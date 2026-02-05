@@ -55,6 +55,7 @@ export default function AdminForm({ route, navigation }) {
   const [loading, setLoading] = useState(false);
   const [loadingGPS, setLoadingGPS] = useState(false); 
   
+  // FORM PRINCIPAL: datos que se enviarán al backend (POST/PUT eventos)
   const [form, setForm] = useState({
     name: '',
     descripcion: '',
@@ -86,6 +87,7 @@ export default function AdminForm({ route, navigation }) {
 
   useEffect(() => {
     if (editData) {
+      // MODO EDICIÓN: cargar datos del evento en el formulario
       setForm({
         ...editData,
         lat: editData.lat?.toString() || '',
@@ -106,7 +108,8 @@ export default function AdminForm({ route, navigation }) {
   };
 
   /**
-   * CAPTURA GPS CON EXPO-LOCATION (Funciona en emulador y dispositivos reales)
+   * CAPTURA GPS (EXPO-LOCATION)
+   * Sirve para obtener lat/lng y enviarlo en el payload del evento.
    */
   const handleAutoLocation = async () => {
     setLoadingGPS(true);
@@ -165,6 +168,10 @@ export default function AdminForm({ route, navigation }) {
     }
   };
 
+  // GUARDAR EVENTO (BACKEND):
+  // - Si hay editData => PUT /api/eventos/:id
+  // - Si NO hay editData => POST /api/eventos
+  // Requiere token de admin en Authorization
   const handleSave = async () => {
     if (!form.name || !form.ciudad || !form.lat || !form.lng || !form.fecha) {
       return Alert.alert("⚠️ Campos Críticos", "Nombre, Ciudad, Fecha y Coordenadas GPS son obligatorios.");
@@ -176,6 +183,7 @@ export default function AdminForm({ route, navigation }) {
 
     setLoading(true);
     try {
+      // PAYLOAD que se envía al backend
       const payload = {
         ...form,
         lat: parseFloat(form.lat),
@@ -186,6 +194,7 @@ export default function AdminForm({ route, navigation }) {
         comentarios: editData?.comentarios || []
       };
 
+      // HEADERS con token (admin)
       const config = {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -194,10 +203,12 @@ export default function AdminForm({ route, navigation }) {
       };
 
       if (editData) {
+        // BACKEND: actualizar evento existente
         const targetId = editData._id || editData.id;
         await axios.put(`${ENDPOINTS.eventos}/${targetId}`, payload, config);
         Alert.alert("✅ Actualizado", "Registro sincronizado en MongoDB.");
       } else {
+        // BACKEND: crear evento nuevo
         await axios.post(ENDPOINTS.eventos, payload, config);
         Alert.alert("✅ Publicado", "Nuevo registro cultural añadido.");
       }
